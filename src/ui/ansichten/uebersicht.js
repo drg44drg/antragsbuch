@@ -33,7 +33,7 @@
           return h('button.hinweis.' + hw.art, { type: 'button', onclick: function () { App.zeige(hw.ziel, hw.ziel === 'abgleich' ? { reiter: hw.filter } : { spezial: hw.filter }); } }, hw.text);
         }))));
       var titel = mon == null ? 'im Jahr ' + p.jahr : 'im ' + U.MONATE[mon];
-      var verlauf = function (f) { return kz.monate.map(function (m) { return m[f]; }); };
+      var verlauf = function (f) { var w = kz.monate.map(function (m) { return m[f]; }); while (w.length > 2 && !w[w.length - 1]) w.pop(); return w; };
       el.appendChild(h('div.raster.r-6', null,
         kachel('Anträge ' + titel, k.antraege, ganz, mon == null ? 'Ø ' + U.fmtZahl(kz.schnitt.antraege, 1) + ' je Monat' : 'Jahr: ' + kz.jahr.antraege, { akzent: true, i: 0, funke: mon == null ? verlauf('antraege') : null, klick: function () { App.zeige('antraege', { monat: mon == null ? '' : String(mon), status: '', spezial: '' }); } }),
         kachel('Beitrag brutto', k.brutto, euro0, 'netto ' + U.fmtEuro(k.netto) + (mon == null ? ' · Ø ' + U.fmtEuro0(kz.schnitt.brutto) : ''), { einheit: '€', i: 1 }),

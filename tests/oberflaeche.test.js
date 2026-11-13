@@ -1,0 +1,158 @@
+/* Prüft die gebündelte antragsbuch.html im echten Browser (wird übersprungen, wenn Playwright fehlt). */
+const test = require('node:test'), assert = require('node:assert/strict'), fs = require('fs'), path = require('path'), os = require('os');
+let chromium = null;
+try { chromium = require('playwright').chromium; } catch (e) { /* kein Playwright */ }
+const HTML = path.join(__dirname, '..', 'antragsbuch.html');
+const { erzeuge, KOPF, zeile } = require('../tools/testdaten.js');
+
+test('antragsbuch.html: eine Datei, keine externen Adressen, Netzwerk per CSP gesperrt', () => {
+  const html = fs.readFileSync(HTML, 'utf8');
+  assert.match(html, /Content-Security-Policy" content="default-src 'none'[^"]*connect-src 'none'/);
+  const ohne = html.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '');
+  assert.doesNotMatch(ohne, /https?:\/\//, 'keine URL im Bündel');
+  assert.doesNotMatch(ohne, /<script[^>]+src=|<link[^>]+href=|<img[^>]+src=|@import/i, 'keine nachgeladenen Dateien');
+  assert.doesNotMatch(ohne, /[^L]url\((?!#)/, 'kein CSS-url() auf fremde Dateien');
+  assert.doesNotMatch(ohne, /\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|EventSource|importScripts/, 'keine Netzwerk-Aufrufe');
+});
+
+test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installiert', timeout: 180000 }, async (t) => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'antragsbuch-'));
+  const d = erzeuge();
+  for (const [n, b] of Object.entries(d.dateien)) fs.writeFileSync(path.join(tmp, n), b);
+  const gross = [KOPF.join(';')];
+  for (let i = 0; i < 52000; i++) gross.push(zeile({ vnr: String(100000 + (i % 30000)), name: 'MUSTER, ANNA', tarif: 'T' + (i % 40), mbd: (i % 97) + 0.5, bdat: '2026-0' + (1 + i % 9) + '-15',
+    art: i % 20 ? 'Hierarchie' : 'Abschluss', beteil: '9001' + (10 + i % 30) + ' (Geschrieben, als Bestandsinhaber)' }).join(';'));
+  fs.writeFileSync(path.join(tmp, 'gross.csv'), Buffer.from(gross.join('\r\n'), 'latin1'));
+
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 768 }, locale: 'de-DE', acceptDownloads: true });
+  await ctx.addInitScript(() => { delete window.showSaveFilePicker; delete window.showOpenFilePicker; delete window.showDirectoryPicker; });
+  const page = await ctx.newPage();
+  const fehler = [], anfragen = [];
+  page.on('pageerror', (e) => fehler.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') fehler.push(m.text()); });
+  page.on('request', (r) => anfragen.push(r.url()));
+  const zahl = async (sel) => page.locator(sel).count();
+  const nav = (name) => page.click(`#nav button:has-text("${name}")`);
+  const einlesen = (datei) => page.setInputFiles('#schalter input[type=file]', path.join(tmp, datei));
+  try {
+    await page.goto('file://' + HTML);
+    await t.test('Start: Fallback-Hinweis ohne File System Access API', async () => {
+      await page.waitForSelector('text=Neues Projekt');
+      assert.equal(await zahl('text=kann nicht direkt in Dateien speichern'), 1);
+    });
+    await t.test('Neues Projekt, Antrag per Tastatur, Pflichtfelder, Dublette, Suche', async () => {
+      await page.click('button.wahl:has-text("Neues Projekt")');
+      await page.waitForSelector('h1:has-text("Einstellungen")');
+      await page.fill('label.feld:has-text("Vermittlernummer") input', '900999');
+      await page.keyboard.press('Tab');
+      await nav('Anträge');
+      await page.keyboard.press('n');
+      await page.waitForSelector('dialog[open]');
+      await page.keyboard.type('Muster'); await page.keyboard.press('Enter');
+      assert.match(await page.textContent('dialog .meldung.krit'), /Vorname.*fehlt[\s\S]*Tarif fehlt[\s\S]*Beitrag fehlt/);
+      assert.ok(await zahl('dialog input.fehler') >= 3);
+      await page.fill('dialog input[data-feld="vn.vorname"]', 'Anna');
+      await page.fill('dialog .pos-zeile input[placeholder="Tarif"]', 'A107');
+      await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '123,45');
+      assert.match(await page.textContent('dialog .leiste .klein.muted'), /erwartete Provision\s*678,98 €/);
+      await page.keyboard.press('Control+Enter');               // speichern & nächster
+      await page.waitForSelector('dialog[open] h2:has-text("Neuer Antrag")');
+      await page.fill('dialog input[data-feld="vn.name"]', 'Muster'); await page.fill('dialog input[data-feld="vn.vorname"]', 'Anna');
+      await page.fill('dialog .pos-zeile input[placeholder="Tarif"]', 'A107'); await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '123,45');
+      await page.keyboard.press('Enter');
+      assert.match(await page.textContent('dialog .meldung.warn'), /Mögliche Dublette/);
+      await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '-20');   // negativer Beitrag erlaubt
+      await page.keyboard.press('Enter');
+      await page.waitForSelector('dialog[open]', { state: 'detached' });
+      assert.equal(await zahl('.vt-zeile'), 2);
+      await page.fill('.suche input', 'muster 123,45');
+      assert.equal(await zahl('.vt-zeile'), 1);
+      await page.fill('.suche input', 'gibtsnicht');
+      assert.equal(await zahl('.vt-zeile'), 0);
+      await page.fill('.suche input', '');
+      assert.match(await page.textContent('#speichertext'), /Im Browser gesichert um \d\d:\d\d|Speichert/);
+    });
+    await t.test('Neustart: Stand wird aus dem Browser-Spiegel wiederhergestellt', async () => {
+      await page.waitForFunction(() => /gesichert um/.test(document.getElementById('speichertext').textContent));
+      await page.reload();
+      await page.click('button.wahl:has-text("Weiterarbeiten")');
+      await nav('Anträge');
+      assert.equal(await zahl('.vt-zeile'), 2);
+    });
+    await t.test('Beispielprojekt öffnen (Upload), Abrechnungen einlesen, fünf Listen', async () => {
+      await einlesen('beispielprojekt.antragsbuch.json');
+      await page.click('dialog button:has-text("Projekt öffnen")');
+      await page.waitForSelector('h1:has-text("Übersicht")');
+      for (const f of ['abrechnung_2026_01.csv', 'abrechnung_2026_01-02.csv', 'abrechnung_2026_01-03.csv']) {
+        await einlesen(f);
+        await page.waitForSelector(`#untertitel:has-text("${f}")`);
+      }
+      const reiter = await page.$$eval('.reiter button', (bs) => bs.map((b) => b.textContent));
+      assert.equal(reiter[0], 'Gleich8'); assert.equal(reiter[1], 'Abweichung2'); assert.equal(reiter[3], 'Neu ohne Antrag5'); assert.equal(reiter[4], 'Storno2');
+      assert.match(await page.textContent('.ablage'), /204 Zeilen.*67 neu/);
+      // Vorschlag bestätigen
+      await page.click('.reiter button:has-text("Offen")');
+      await page.click('button:has-text("Bestätigen")');
+      assert.equal((await page.$$eval('.reiter button', (bs) => bs.map((b) => b.textContent)))[0], 'Gleich9');
+      // Buchung abhaken und als Antrag übernehmen
+      await page.click('.reiter button:has-text("Neu ohne Antrag")');
+      assert.equal(await zahl('.vt-zeile'), 4);
+      await page.click('.vt-zeile:has-text("PROBE, DIETER") button[title^="Kein Antrag"]');
+      assert.equal(await zahl('.vt-zeile'), 3);
+      await page.click('.vt-zeile:has-text("DEMO, FRITZ") button:has-text("Antrag")');
+      assert.equal((await page.$$eval('.reiter button', (bs) => bs.map((b) => b.textContent)))[0], 'Gleich10');
+      await nav('Übersicht');
+      await page.waitForFunction(() => document.querySelector('.kachel.akzent .wert').textContent.trim() === '18');
+      assert.ok(await zahl('.dia svg') >= 3, 'Diagramme gezeichnet');
+    });
+    await t.test('Veränderungsdienst setzt „Policiert" und trägt die Vertragsnummer ein', async () => {
+      await einlesen('veraenderungsdienst.csv');
+      await page.waitForSelector('h3:has-text("Treffer prüfen")');
+      await page.click('button:has-text("Treffer übernehmen")');
+      await nav('Anträge'); await page.fill('.suche input', 'Vorlage Clara');
+      const z = await page.textContent('.vt-zeile');
+      assert.match(z, /0777001/); assert.match(z, /Policiert/);
+    });
+    await t.test('Monatsscheiben, Team-Ansicht, Management-Umschalter, Dunkelmodus, CSV-Export', async () => {
+      await einlesen('monatsscheiben.xlsx');
+      await page.waitForSelector('h1:has-text("Team")');
+      assert.match(await page.textContent('.kachel.akzent'), /Platz \d[\s\S]*von 7/);
+      await page.click('#schalter button:has-text("Management")');
+      await page.waitForSelector('.adpliste');
+      assert.ok(await zahl('.adp') >= 6);
+      const vorher = await page.textContent('.kachel.akzent .neben');
+      await page.click('.adp:has-text("900101") input');
+      assert.notEqual(await page.textContent('.kachel.akzent .neben'), vorher);
+      await page.click('#schalter button:has-text("Dunkel")');
+      assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
+      assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(11, 10, 18)');
+      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.karte:has-text("Vergleichstabelle") button:has-text("CSV")')]);
+      const csv = fs.readFileSync(await dl.path());
+      assert.deepEqual([...csv.subarray(0, 3)], [0xEF, 0xBB, 0xBF], 'UTF-8 mit BOM');
+      assert.match(csv.toString('utf8'), /ADP;Nummer;Neugeschäft/);
+      await page.click('#schalter button:has-text("ADP")');
+    });
+    await t.test('52.000 Zeilen: Import im Worker, virtuelle Liste bleibt klein', async () => {
+      const t0 = Date.now();
+      await einlesen('gross.csv');
+      await page.waitForSelector('#untertitel:has-text("gross.csv")', { timeout: 60000 });
+      const dauer = Date.now() - t0;
+      assert.match(await page.textContent('.ablage'), /52\.000 Zeilen/);
+      for (const art of ['Hierarchie']) await page.click(`.chip:has-text("${art}")`);
+      await page.click('.reiter button:has-text("Neu ohne Antrag")');
+      const anzahl = +(await page.textContent('.reiter button.aktiv .zahl'));
+      assert.ok(anzahl > 20000, 'viele Bündel: ' + anzahl);
+      assert.ok(await zahl('.vt-zeile') < 60, 'nur sichtbare Zeilen im DOM');
+      await page.evaluate(() => { document.querySelector('.vt-rumpf').scrollTop = 500000; });
+      await page.waitForTimeout(200);
+      assert.ok(await zahl('.vt-zeile') > 5 && await zahl('.vt-zeile') < 60);
+      assert.ok(dauer < 30000, 'Import dauerte ' + dauer + ' ms');
+      t.diagnostic('Import 52.000 Zeilen im Browser: ' + dauer + ' ms');
+    });
+    await t.test('keine Fehler, keine Netzwerkzugriffe', async () => {
+      assert.deepEqual(fehler, []);
+      assert.deepEqual(anfragen.filter((u) => !/^(file|blob|data):/.test(u)), []);
+    });
+  } finally { await browser.close(); fs.rmSync(tmp, { recursive: true, force: true }); }
+});
