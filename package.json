@@ -1,0 +1,12 @@
+{
+  "name": "antragsbuch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Antragsbuch 2026 – Offline-Web-App in einer HTML-Datei",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node build.js",
+    "testdaten": "node tools/testdaten.js"
+  },
+  "license": "UNLICENSED"
+}

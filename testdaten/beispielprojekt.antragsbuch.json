@@ -1,0 +1,1071 @@
+{
+ "format": "antragsbuch",
+ "schema": 1,
+ "projektId": "beispielprojekt",
+ "jahr": 2026,
+ "erstellt": "2026-11-13T22:03:25.028Z",
+ "geaendert": "2026-11-13T22:03:25.028Z",
+ "einstellungen": {
+  "vermittlernummer": "900999",
+  "name": "Beispiel-ADP",
+  "toleranzBeitrag": 0.05,
+  "toleranzProvision": 0.5,
+  "pruefeProvision": true,
+  "offenTage": 60,
+  "stornoSchwelle": 90,
+  "provisionsarten": [
+   "Abschluss",
+   "Erhöhung",
+   "Manuell",
+   "Bestand"
+  ]
+ },
+ "regeln": {
+  "voll|neu": {
+   "art": "faktor",
+   "wert": 5.5
+  },
+  "voll|mehr": {
+   "art": "faktor",
+   "wert": 5.5
+  },
+  "voll|minder": {
+   "art": "faktor",
+   "wert": 5.5
+  },
+  "voll|umstellung": {
+   "art": "keine",
+   "wert": 0
+  },
+  "voll|dynamik": {
+   "art": "faktor",
+   "wert": 5.5
+  },
+  "voll|storno": {
+   "art": "faktor",
+   "wert": 5.5
+  },
+  "zusatz|neu": {
+   "art": "faktor",
+   "wert": 4.5
+  },
+  "zusatz|mehr": {
+   "art": "faktor",
+   "wert": 4.5
+  },
+  "zusatz|minder": {
+   "art": "faktor",
+   "wert": 4.5
+  },
+  "zusatz|umstellung": {
+   "art": "keine",
+   "wert": 0
+  },
+  "zusatz|dynamik": {
+   "art": "faktor",
+   "wert": 4.5
+  },
+  "zusatz|storno": {
+   "art": "faktor",
+   "wert": 4.5
+  },
+  "bkv|neu": {
+   "art": "faktor",
+   "wert": 3
+  },
+  "bkv|mehr": {
+   "art": "faktor",
+   "wert": 3
+  },
+  "bkv|minder": {
+   "art": "faktor",
+   "wert": 3
+  },
+  "bkv|umstellung": {
+   "art": "keine",
+   "wert": 0
+  },
+  "bkv|dynamik": {
+   "art": "faktor",
+   "wert": 3
+  },
+  "bkv|storno": {
+   "art": "faktor",
+   "wert": 3
+  },
+  "gruppe|neu": {
+   "art": "faktor",
+   "wert": 2.8
+  },
+  "gruppe|mehr": {
+   "art": "faktor",
+   "wert": 2.8
+  },
+  "gruppe|minder": {
+   "art": "faktor",
+   "wert": 2.8
+  },
+  "gruppe|umstellung": {
+   "art": "keine",
+   "wert": 0
+  },
+  "gruppe|dynamik": {
+   "art": "faktor",
+   "wert": 2.8
+  },
+  "gruppe|storno": {
+   "art": "faktor",
+   "wert": 2.8
+  },
+  "pflege|neu": {
+   "art": "faktor",
+   "wert": 1.5
+  },
+  "pflege|mehr": {
+   "art": "faktor",
+   "wert": 1.5
+  },
+  "pflege|minder": {
+   "art": "faktor",
+   "wert": 1.5
+  },
+  "pflege|umstellung": {
+   "art": "keine",
+   "wert": 0
+  },
+  "pflege|dynamik": {
+   "art": "faktor",
+   "wert": 1.5
+  },
+  "pflege|storno": {
+   "art": "faktor",
+   "wert": 1.5
+  },
+  "leben|neu": {
+   "art": "leben",
+   "wert": 25
+  },
+  "leben|mehr": {
+   "art": "leben",
+   "wert": 25
+  },
+  "leben|minder": {
+   "art": "leben",
+   "wert": 25
+  },
+  "leben|umstellung": {
+   "art": "keine",
+   "wert": 0
+  },
+  "leben|dynamik": {
+   "art": "leben",
+   "wert": 25
+  },
+  "leben|storno": {
+   "art": "leben",
+   "wert": 25
+  },
+  "unfall|neu": {
+   "art": "unfall",
+   "wert": 20
+  },
+  "unfall|mehr": {
+   "art": "unfall",
+   "wert": 20
+  },
+  "unfall|minder": {
+   "art": "unfall",
+   "wert": 20
+  },
+  "unfall|umstellung": {
+   "art": "keine",
+   "wert": 0
+  },
+  "unfall|dynamik": {
+   "art": "unfall",
+   "wert": 20
+  },
+  "unfall|storno": {
+   "art": "unfall",
+   "wert": 20
+  },
+  "gkv|neu": {
+   "art": "stueck",
+   "wert": 50
+  },
+  "gkv|mehr": {
+   "art": "stueck",
+   "wert": 50
+  },
+  "gkv|minder": {
+   "art": "stueck",
+   "wert": 50
+  },
+  "gkv|umstellung": {
+   "art": "keine",
+   "wert": 0
+  },
+  "gkv|dynamik": {
+   "art": "stueck",
+   "wert": 50
+  },
+  "gkv|storno": {
+   "art": "stueck",
+   "wert": 50
+  }
+ },
+ "tarife": [
+  {
+   "name": "A107",
+   "gruppe": "",
+   "quelle": "manuell"
+  },
+  {
+   "name": "A109",
+   "gruppe": "",
+   "quelle": "manuell"
+  },
+  {
+   "name": "BE560",
+   "gruppe": "",
+   "quelle": "manuell"
+  },
+  {
+   "name": "S101",
+   "gruppe": "",
+   "quelle": "manuell"
+  },
+  {
+   "name": "ZP7",
+   "gruppe": "",
+   "quelle": "manuell"
+  },
+  {
+   "name": "ZP9",
+   "gruppe": "",
+   "quelle": "manuell"
+  }
+ ],
+ "antraege": [
+  {
+   "id": "a-1",
+   "eingang": "2026-01-05",
+   "vn": {
+    "name": "Muster",
+    "vorname": "Anna"
+   },
+   "bereich": "voll",
+   "vorgang": "neu",
+   "vertragsnummer": "12345",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-50bmsx62",
+     "person": "",
+     "personennummer": "1",
+     "tarif": "A107",
+     "beitrag": 250.5,
+     "bereich": ""
+    },
+    {
+     "id": "mwfiwvzi-vw1mvc7n",
+     "person": "",
+     "personennummer": "1",
+     "tarif": "S101",
+     "beitrag": 90,
+     "bereich": ""
+    },
+    {
+     "id": "mwfiwvzi-q2m2hooj",
+     "person": "Muster, Fritz",
+     "personennummer": "2",
+     "tarif": "A107",
+     "beitrag": 80,
+     "bereich": ""
+    }
+   ],
+   "beginn": "2026-01-01",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-05",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-05",
+     "am": "2026-01-05T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-05T09:00:00.000Z",
+   "geaendert": "2026-01-05T09:00:00.000Z"
+  },
+  {
+   "id": "a-2",
+   "eingang": "2026-01-20",
+   "vn": {
+    "name": "Probe",
+    "vorname": "Clara"
+   },
+   "bereich": "zusatz",
+   "vorgang": "neu",
+   "vertragsnummer": "200200",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-ucb5u1nz",
+     "person": "",
+     "personennummer": "",
+     "tarif": "ZP7",
+     "beitrag": 35,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-20",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-20",
+     "am": "2026-01-20T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-20T09:00:00.000Z",
+   "geaendert": "2026-01-20T09:00:00.000Z"
+  },
+  {
+   "id": "a-3",
+   "eingang": "2026-02-20",
+   "vn": {
+    "name": "Test",
+    "vorname": "Dieter"
+   },
+   "bereich": "bkv",
+   "vorgang": "neu",
+   "vertragsnummer": "250250",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-wlel4515",
+     "person": "",
+     "personennummer": "",
+     "tarif": "AB1F",
+     "beitrag": 40,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "0998001",
+   "firma": "Beispiel GmbH",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-02-20",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-02-20",
+     "am": "2026-02-20T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-02-20T09:00:00.000Z",
+   "geaendert": "2026-02-20T09:00:00.000Z"
+  },
+  {
+   "id": "a-4",
+   "eingang": "2026-01-10",
+   "vn": {
+    "name": "Platzhalter",
+    "vorname": "Anna"
+   },
+   "bereich": "zusatz",
+   "vorgang": "neu",
+   "vertragsnummer": "",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-dvrw1uf0",
+     "person": "",
+     "personennummer": "",
+     "tarif": "ZP9",
+     "beitrag": 22.4,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-10",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-10",
+     "am": "2026-01-10T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-10T09:00:00.000Z",
+   "geaendert": "2026-01-10T09:00:00.000Z"
+  },
+  {
+   "id": "a-5",
+   "eingang": "2026-01-28",
+   "vn": {
+    "name": "Beispiel",
+    "vorname": "Bernd"
+   },
+   "bereich": "voll",
+   "vorgang": "mehr",
+   "vertragsnummer": "",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-wen5vp3n",
+     "person": "",
+     "personennummer": "",
+     "tarif": "BE560",
+     "beitrag": 55.2,
+     "bereich": ""
+    }
+   ],
+   "beginn": "2026-02-01",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-28",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-28",
+     "am": "2026-01-28T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-28T09:00:00.000Z",
+   "geaendert": "2026-01-28T09:00:00.000Z"
+  },
+  {
+   "id": "a-6",
+   "eingang": "2026-01-07",
+   "vn": {
+    "name": "Demo",
+    "vorname": "Eva"
+   },
+   "bereich": "zusatz",
+   "vorgang": "neu",
+   "vertragsnummer": "400400",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-np98kzyu",
+     "person": "",
+     "personennummer": "",
+     "tarif": "ZP9",
+     "beitrag": 48,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-07",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-07",
+     "am": "2026-01-07T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-07T09:00:00.000Z",
+   "geaendert": "2026-01-07T09:00:00.000Z"
+  },
+  {
+   "id": "a-7",
+   "eingang": "2026-01-08",
+   "vn": {
+    "name": "Vorlage",
+    "vorname": "Fritz"
+   },
+   "bereich": "voll",
+   "vorgang": "neu",
+   "vertragsnummer": "500500",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-ezpq6o4f",
+     "person": "",
+     "personennummer": "",
+     "tarif": "A109",
+     "beitrag": 300,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-08",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-08",
+     "am": "2026-01-08T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-08T09:00:00.000Z",
+   "geaendert": "2026-01-08T09:00:00.000Z"
+  },
+  {
+   "id": "a-8",
+   "eingang": "2026-02-02",
+   "vn": {
+    "name": "Platzhalter",
+    "vorname": "Gerda"
+   },
+   "bereich": "voll",
+   "vorgang": "minder",
+   "vertragsnummer": "600600",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-p9tm03oq",
+     "person": "",
+     "personennummer": "",
+     "tarif": "S101",
+     "beitrag": 20,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-02-02",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-02-02",
+     "am": "2026-02-02T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-02-02T09:00:00.000Z",
+   "geaendert": "2026-02-02T09:00:00.000Z"
+  },
+  {
+   "id": "a-9",
+   "eingang": "2026-02-05",
+   "vn": {
+    "name": "Entwurf",
+    "vorname": "Anna"
+   },
+   "bereich": "voll",
+   "vorgang": "umstellung",
+   "vertragsnummer": "610610",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-cw3zto5k",
+     "person": "",
+     "personennummer": "",
+     "tarif": "A103 auf A107",
+     "beitrag": 0,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "Umstellung ohne Provision",
+   "status": "eingereicht",
+   "statusDatum": "2026-02-05",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-02-05",
+     "am": "2026-02-05T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-02-05T09:00:00.000Z",
+   "geaendert": "2026-02-05T09:00:00.000Z"
+  },
+  {
+   "id": "a-10",
+   "eingang": "2026-02-10",
+   "vn": {
+    "name": "Übung",
+    "vorname": "Björn"
+   },
+   "bereich": "gkv",
+   "vorgang": "neu",
+   "vertragsnummer": "",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-i8ctim3d",
+     "person": "",
+     "personennummer": "",
+     "tarif": "mhplus",
+     "beitrag": 0,
+     "bereich": ""
+    },
+    {
+     "id": "mwfiwvzi-j55yldq2",
+     "person": "Übung, Käthe",
+     "personennummer": "",
+     "tarif": "mhplus",
+     "beitrag": 0,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-02-10",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-02-10",
+     "am": "2026-02-10T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-02-10T09:00:00.000Z",
+   "geaendert": "2026-02-10T09:00:00.000Z"
+  },
+  {
+   "id": "a-11",
+   "eingang": "2026-01-03",
+   "vn": {
+    "name": "Entwurf",
+    "vorname": "Jörg"
+   },
+   "bereich": "unfall",
+   "vorgang": "neu",
+   "vertragsnummer": "700700",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-53prtp8f",
+     "person": "",
+     "personennummer": "",
+     "tarif": "UV1",
+     "beitrag": 30,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-03",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-03",
+     "am": "2026-01-03T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-03T09:00:00.000Z",
+   "geaendert": "2026-01-03T09:00:00.000Z"
+  },
+  {
+   "id": "a-12",
+   "eingang": "2026-01-25",
+   "vn": {
+    "name": "Übung",
+    "vorname": "Käthe"
+   },
+   "bereich": "leben",
+   "vorgang": "neu",
+   "vertragsnummer": "800800",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-c668ozto",
+     "person": "",
+     "personennummer": "",
+     "tarif": "RV1",
+     "beitrag": 100,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": 20,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-25",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-25",
+     "am": "2026-01-25T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-25T09:00:00.000Z",
+   "geaendert": "2026-01-25T09:00:00.000Z"
+  },
+  {
+   "id": "a-13",
+   "eingang": "2026-01-06",
+   "vn": {
+    "name": "Größmann",
+    "vorname": "Björn"
+   },
+   "bereich": "voll",
+   "vorgang": "neu",
+   "vertragsnummer": "900900",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-1ltvbbyz",
+     "person": "",
+     "personennummer": "",
+     "tarif": "A107",
+     "beitrag": 100,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-01-06",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-01-06",
+     "am": "2026-01-06T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-01-06T09:00:00.000Z",
+   "geaendert": "2026-01-06T09:00:00.000Z"
+  },
+  {
+   "id": "a-14",
+   "eingang": "2026-02-25",
+   "vn": {
+    "name": "Größmann",
+    "vorname": "Björn"
+   },
+   "bereich": "voll",
+   "vorgang": "mehr",
+   "vertragsnummer": "900900",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-esnddfey",
+     "person": "",
+     "personennummer": "",
+     "tarif": "A107",
+     "beitrag": 25,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-02-25",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-02-25",
+     "am": "2026-02-25T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-02-25T09:00:00.000Z",
+   "geaendert": "2026-02-25T09:00:00.000Z"
+  },
+  {
+   "id": "a-15",
+   "eingang": "2026-02-03",
+   "vn": {
+    "name": "Muster",
+    "vorname": "Clara"
+   },
+   "bereich": "zusatz",
+   "vorgang": "neu",
+   "vertragsnummer": "110110",
+   "positionen": [
+    {
+     "id": "mwfiwvzi-imc6oi4g",
+     "person": "",
+     "personennummer": "",
+     "tarif": "KT",
+     "beitrag": 20,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-02-03",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-02-03",
+     "am": "2026-02-03T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-02-03T09:00:00.000Z",
+   "geaendert": "2026-02-03T09:00:00.000Z"
+  },
+  {
+   "id": "a-16",
+   "eingang": "2026-03-20",
+   "vn": {
+    "name": "Demo",
+    "vorname": "Dieter"
+   },
+   "bereich": "zusatz",
+   "vorgang": "neu",
+   "vertragsnummer": "",
+   "positionen": [
+    {
+     "id": "mwfiwvzk-zs38c6me",
+     "person": "",
+     "personennummer": "",
+     "tarif": "ZP7",
+     "beitrag": 19.9,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "noch frisch – nicht offen",
+   "status": "eingereicht",
+   "statusDatum": "2026-03-20",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-03-20",
+     "am": "2026-03-20T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-03-20T09:00:00.000Z",
+   "geaendert": "2026-03-20T09:00:00.000Z"
+  },
+  {
+   "id": "a-17",
+   "eingang": "2026-03-02",
+   "vn": {
+    "name": "Vorlage",
+    "vorname": "Clara"
+   },
+   "bereich": "voll",
+   "vorgang": "neu",
+   "vertragsnummer": "",
+   "positionen": [
+    {
+     "id": "mwfiwvzk-qeu7svks",
+     "person": "",
+     "personennummer": "",
+     "tarif": "A107",
+     "beitrag": 410,
+     "bereich": ""
+    }
+   ],
+   "beginn": "",
+   "gruppenvertrag": "",
+   "firma": "",
+   "laufzeit": null,
+   "eantrag": false,
+   "bank": {
+    "aktiv": false,
+    "anteil": 50
+   },
+   "bemerkung": "",
+   "status": "eingereicht",
+   "statusDatum": "2026-03-02",
+   "statusManuell": false,
+   "historie": [
+    {
+     "status": "eingereicht",
+     "datum": "2026-03-02",
+     "am": "2026-03-02T09:00:00.000Z",
+     "quelle": "manuell"
+    }
+   ],
+   "provisionManuell": null,
+   "abweichungOk": null,
+   "erstellt": "2026-03-02T09:00:00.000Z",
+   "geaendert": "2026-03-02T09:00:00.000Z"
+  }
+ ],
+ "abrechnung": {
+  "felder": [],
+  "zeilen": []
+ },
+ "importe": [],
+ "importZaehler": 0,
+ "zuordnungen": {},
+ "ignoriert": {},
+ "vdienst": {
+  "zuordnungen": {},
+  "importe": []
+ },
+ "team": null,
+ "sicherungen": []
+}
