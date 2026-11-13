@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' blob:; style-src 'unsafe-inline'; img-src data: blob:; worker-src blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Antragsbuch 2026</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<div id="app">
+  <aside class="seite">
+    <div class="marke"><div class="logo">A</div><div><b>Antragsbuch</b><span id="projektname">2026</span></div></div>
+    <nav class="nav" id="nav" aria-label="Bereiche"></nav>
+    <div class="fuss">
+      <div class="speicher" aria-live="polite"><span class="punkt" id="speicherpunkt"></span><span id="speichertext">Kein Projekt geöffnet</span></div>
+      <button class="btn klein-btn" id="kopiebtn" type="button" hidden title="Sicherheitskopie der Projektdatei herunterladen">Kopie herunterladen</button>
+      <div class="mini">Alle Daten bleiben auf diesem Gerät.</div>
+    </div>
+  </aside>
+  <main class="haupt">
+    <header class="kopf">
+      <div class="titel"><h1 id="titel">Antragsbuch</h1><div class="mini" id="untertitel"></div></div>
+      <div class="leiste" id="aktionen"></div>
+      <div class="leiste" id="schalter"></div>
+    </header>
+    <div class="inhalt" id="inhalt"></div>
+  </main>
+</div>
+<div id="ziehschirm"><div>Datei hier ablegen – sie wird automatisch erkannt</div></div>
+<div id="toasts"></div>
+<div id="tipp" role="tooltip"></div>
+<div id="druck"></div>
+<script id="kern">/*__KERN__*/</script>
+<script id="worker" type="text/plain">/*__WORKER__*/</script>
+<script id="beispiel" type="application/json">/*__BEISPIEL__*/</script>
+<script>/*__UI__*/</script>
+<script>AB.app.start();</script>
+</body>
+</html>
