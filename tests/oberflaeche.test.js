@@ -139,6 +139,7 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       await page.waitForSelector('#untertitel:has-text("gross.csv")', { timeout: 60000 });
       const dauer = Date.now() - t0;
       assert.match(await page.textContent('.ablage'), /52\.000 Zeilen/);
+      assert.equal(await page.evaluate(() => AB.app.mitWorker()), true, 'Import läuft im Web Worker');
       for (const art of ['Hierarchie']) await page.click(`.chip:has-text("${art}")`);
       await page.click('.reiter button:has-text("Neu ohne Antrag")');
       const anzahl = +(await page.textContent('.reiter button.aktiv .zahl'));
@@ -155,4 +156,73 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       assert.deepEqual(anfragen.filter((u) => !/^(file|blob|data):/.test(u)), []);
     });
   } finally { await browser.close(); fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('Speichern in die Projektdatei (File System Access API, nachgestellt) und Wiederherstellung', { skip: !chromium && 'Playwright nicht installiert', timeout: 60000 }, async () => {
+  const browser = await chromium.launch();
+  const page = await (await browser.newContext({ viewport: { width: 1366, height: 768 }, locale: 'de-DE' })).newPage();
+  const fehler = [];
+  page.on('pageerror', (e) => fehler.push(e.message));
+  await page.addInitScript(() => {
+    // Nachgestellte Datei: merkt sich, was geschrieben wurde
+    const griff = (holeText) => ({ name: 'Antragsbuch_Test.antragsbuch.json', queryPermission: async () => 'granted', requestPermission: async () => 'granted',
+      getFile: async () => ({ text: async () => holeText() }),
+      createWritable: async () => ({ write: async (t) => { window.__datei = t; window.__schreibvorgaenge = (window.__schreibvorgaenge || 0) + 1; }, close: async () => {} }) });
+    window.showSaveFilePicker = async () => griff(() => window.__datei);
+    window.showOpenFilePicker = async () => [griff(() => window.__alt)];
+    // Nachgestellter Ordner mit Dateien aus window.__ordner = [{ name, b64, geaendert }]
+    window.showDirectoryPicker = async () => ({ name: 'Abrechnungen', queryPermission: async () => 'granted', requestPermission: async () => 'granted',
+      values: async function* () {
+        for (const d of window.__ordner || []) {
+          const bin = atob(d.b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+          yield { kind: 'file', name: d.name, getFile: async () => new File([u], d.name, { lastModified: d.geaendert }) };
+        }
+        yield { kind: 'directory', name: 'Archiv' };
+      } });
+  });
+  try {
+    await page.goto('file://' + HTML);
+    assert.equal(await page.locator('text=kann nicht direkt in Dateien speichern').count(), 0);
+    await page.click('button.wahl:has-text("Neues Projekt")');
+    await page.waitForFunction(() => /^Gespeichert um \d\d:\d\d$/.test(document.getElementById('speichertext').textContent));
+    const erst = JSON.parse(await page.evaluate(() => window.__datei));
+    assert.equal(erst.format, 'antragsbuch'); assert.equal(erst.schema, 1); assert.equal(erst.antraege.length, 0);
+    // Änderung → Autosave schreibt in die Datei
+    await page.keyboard.press('n');
+    await page.fill('dialog input[data-feld="vn.name"]', 'Muster'); await page.fill('dialog input[data-feld="vn.vorname"]', 'Anna');
+    await page.fill('dialog .pos-zeile input[placeholder="Tarif"]', 'A107'); await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '50');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => JSON.parse(window.__datei).antraege.length === 1);
+    await page.waitForFunction(() => /^Gespeichert um/.test(document.getElementById('speichertext').textContent));
+    const zwei = JSON.parse(await page.evaluate(() => window.__datei));
+    assert.equal(zwei.antraege[0].vn.name, 'Muster'); assert.deepEqual(zwei.abrechnung, { felder: [], zeilen: [] });
+    assert.ok(zwei.tarife.some((t) => t.name === 'A107'), 'Tarifliste erweitert sich aus Anträgen');
+    // Datei ist älter als der Browser-Spiegel → Wiederherstellung wird angeboten
+    await page.evaluate((alt) => { window.__alt = alt; }, JSON.stringify(Object.assign({}, erst, { geaendert: '2020-01-01T00:00:00.000Z' })));
+    await page.click('#nav button:has-text("Einstellungen")'); await page.click('button:has-text("Projekt schließen")');
+    await page.click('button.wahl:has-text("Projekt öffnen")');
+    await page.waitForSelector('dialog h2:has-text("Neuerer Stand gefunden")');
+    await page.click('dialog button:has-text("Neueren Stand wiederherstellen")');
+    await page.click('#nav button:has-text("Anträge")');
+    assert.equal(await page.locator('.vt-zeile').count(), 1);
+    // Ordner verbinden: neue Dateien werden automatisch erkannt und in zeitlicher Reihenfolge eingelesen
+    const d = erzeuge(), b64 = (n) => d.dateien[n].toString('base64');
+    await page.evaluate((o) => { window.__ordner = o; }, [
+      { name: 'abrechnung_2026_01-02.csv', b64: b64('abrechnung_2026_01-02.csv'), geaendert: 2000 },
+      { name: 'abrechnung_2026_01.csv', b64: b64('abrechnung_2026_01.csv'), geaendert: 1000 },
+      { name: 'notiz.docx', b64: 'QUJD', geaendert: 3000 }]);
+    await page.click('#nav button:has-text("Einstellungen")');
+    await page.click('button:has-text("Ordner verbinden")');
+    await page.waitForFunction(() => AB.app.p.importe.length === 2);
+    assert.deepEqual(await page.evaluate(() => AB.app.p.importe.map((i) => [i.datei, i.zeilen, i.neu])), [['abrechnung_2026_01.csv', 69, 69], ['abrechnung_2026_01-02.csv', 137, 69]]);
+    // erneutes Prüfen liest nichts doppelt; eine neue Datei wird beim nächsten Prüfen geholt
+    await page.evaluate((x) => { window.__ordner.push(x); }, { name: 'abrechnung_2026_01-03.csv', b64: b64('abrechnung_2026_01-03.csv'), geaendert: 4000 });
+    await page.click('button:has-text("Jetzt prüfen")');
+    await page.waitForFunction(() => AB.app.p.importe.length === 3);
+    await page.click('button:has-text("Jetzt prüfen")');
+    await page.waitForSelector('.toast:has-text("Keine neuen Dateien")');
+    assert.equal(await page.evaluate(() => AB.app.p.importe.length), 3);
+    assert.equal(await page.evaluate(() => AB.app.p.sicherungen.length >= 3), true, 'Sicherungsstand vor jedem Import');
+    assert.deepEqual(fehler, []);
+  } finally { await browser.close(); }
 });

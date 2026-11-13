@@ -16,6 +16,7 @@
       worker.onerror = function (e) { console.warn('Worker-Fehler, weiche auf Hauptfaden aus:', e.message); worker = null; Object.keys(offen).forEach(function (k) { offen[k][1](new Error('Die Datei konnte nicht verarbeitet werden.')); }); offen = {}; };
     } catch (e) { worker = null; }
   }
+  App.mitWorker = function () { return !!worker; };
   App.lies = function (bytes, name, opt) {
     if (!worker) return AB.importer.lies(bytes, name, opt);
     return new Promise(function (res, rej) {
@@ -170,8 +171,9 @@
     ordnerLaeuft = true;
     try {
       var st = await Sp.ordnerStatus(p);
+      if (st === 'erlaubnis' && laut && (await Sp.ordnerErlauben())) st = 'verbunden';
       App.ordnerZustand = st;
-      if (st !== 'verbunden') { if (laut && st === 'erlaubnis' && (await Sp.ordnerErlauben())) { ordnerLaeuft = false; return App.pruefeOrdner(laut); } return; }
+      if (st !== 'verbunden') return;
       var neue = await Sp.neueDateien(p.ordnerGesehen);
       for (var i = 0; i < neue.length; i++) {
         p.ordnerGesehen[neue[i].signatur] = 1;
@@ -179,8 +181,10 @@
       }
       if (neue.length) { Sp.plane(p); App.zeige(App.ansicht); }
       else if (laut) D.toast('Keine neuen Dateien im Ordner „' + Sp.ordner.name + '".');
-    } catch (e) { console.warn(e); if (laut) D.toast('Der Ordner konnte nicht gelesen werden: ' + e.message, { krit: true }); }
-    ordnerLaeuft = false;
+    } catch (e) {
+      console.warn(e);
+      if (laut) D.toast('Der Ordner konnte nicht gelesen werden: ' + (e.message || e), { krit: true });
+    } finally { ordnerLaeuft = false; }
   };
 
   // ---------- Start ----------

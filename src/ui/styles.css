@@ -212,7 +212,7 @@ dialog[open] { animation: auf .22s cubic-bezier(.2, .9, .3, 1.15); display: flex
 .ringbox { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; justify-content: center; }
 .ringbox > .dia { width: 160px; flex: none; } .ringbox > .legende { flex: 1 1 150px; min-width: 150px; }
 .ringmitte { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
-.ringmitte b { display: block; font-size: 21px; letter-spacing: -.02em; } .ringmitte span { font-size: 12px; color: var(--text-3); }
+.ringmitte b { display: block; font-size: 17px; letter-spacing: -.02em; white-space: nowrap; } .ringmitte span { font-size: 12px; color: var(--text-3); }
 #tipp { position: fixed; z-index: 100; pointer-events: none; background: var(--text); color: var(--bg); border-radius: 10px; padding: 7px 11px; font-size: 12.5px; line-height: 1.4; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); opacity: 0; transition: opacity .12s; max-width: 280px; }
 #tipp.an { opacity: 1; } #tipp b { font-variant-numeric: tabular-nums; } #tipp i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 6px; }
 .rein { animation: rein .4s cubic-bezier(.2, .8, .2, 1) both; }
