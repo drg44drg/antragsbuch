@@ -1,14 +1,16 @@
 # Tarif-Kategorien
 
-Stand 14.11.2026. Grundlage ist jetzt der **Tarifschlüssel des Versicherers (Stand 11.06.2021)** mit 787 Tarifen und ihrer Beschreibung.
+Stand 14.11.2026. Grundlage ist der **Tarifschlüssel des Versicherers (Stand 11.06.2021)** mit 787 Tarifen und ihrer Beschreibung.
 Die Spalten Gruppe, Schlüssel, VT und Geschlecht werden nicht verwendet.
 
 ## Was die App daraus ableitet
 
 - **Beschreibung** je Tarif – erscheint als Vorschlag beim Erfassen und als Hinweis in Kundenakte und Tarifliste.
-- **Kategorie** aus der Beschreibung: Ambulant, Stationär, Zahn, Pflegepflicht, Pflegezusatz, Krankentagegeld, Krankenhaustagegeld, Beitragsentlastung, Naturheilverfahren, Unfall, Ausland, Sozialtarif (Standard-, Basis-, Notlagentarif), Leben und Vorsorge.
-- **Beihilfe:** ja, wenn die Beschreibung „Beihilfeberechtigte" oder „Beamtenanwärter" nennt. Damit ist geklärt: , , ,  sind Beihilfetarife, – und – nicht.
-- **Tarifwelt** aus der Endung:  alte Welt,  neue Welt,  Unisex,  modifizierte Kostensätze.
+- **Kategorie** aus der Beschreibung: Ambulant, Stationär, Zahn, Pflegepflicht, Pflegezusatz, Krankentagegeld, Krankenhaustagegeld,
+  Beitragsentlastung, Naturheilverfahren, Unfall, Ausland, Sozialtarif (Standard-, Basis-, Notlagentarif), Leben und Vorsorge.
+- **Beihilfe:** ja, wenn die Beschreibung „Beihilfeberechtigte" oder „Beamtenanwärter" nennt.
+  Damit ist geklärt: `A20a`, `A30a`, `S20a`, `S30a` sind Beihilfetarife, `A100a`–`A109a` und `S101a`–`S103a` nicht.
+- **Tarifwelt** aus der Endung: `a` alte Welt, `n` neue Welt, `u` Unisex, `z` modifizierte Kostensätze.
 - **Zielgruppe:** GKV-Mitglieder, Firmen (bKV), Gruppenversicherung, Kooperationspartner, mhplus.
 
 ## Abdeckung Ihrer Abrechnung
@@ -63,11 +65,11 @@ Von 300 Tarifen in Ihrer Abrechnung stehen 283 im Tarifschlüssel (99,8 % der Bu
 
 | Nr. | Punkt | Mein Vorschlag | Ihre Antwort |
 |---|---|---|---|
-| 1 | Nicht im Tarifschlüssel (alle Sparte Leben): N3x, BTw, Tv, Tu, SBUx, SBUy, SBUw, BTv, SBUz, L2, DTv, SBUv, Tw, N2z, N2x, R, Ty | Bereich „Leben";  als Berufsunfähigkeit. Gibt es eine Liste der Leben-Tarife? | |
+| 1 | Nicht im Tarifschlüssel (alle Sparte Leben): N3x, BTw, Tv, Tu, SBUx, SBUy, SBUw, BTv, SBUz, L2, DTv, SBUv, Tw, N2z, N2x, R, Ty | Bereich „Leben"; `SBU…` als Berufsunfähigkeit. Gibt es eine Liste der Leben-Tarife? | |
 | 2 | Der Tarifschlüssel ist von 2021. Neuere Tarife fehlen möglicherweise. | Gibt es einen aktuelleren Stand? Unbekannte Tarife schätzt die App und markiert sie als „geschätzt". | |
 | 3 | Name „Sozialtarif" für Standard-, Basis- und Notlagentarif | so lassen? | |
-| 4 | Pflegepflicht (, , , ) steht in der Abrechnung in der Tarifgruppe Vollversicherung. | Beim Erfassen als eigene Position mit Bereich „Pflege", damit der eigene Provisionsfaktor greift. Soll die App das automatisch tun? | |
-| 5 |  = gesetzlicher Zuschlag (10 %) | zählt zum Beitrag, aber provisionsfrei? | |
+| 4 | Pflegepflicht (`PN`, `PB`, `PPN`, `PPB`) steht in der Abrechnung in der Tarifgruppe Vollversicherung. | Beim Erfassen als eigene Position mit Bereich „Pflege", damit der eigene Provisionsfaktor greift. Soll die App das automatisch tun? | |
+| 5 | `VT` = gesetzlicher Zuschlag (10 %) | zählt zum Beitrag, aber provisionsfrei? | |
 | 6 | Auswertung nach Kategorie und Beihilfe im Dashboard und im Management-Vergleich | als nächsten Schritt einbauen? | |
 
 ## Verzeichnis nach Kategorie (alle 787 Tarife)
