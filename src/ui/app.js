@@ -181,8 +181,9 @@
         team = AB.team.pseudonymisiere(team);
         ich = AB.team.findeEigene(team, p.einstellungen.vermittlernummer); if (ich) ich.name = eigName;
       }
+      if (p.team && !team.pseudonym) team.zeilen.forEach(function (z) { if (!z.name) { var alt = p.team.zeilen.find(function (x) { return x.nr === z.nr; }); if (alt && alt.name) z.name = alt.name; } });
       p.team = team;
-      p.importe.push({ id: U.uid(), typ: 'Monatsscheiben', datum: new Date().toISOString(), datei: name, zeilen: team.zeilen.length });
+      p.importe.push({ id: U.uid(), typ: team.sammelmappe ? 'Sammelmappe' : 'Monatsscheiben', datum: new Date().toISOString(), datei: name, zeilen: team.zeilen.length });
       App.ansicht = opt.still ? App.ansicht : 'team';
       App.geaendert();
       D.toast('Teamdaten eingelesen: ' + team.zeilen.filter(function (z) { return !z.gesamt; }).length + ' Vermittler' + (team.stand ? ', Stand ' + U.fmtDatum(team.stand) : '') + '.');

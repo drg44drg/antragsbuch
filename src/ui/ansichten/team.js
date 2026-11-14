@@ -52,6 +52,30 @@
       kachel('Meine Nettoproduktion', hat ? y.wert : '–', euro0, 'aufgelaufen ' + p.team.jahr, { einheit: '€' }),
       kachel('Team-Median', y.median, euro0, hat ? (Math.abs(y.wert - y.median) < 0.5 ? 'Sie liegen genau in der Mitte' : y.wert >= y.median ? 'Sie liegen ' + U.fmtEuro0(y.wert - y.median) + ' darüber' : 'Sie liegen ' + U.fmtEuro0(y.median - y.wert) + ' darunter') : 'Mitte des Teams', { einheit: '€', punkt: hat ? (y.wert >= y.median ? 'var(--good)' : 'var(--warn)') : null }),
       kachel(lm >= 0 ? U.MONATE[lm] : 'Letzter Monat', m && m.wert != null ? m.wert : '–', euro0, m ? 'Median ' + U.fmtEuro0(m.median) + (m.rang ? ' · Platz ' + m.rang + ' von ' + m.n : '') : '', { einheit: '€' })));
+    if (pos.ziel && hat) {
+      var zj = pos.ziel, gleichesJahr = zj.jahr === p.team.jahr, quoteZ = gleichesJahr ? y.wert / zj.wert : null;
+      el.appendChild(h('div.karte.rein.leiste', { style: { padding: '12px 18px' } }, h('b', null, 'Mein Ziel ' + zj.jahr + ': ' + U.fmtEuro0(zj.wert)),
+        h('span.muted.klein', null, gleichesJahr ? 'erreicht ' + U.fmtZahl(quoteZ * 100, 0) + ' % · noch ' + U.fmtEuro0(Math.max(0, zj.wert - y.wert)) : 'Ergebnis ' + p.team.jahr + ': ' + U.fmtEuro0(y.wert) + ' – das Ziel liegt ' + (zj.wert >= y.wert ? U.fmtEuro0(zj.wert - y.wert) + ' darüber' : U.fmtEuro0(y.wert - zj.wert) + ' darunter')),
+        gleichesJahr ? h('div', { style: { flex: 1, height: '10px', borderRadius: '99px', background: 'var(--surface-2)', overflow: 'hidden', minWidth: '120px' } }, h('div.hb.dia', { style: { height: '100%', width: Math.min(100, quoteZ * 100) + '%', background: 'var(--s1)', borderRadius: '99px' } })) : null));
+    }
+    var sv = T.spartenVergleich(p.team, p.einstellungen.vermittlernummer, lm >= 0 ? lm : 11);
+    if (sv.length) {
+      var stb = h('tbody');
+      sv.forEach(function (s) {
+        var dreh = { 5: -90, 4: -45, 3: 0, 2: 45, 1: 90 }[s.stufe], farbe = s.stufe >= 4 ? 'var(--good-ink)' : s.stufe === 3 ? 'var(--text-2)' : s.stufe === 2 ? 'var(--warn-ink)' : 'var(--crit-ink)';
+        var pfeil = D.s('svg', { viewBox: '0 0 24 24', width: 22, height: 22, fill: 'none', stroke: 'currentColor', 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', role: 'img', 'aria-label': T.STUFEN[s.stufe] },
+          D.s('path', { d: 'M4 12h15M13 6l6 6-6 6', transform: 'rotate(' + dreh + ' 12 12)' }));
+        pfeil.style.color = farbe; pfeil.style.transition = 'transform .5s';
+        var anteil = s.max > 0 ? Math.max(0, Math.min(100, s.wert / s.max * 100)) : 0, med = s.max > 0 ? Math.max(0, Math.min(100, s.median / s.max * 100)) : 0;
+        stb.appendChild(h('tr', null, h('td', { style: { fontWeight: 600 } }, s.name), h('td', { style: { width: '34px' } }, pfeil), h('td', null, T.STUFEN[s.stufe]),
+          h('td.num', { style: { textAlign: 'right' } }, U.fmtEuro0(s.wert)), h('td.num.muted', { style: { textAlign: 'right' } }, U.fmtEuro0(s.median)), h('td.num', { style: { textAlign: 'right' } }, s.rang + ' von ' + s.n),
+          h('td', { style: { width: '26%' } }, h('div', { title: 'Balken: mein Wert im Verhältnis zum Besten · Strich: Median', style: { position: 'relative', height: '10px', borderRadius: '99px', background: 'var(--surface-2)' } },
+            h('div.hb.dia', { style: { position: 'absolute', left: 0, top: 0, bottom: 0, width: anteil + '%', background: s.stufe >= 3 ? 'var(--s1)' : 'var(--s0)', borderRadius: '99px' } }),
+            h('div', { style: { position: 'absolute', left: med + '%', top: '-3px', bottom: '-3px', width: '2px', background: 'var(--text)' } })))));
+      });
+      el.appendChild(h('div.karte.rein', null, h('h3', null, 'Meine Sparten im Teamvergleich'), h('div.unter', null, 'aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–') + ' · Pfeil nach oben: oberste 20 % des Teams, schräg oben: über dem Schnitt, rechts: Mittelfeld, schräg unten: darunter, nach unten: unterste 20 %'),
+        h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Sparte', '', 'Einordnung', 'Mein Wert', 'Team-Median', 'Platz', 'Ich gegen den Besten'].map(function (t, i) { return h('th', { style: i >= 3 && i <= 5 ? { textAlign: 'right' } : null }, t); }))), stb))));
+    } else if (!pos.ich || !pos.ich.sparten) el.appendChild(h('div.meldung', null, 'Für den Vergleich je Sparte (Voll, Zusatz, bKV, Pflege …) wird die Sammelmappe mit den Produktscheiben je ADP benötigt – bzw. die daraus erzeugte Teamdatei Ihrer Führungskraft.'));
     var dL = h('div'), dQ = h('div');
     el.appendChild(h('div.raster.r-21', null,
       h('div.karte.rein', null, h('h3', null, 'Mein Verlauf im Teamvergleich'), h('div.unter', null, 'Nettoproduktion je Monat · das Band zeigt die mittlere Hälfte des Teams'), dL),

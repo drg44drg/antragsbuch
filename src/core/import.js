@@ -37,6 +37,7 @@
       }
     }
     if (altErg) return { art: 'altbuch', altbuch: altErg, blatt: altFund.blatt.name };
+    if (AB.team.istSammelmappe(t.blaetter)) return { art: 'monatsscheiben', team: AB.team.liesSammelmappe(t.blaetter) };
     if (AB.team.istMonatsscheiben(t.blaetter)) return { art: 'monatsscheiben', team: AB.team.liesMonatsscheiben(t.blaetter) };
     return { art: 'tabelle', blaetter: t.blaetter, info: t.info };
   };

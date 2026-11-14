@@ -74,6 +74,89 @@
     return team;
   };
 
+  // ---------- Sammelmappe: je ADP ein Blatt „NNNms" mit Produktscheiben, dazu Soll-Ist-Ziele ----------
+  T.SPARTEN = [
+    ['Kranken', 'Kranken gesamt'], ['Vollversicherung', 'Vollversicherung'], ['Vollversicherung mit Beihilfe', 'Voll mit Beihilfe'], ['Vollversicherung nicht Beihilfe', 'Voll ohne Beihilfe'],
+    ['Beitragsentlastung', 'Beitragsentlastung'], ['Pflegepflichtversicherung', 'Pflegepflicht'], ['Pflegezusatzversicherung', 'Pflegezusatz'],
+    ['Sonstige Zusatzversicherung', 'Zusatzversicherung'], ['Zahnzusatzversicherung', 'Zahnzusatz'], ['Betriebliche Krankenversicherung', 'bKV'],
+    ['Mitglieder Krankenversicherung', 'Mitglieder-KV'], ['Unfall', 'Unfall'], ['Leben', 'Leben']
+  ];
+  T.istSammelmappe = function (blaetter) {
+    return blaetter.filter(function (b) { return /^\d{3}ms$/i.test(String(b.name).trim()) && kopfzeile(b.zeilen); }).length >= 2;
+  };
+  T.liesSammelmappe = function (blaetter) {
+    var team = { jahr: 0, stand: '', zeilen: [], produkte: [], pseudonym: false, sammelmappe: true, importiert: new Date().toISOString() };
+    function scheiben(b) {
+      var k = kopfzeile(b.zeilen), out = {};
+      if (!k) return null;
+      b.zeilen.slice(0, k.zeile).forEach(function (z) { z.forEach(function (c) { var m = /Stand:\s*(\S+)/.exec(String(c || '')); if (m) team.stand = U.parseDatum(m[1]) || team.stand; }); });
+      team.jahr = team.jahr || k.jahr;
+      b.zeilen.slice(k.zeile + 1).forEach(function (z) {
+        var li = z.findIndex(function (c) { return typeof c === 'string' && c.trim(); });
+        if (li < 0) return;
+        var label = z[li].trim(), werte = [];
+        for (var m = 0; m < 12; m++) werte.push(k.sp[m] == null ? null : wert(z[k.sp[m]]));
+        if (!out[label]) out[label] = { werte: werte, hr: k.hr >= 0 ? wert(z[k.hr]) : null, vj: k.vj >= 0 ? wert(z[k.vj]) : null };
+      });
+      return out;
+    }
+    function gesamtAus(s) {
+      var w = [], hr = 0, vj = 0, hat = false;
+      for (var m = 0; m < 12; m++) { var x = null; ['Kranken', 'Unfall', 'Leben'].forEach(function (n) { if (s[n] && s[n].werte[m] != null) x = (x || 0) + s[n].werte[m]; }); w.push(x); }
+      ['Kranken', 'Unfall', 'Leben'].forEach(function (n) { if (s[n]) { hat = true; hr += s[n].hr || 0; vj += s[n].vj || 0; } });
+      return hat ? { werte: w, hr: hr, vj: vj } : null;
+    }
+    blaetter.forEach(function (b) {
+      var name = String(b.name).trim(), m = /^(\d{3})ms$/i.exec(name);
+      if (!m && !/^FDBms$/i.test(name)) return;
+      var s = scheiben(b); if (!s) return;
+      var g = gesamtAus(s); if (!g) return;
+      var sparten = {};
+      T.SPARTEN.forEach(function (sp) { if (s[sp[0]]) sparten[sp[0]] = s[sp[0]].werte; });
+      team.zeilen.push({ nr: m ? '900' + m[1] : 'FDB', name: m ? '' : 'Gesamt', werte: g.werte, hr: g.hr, vj: g.vj, gesamt: !m, sparten: sparten });
+    });
+    // Ziele (Blatt „… Soll-Ist JJJJ"): Spalten „ADP Nr.", „Name", „Ziel JJJJ"
+    blaetter.forEach(function (b) {
+      for (var r = 0; r < Math.min(12, b.zeilen.length); r++) {
+        var k = (b.zeilen[r] || []).map(function (c) { return U.falte(c == null ? '' : c); });
+        var cNr = k.findIndex(function (c) { return /^adp nr/.test(c); }), cZiel = k.findIndex(function (c) { return /^ziel\s*20\d\d/.test(c); }), cName = k.indexOf('name');
+        if (cNr < 0 || cZiel < 0) continue;
+        var jahr = +/20\d\d/.exec(k[cZiel])[0];
+        team.ziele = { jahr: jahr, werte: {} };
+        b.zeilen.slice(r + 1).forEach(function (z) {
+          var nr = String(z[cNr] == null ? '' : z[cNr]).replace(/\.0$/, '').trim();
+          if (!/^\d{6}$/.test(nr)) return;
+          if (typeof z[cZiel] === 'number' && z[cZiel] > 0) team.ziele.werte[nr] = z[cZiel];
+          var zl = team.zeilen.find(function (x) { return x.nr === nr; });
+          if (zl && cName >= 0 && z[cName] && !zl.name) zl.name = String(z[cName]).trim();
+        });
+        return;
+      }
+    });
+    if (team.zeilen.filter(function (z) { return !z.gesamt; }).length < 2) throw new Error('In der Sammelmappe wurden keine ADP-Blätter (z. B. „401ms") gefunden.');
+    return team;
+  };
+
+  /**
+   * Sparten-Vergleich: eigener Wert gegen das Team, in fünf Stufen.
+   * Stufe 5 = oberste 20 % (↑), 4 = 60–80 % (↗), 3 = Mittelfeld (→), 2 = 20–40 % (↘), 1 = unterste 20 % (↓).
+   */
+  T.spartenVergleich = function (team, nr, bis) {
+    var ich = T.findeEigene(team, nr);
+    if (!ich || ich.gesamt || !ich.sparten) return [];
+    var andere = team.zeilen.filter(function (z) { return !z.gesamt && z.sparten; });
+    if (bis == null) bis = 11;
+    var sum = function (w) { var s = 0; for (var m = 0; m <= bis; m++) s += (w && w[m]) || 0; return s; };
+    return T.SPARTEN.filter(function (sp) { return andere.some(function (z) { return z.sparten[sp[0]] && Math.abs(sum(z.sparten[sp[0]])) > 0.005; }); }).map(function (sp) {
+      var werte = andere.map(function (z) { return sum(z.sparten[sp[0]]); }), mein = sum(ich.sparten[sp[0]]);
+      var darunter = werte.filter(function (w) { return w < mein - 0.005; }).length, gleich = werte.filter(function (w) { return Math.abs(w - mein) <= 0.005; }).length;
+      var quote = werte.length > 1 ? (darunter + (gleich - 1) / 2) / (werte.length - 1) : 0.5;
+      var stufe = quote >= 0.8 ? 5 : quote >= 0.6 ? 4 : quote >= 0.4 ? 3 : quote >= 0.2 ? 2 : 1;
+      return { id: sp[0], name: sp[1], wert: mein, median: U.median(werte), max: Math.max.apply(null, werte), rang: werte.filter(function (w) { return w > mein + 0.005; }).length + 1, n: werte.length, quote: quote, stufe: stufe };
+    });
+  };
+  T.STUFEN = { 5: 'Spitze', 4: 'über dem Schnitt', 3: 'Mittelfeld', 2: 'unter dem Schnitt', 1: 'deutlich darunter' };
+
   /**
    * Summenzeile des Teams markieren. Zwei Wege:
    * 1) Titel: kein „NAME,VORNAME", sondern eine Einheit (FD, Direktion, Gesamt, Summe, Gebiet, Region, Team).
@@ -107,8 +190,9 @@
   /** Für die Weitergabe an ADP: Namen entfernen, Nummern durch Pseudonyme ersetzen. */
   T.pseudonymisiere = function (team) {
     var k = JSON.parse(JSON.stringify(team));
-    k.zeilen.forEach(function (z) { if (!/^p/.test(z.nr)) z.nr = T.pseudo(z.nr); z.name = ''; });
+    k.zeilen.forEach(function (z) { if (!/^p/.test(z.nr) && z.nr !== 'FDB') z.nr = T.pseudo(z.nr); z.name = ''; });
     k.pseudonym = true; k.produkte = [];
+    if (k.ziele) { var zw = {}; Object.keys(k.ziele.werte).forEach(function (nr) { zw[/^p/.test(nr) ? nr : T.pseudo(nr)] = k.ziele.werte[nr]; }); k.ziele.werte = zw; }
     return k;
   };
   T.findeEigene = function (team, nr) {
@@ -138,7 +222,9 @@
       if (s) { letzter = m; andere.forEach(function (z) { kum[z.nr] += z.werte[m] || 0; }); }
     }
     var ytd = stat(andere.map(function (z) { return kum[z.nr]; }), ich && !ich.gesamt ? kum[ich.nr] : null);
-    return { ich: ich, monate: monate, ytd: ytd, letzterMonat: letzter, gesamt: team.zeilen.find(function (z) { return z.gesamt; }) || null };
+    var ziel = null;
+    if (team.ziele && ich) { var zv = team.ziele.werte[ich.nr] || team.ziele.werte[T.pseudo(nr)] || team.ziele.werte[String(nr)]; if (zv) ziel = { jahr: team.ziele.jahr, wert: zv, vorjahr: ich.hr }; }
+    return { ich: ich, monate: monate, ytd: ytd, letzterMonat: letzter, ziel: ziel, gesamt: team.zeilen.find(function (z) { return z.gesamt; }) || null };
   };
 
   // ---------- Management: Auswertung der Abrechnung je ADP ----------

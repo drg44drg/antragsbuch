@@ -458,3 +458,39 @@ test('Neue Werte der echten Abrechnung: Kündigungsrücknahme, Pflege-, Auslands
   assert.equal(U.runde(a.netto), 155); assert.equal(U.runde(a.beihilfe), 120);
   assert.equal(U.runde(a.spartenDetail['Beihilfe · Ambulant'].neu), 120); assert.equal(U.runde(a.provMonate[1]), U.runde(5 * 4.5 + 120 * 5.5));
 });
+
+test('Sammelmappe: Produktscheiben je ADP, Ziele, Sparten-Vergleich in fünf Stufen', async () => {
+  const T = AB.team, mon = ['01/2026', '02/2026', '03/2026', '04/2026', '05/2026', '06/2026', '07/2026', '08/2026', '09/2026', '10/2026', '11/2026', '12/2026'];
+  const kopf = [null, null, 'Mrz../2026', '01-Mrz../2026', ''].concat(mon, ['', 'HR 2026', '2025']);
+  const zeile = (name, a, b, c) => [null, name, c, a + b + c, '', a, b, c, '-', '-', '-', '-', '-', '-', '-', '-', '-', '', (a + b + c) * 4, 1000];
+  const blatt = (name, voll, bkv, unfall) => ({ name, zeilen: [[], [null, 'Monatsscheiben Nettoproduktion in EUR'], [null, 'Stand: 31.03.2026'], [null, 'Filter: Vertrieb'], kopf,
+    zeile('Kranken', voll + bkv, voll + bkv, voll + bkv), zeile('Vollversicherung', voll, voll, voll), zeile('Betriebliche Krankenversicherung', bkv, bkv, bkv), zeile('Unfall', unfall, unfall, unfall)] });
+  const nrs = ['101', '102', '103', '104', '105', '106'];
+  const blaetter = [blatt('FDBms', 2100, 600, 60)].concat(nrs.map((n, i) => blatt(n + 'ms', 100 * (i + 1), 600 - 100 * i, i === 2 ? 60 : 0)),
+    [{ name: 'GV', zeilen: [[1]] }, { name: 'FDB Soll-Ist 2026', zeilen: [['FD – Soll'], ['ADP Nr.', 'Name', 'Ziel 2026 (Top-Down)'], [900103, 'TESTER, DREI', 5000], [900101, 'TESTER, EINS', 9000], [null, 'Summe', 14000]] }]);
+  assert.equal(T.istSammelmappe(blaetter), true); assert.equal(T.istSammelmappe(blaetter.slice(0, 1)), false);
+  const xl = AB.xlsxout.schreibe(blaetter.map((b) => ({ name: b.name, spalten: new Array(20).fill(0).map((_, i) => ({ t: String(b.zeilen[0][i] == null ? '' : b.zeilen[0][i]) })), zeilen: b.zeilen.slice(1).map((z) => z.map((v) => v == null ? '' : v)) })));
+  const imp = await AB.importer.lies(xl, 'Sammelmappe.xlsx', {});
+  assert.equal(imp.art, 'monatsscheiben');
+  const team = imp.team;
+  assert.equal(team.sammelmappe, true); assert.equal(team.jahr, 2026); assert.equal(team.stand, '2026-03-31');
+  assert.equal(team.zeilen.length, 7); assert.equal(team.zeilen.filter((z) => z.gesamt).length, 1);
+  const z3 = team.zeilen.find((z) => z.nr === '900103');
+  assert.equal(z3.name, 'TESTER, DREI'); assert.deepEqual(z3.werte.slice(0, 4), [760, 760, 760, null]);     // Kranken 700 + Unfall 60
+  assert.deepEqual(z3.sparten['Vollversicherung'].slice(0, 3), [300, 300, 300]);
+  assert.deepEqual(team.ziele, { jahr: 2026, werte: { '900103': 5000, '900101': 9000 } });
+  // Sparten-Vergleich: 900106 ist in Voll Spitze, in bKV ganz unten; 900103 hat als Einziger Unfall
+  const v = Object.fromEntries(T.spartenVergleich(team, '900106', 2).map((s) => [s.id, s]));
+  assert.deepEqual([v['Vollversicherung'].stufe, v['Vollversicherung'].rang, v['Vollversicherung'].wert], [5, 1, 1800]);
+  assert.deepEqual([v['Betriebliche Krankenversicherung'].stufe, v['Betriebliche Krankenversicherung'].rang], [1, 6]);
+  assert.equal(Object.fromEntries(T.spartenVergleich(team, '900103', 2).map((s) => [s.id, s.stufe]))['Unfall'], 5);
+  assert.deepEqual(T.spartenVergleich(team, '900101', 2).map((s) => s.stufe).slice(1, 3), [1, 5]);                // Voll unten, bKV oben
+  assert.deepEqual([4, 3, 2].map((n) => T.spartenVergleich(team, '90010' + n, 2).find((s) => s.id === 'Vollversicherung').stufe), [4, 3, 2]);
+  const pos = T.position(team, '900103');
+  assert.deepEqual(pos.ziel, { jahr: 2026, wert: 5000, vorjahr: 9120 }); assert.equal(pos.ytd.n, 6);
+  // Teamdatei für ADP: ohne Namen und Nummern, Vergleich und Ziel bleiben nutzbar
+  const ps = T.pseudonymisiere(team);
+  assert.ok(!JSON.stringify(ps).includes('TESTER') && !JSON.stringify(ps).includes('900103'));
+  assert.equal(T.spartenVergleich(ps, '900106', 2).find((s) => s.id === 'Vollversicherung').stufe, 5);
+  assert.equal(T.position(ps, '900103').ziel.wert, 5000);
+});
