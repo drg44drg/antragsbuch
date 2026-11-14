@@ -19,15 +19,33 @@ const beispiel = JSON.stringify({
   monatsscheiben: { name: 'monatsscheiben.xlsx', b64: t.dateien['monatsscheiben.xlsx'].toString('base64') }
 }).replace(/</g, '\\u003c');
 
-for (const [name, text] of [['Kern', kern], ['UI', ui], ['Worker', worker]])
-  if (/<\/script/i.test(text)) throw new Error(name + ': Quelltext enthält "</script" – das würde die HTML-Datei zerstören.');
-
-let html = r('src', 'index.html');
-const setze = (marke, inhalt) => { if (!html.includes(marke)) throw new Error('Marke fehlt: ' + marke); html = html.split(marke).join(inhalt); };
-setze('/*__CSS__*/', css); setze('/*__KERN__*/', kern); setze('/*__WORKER__*/', worker); setze('/*__BEISPIEL__*/', beispiel); setze('/*__UI__*/', ui);
+function buendle(k, u, w) {
+  for (const [name, text] of [['Kern', k], ['UI', u], ['Worker', w]])
+    if (/<\/script/i.test(text)) throw new Error(name + ': Quelltext enthält "</script" – das würde die HTML-Datei zerstören.');
+  let html = r('src', 'index.html');
+  const setze = (marke, inhalt) => { if (!html.includes(marke)) throw new Error('Marke fehlt: ' + marke); html = html.split(marke).join(inhalt); };
+  setze('/*__CSS__*/', css); setze('/*__KERN__*/', k); setze('/*__WORKER__*/', w); setze('/*__BEISPIEL__*/', beispiel); setze('/*__UI__*/', u);
+  return html;
+}
+const html = buendle(kern, ui, worker);
 fs.writeFileSync(path.join(__dirname, 'antragsbuch.html'), html);
+console.log('antragsbuch.html geschrieben:', Math.round(html.length / 1024), 'kB');
+
+// Verteil-Version: Quelltext verkleinert und Namen gekürzt (erschwert das Lesen, verhindert es nicht).
+// Aufruf: node build.js --schutz   (braucht die Entwicklungsabhängigkeit „terser")
+if (process.argv.includes('--schutz')) {
+  (async () => {
+    const { minify } = require('terser');
+    const klein = async (code) => (await minify(code, { compress: { passes: 2 }, mangle: true, format: { comments: false } })).code.replace(/<\/script/gi, '<\\/script');
+    const min = buendle(await klein(kern), await klein(ui), await klein(worker)).replace(/<style>([\s\S]*?)<\/style>/, (m, c) => '<style>' + c.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s*\n\s*/g, '').replace(/\s*([{};,>])\s*/g, '$1') + '</style>');
+    fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true });
+    fs.writeFileSync(path.join(__dirname, 'dist', 'antragsbuch.html'), min);
+    console.log('dist/antragsbuch.html geschrieben (Verteil-Version):', Math.round(min.length / 1024), 'kB');
+  })().catch((e) => { console.error(e); process.exit(1); });
+}
+
 // Lizenz-Werkzeug (nur für den Herausgeber): eigene, kleine Datei
 const wz = r('src', 'werkzeug', 'lizenz.html').split('/*__KERN__*/').join(['util', 'csv', 'krypto', 'lizenz'].map((k) => r('src', 'core', k + '.js')).join('\n'));
 fs.writeFileSync(path.join(__dirname, 'lizenz-werkzeug.html'), wz);
 console.log('lizenz-werkzeug.html geschrieben:', Math.round(wz.length / 1024), 'kB');
-console.log('antragsbuch.html geschrieben:', Math.round(html.length / 1024), 'kB');
+

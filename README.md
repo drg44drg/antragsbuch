@@ -12,10 +12,13 @@ Keine Installation, kein Server, kein Netzwerkzugriff (per Content-Security-Poli
 npm test            # Unit-Tests (Kern) + Browser-Tests der gebündelten Datei
 npm run build       # bündelt src/ → antragsbuch.html
 npm run testdaten   # schreibt synthetische Testdaten nach testdaten/
+npm run build:schutz  # zusätzlich dist/antragsbuch.html mit verkleinertem Quelltext (Verteil-Version)
 ```
 
 Benötigt nur Node.js (ab 20). Die Browser-Tests laufen, wenn Playwright vorhanden ist, sonst werden sie übersprungen.
-Es gibt keine Laufzeit-Abhängigkeiten und keine Fremdbibliotheken im Bündel.
+Es gibt keine Laufzeit-Abhängigkeiten und keine Fremdbibliotheken im Bündel; `terser` wird nur beim Bauen der Verteil-Version gebraucht.
+
+`lizenz-werkzeug.html` ist das Werkzeug des Herausgebers (Schlüsselpaar, Prägen, Lizenzen) und wird nicht verteilt – siehe `docs/Quellcode-Schutz-und-Lizenz.md`.
 
 ## Aufbau
 

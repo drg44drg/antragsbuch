@@ -15,19 +15,24 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 
 - [ ] Beispielliste für eine Aktion (z. B. Anschreiben Altersvorsorgedepot) und das zugehörige Schreiben
 - [ ] Alte Reportings als Muster
-- [ ] Abrechnung 2025 (für den Test mit dem alten Antragsbuch)
 - [ ] Service-Level je Bereich und Liste der Postkörbe (bisher überall 5/10 Werktage als Platzhalter)
 - [ ] Unternehmensziele je Sparte (für den Vergleich im Team)
 - [ ] Produktunterlagen aus dem Ordner „ADP-Gewinnung" (zweimal gesucht, liegt nicht im verbundenen Google Drive)
 - [ ] **Tarifverzeichnis der Stuttgarter für Leben und Unfall** (heute werden nur noch diese verkauft)
 - [ ] Genaue Dateinamen von Veränderungsdienst und Provisionsabrechnung (für Ablauf-Schaubild und Tour)
 - [ ] Rechtliche Einschätzung dem Datenschutzbeauftragten und der IT-Sicherheit vorlegen
-- [ ] Altes Antragsbuch eines ADP **mit** dessen Abrechnung (Test der Zusammenführung bei spärlichen Eingaben)
+
+## B2 · Fachliche Fragen aus dem Test mit den echten Dateien
+
+- [ ] „Meine Produktion" zeigt für 900401 im Jahr 2025 rund 25.200 € Netto-Beitragsdifferenz laut Abrechnung, die Monatsscheiben 7.036 € Nettoproduktion.
+      Woher kommt der Unterschied (Bewertung, Umstellungen, Kündigungsrücknahmen)? Davon hängt ab, wie „Neugeschäft" richtig zu zählen ist.
+- [ ] Altes Antragsbuch 900401: 61 von 158 Einträgen sicher zugeordnet, 36 weitere als Vorschlag. Die übrigen (v. a. Umstellungen, bKV-Sammelposten) von Hand zuordnen oder Regel verfeinern?
+- [ ] Gelten die Wettbewerbsbedingungen 2025 unverändert für 2026 (das Bonus-Reporting 2026 rechnet mit denselben Werten)?
+- [ ] Soll die Führungskraft die Ziele (Soll-Ist) der Kollegen in der Teamdatei mitgeben? Derzeit sieht jeder ADP nur sein eigenes Ziel.
 
 ## C · Erweiterungen
 
 ### Paket 2 – braucht ein Muster
-- [ ] Import des alten Excel-Antragsbuchs (Blatt je Jahr)
 
 ### Paket 3 – Aktionen und Reporting
 - [ ] Reklamations-Auswertung nach dem Muster „Reporting Provisionsreklamationen": Anzahl, Quote, Ergebnis, Verursacher je Quartal
@@ -38,21 +43,28 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Mehrere Schreiben/Anlässe je Aktion
 
 ### Paket 4 – Team
-- [ ] Fünf-Stufen-Pfeil (top / leicht drüber / Mittelfeld / leicht drunter / deutlich drunter) gesamt und je Sparte
-- [ ] Sparten-Verteilung je ADP in der Teamdatei (aus Abrechnung + Produktscheiben)
-- [ ] Vergleich mit Zielwerten des Unternehmens
+- [ ] Neu-/Bestandsproduktion und Stückzahlen aus der Sammelmappe (Blätter „NBProd", „Stück Produkte") auswerten
+- [ ] Bonus-Reporting monatlich automatisch einlesen (bisher von Hand eintragen; PDF lässt sich im Browser nicht verlässlich lesen – als Excel oder CSV wäre es möglich)
 - [ ] Rückweg ADP → Führungskraft nur im Bedarfsfall: Meldedatei mit ausgewählten Anträgen
 
 ### Paket 5 – Weitergabe, Schutz, Lizenz (erst entscheiden, dann bauen)
-- [ ] Lizenzschlüssel je ADP mit Ablaufdatum, offline prüfbar (signiert); Verlängerung per neuem Schlüssel, keine neue Datei nötig.
-      Vor dem Bau zu entscheiden: Laufzeit (Monat/Jahr), Kulanzfrist, was nach Ablauf noch geht (Lesen + Export), Testlizenz
-- [ ] Quelltext erschweren (verkleinern/verschleiern) – verhindert das Nachbauen nicht, macht es aber mühsam
+- [ ] Entscheidungen in `docs/Quellcode-Schutz-und-Lizenz.md` (Laufzeit, Fristen, persönliche Kopie, Copyright-Vermerk)
+- [ ] Prüfen, ob das GitHub-Repository privat ist
+- [ ] Lizenzvertrag (eine Seite) entwerfen lassen
 - [ ] Ablaufdatum der App-Version („bitte neue Version holen")
 - [ ] Rechtliches klären: Verkauf an Kollegen, Datenschutz-Rolle, Freigabe durch den Versicherer
 
 ### Ideen aus dem Alltag
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
+
+## D0000 · Erledigt (Version 1.6)
+
+Altes Excel-Antragsbuch übernehmen; Zuordnung ohne Name und Vertragsnummer über Beitrag und Provision, Sammelbestätigung ·
+Reiter „Meine Produktion" (Auswertung nur aus der Abrechnung) · Projektjahr passt sich der Abrechnung an ·
+Sammelmappe: Produktscheiben je ADP, Ziele, Sparten-Vergleich mit fünf Pfeilstufen · Bonus-Rechner nach den Wettbewerbsbedingungen ·
+Lizenzschlüssel mit Signatur, Testzeitraum, Kulanz und Lesemodus; Lizenz-Werkzeug · Verteil-Version mit verkleinertem Quelltext ·
+neue Werte der echten Abrechnung (Kündigungsrücknahme, Pflege-, Auslands-, SDL-Tarifgruppe)
 
 ## D000 · Erledigt (Version 1.5)
 

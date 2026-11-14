@@ -2,7 +2,8 @@
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('fs'), path = require('path'), os = require('os');
 let chromium = null;
 try { chromium = require('playwright').chromium; } catch (e) { /* kein Playwright */ }
-const HTML = path.join(__dirname, '..', 'antragsbuch.html');
+// Mit ANTRAGSBUCH_HTML=dist/antragsbuch.html lässt sich dieselbe Testreihe gegen die Verteil-Version fahren.
+const HTML = path.resolve(__dirname, '..', process.env.ANTRAGSBUCH_HTML || 'antragsbuch.html');
 const { erzeuge, KOPF, zeile } = require('../tools/testdaten.js');
 
 test('antragsbuch.html: eine Datei, keine externen Adressen, Netzwerk per CSP gesperrt', () => {

@@ -6,7 +6,11 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "build": "node build.js",
+    "build:schutz": "node build.js --schutz",
     "testdaten": "node tools/testdaten.js"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "terser": "^5.51.2"
+  }
 }
