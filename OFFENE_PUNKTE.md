@@ -84,3 +84,8 @@ Korrekturbuchungen späterer Monate werden dem Antrag zugeordnet
 
 Antragsbuch mit Maske und Suche · Projektdatei mit Autosave · Abrechnungs-Import mit Kumulativ-Vergleich ·
 Abgleich mit fünf Listen · Veränderungsdienst · Dashboard · Team/Management · Ordner-Import · Hell/Dunkel
+
+## Skill „sdk-tarifschluessel"
+
+Liegt unter `skills/sdk-tarifschluessel/` (verpackt: `skills/sdk-tarifschluessel.skill`). Ordnet Tarifkürzel in Excel- und CSV-Dateien
+anhand des Tarifschlüssels ein. Offen: aktuelleren Tarifschlüssel und Leben-Tarife ergänzen; Auslöse-Tests für die Beschreibung.

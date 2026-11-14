@@ -1,0 +1,788 @@
+Tarif;Beschreibung
+Ba;Ergänzungstarif - Beihilfeberechtigte (Bund)
+BW1a;Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)
+BW2a;Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)
+BR30a;Stationärer Tarif - Beamtenanwärter (Regelleistungen)
+BREa;Stationärer Tarif - Beamtenanwärter (Regelleistungen)
+BWa;Stationärer Tarif - Beamtenanwärter (Wahlleistungen)
+ST;Standardtarif
+Za;Zahnergänzungstarif - Beihilfeberechtigte
+5A0;Ambulanter Tarif
+5A1;Ambulanter Tarif
+5A2;Ambulanter Tarif
+A20a;Ambulanter Tarif - Beihilfeberechtigte
+6A;Ambulanter Tarif
+6Z;Zahnergänzungstarif
+A25a;Ambulanter Tarif - Beihilfeberechtigte
+AG;Ambulanter Ergänzungstarif - GKV-Mitglieder
+AZa;Zahnergänzungstarif
+A55a;Ambulanter Tarif - Beihilfeberechtigte
+A60a;Ambulanter Tarif - Beihilfeberechtigte
+A100a;Ambulanter Tarif
+A80a;Ambulanter Tarif
+A50a;Ambulanter Tarif - Beihilfeberechtigte
+A30a;Ambulanter Tarif - Beihilfeberechtigte
+A40a;Ambulanter Tarif - Beihilfeberechtigte
+A103a;Ambulanter Tarif
+A105a;Ambulanter Tarif
+AEa;Ambulanter Tarif - Beihilfeberechtigte
+A35a;Ambulanter Tarif - Beihilfeberechtigte
+A45a;Ambulanter Tarif - Beihilfeberechtigte
+S102a;Stationärer Tarif
+S50a;Stationärer Tarif - Beihilfeberechtigte
+S30a;Stationärer Tarif - Beihilfeberechtigte
+SG2;Stationärer Ergänzungstarif - GKV-Mitglieder (* = Optionstarif)
+5S;Stationärer Tarif
+SG1;Stationärer Ergänzungstarif - GKV-Mitglieder (* = Optionstarif)
+S101a;Stationärer Tarif
+10;Krankenhaustagegeldtarif
+S103a;Stationärer Tarif
+S40a;Stationärer Tarif - Beihilfeberechtigte
+S15a;Stationärer Tarif - Beihilfeberechtigte
+S20a;Stationärer Tarif - Beihilfeberechtigte
+S25a;Stationärer Tarif - Beihilfeberechtigte
+S35a;Stationärer Tarif - Beihilfeberechtigte
+S45a;Stationärer Tarif - Beihilfeberechtigte
+S55a;Stationärer Tarif - Beihilfeberechtigte
+S60a;Stationärer Tarif - Beihilfeberechtigte
+SEa;Stationärer Tarif - Beihilfeberechtigte
+Wa;Stationärer Tarif - Beihilfeberechtigte (Wahlleistungen)
+A107a;Ambulanter Tarif
+A109a;Ambulanter Tarif
+A75a;Ambulanter Tarif
+TA2;Krankentagegeldtarif
+TA4;Krankentagegeldtarif
+TA6;Krankentagegeldtarif
+TA13;Krankentagegeldtarif
+TA26;Krankentagegeldtarif
+TA52;Krankentagegeldtarif
+PV;Pflegetagegeldtarif (zum 01.04.1997 in PE1 überführt)
+ZG20;Zahnersatztarif - GKV-Mitglieder
+ZG30;Zahnersatztarif - GKV-Mitglieder
+A80Ba;Ambulanter Tarif
+BZa;Zahnergänzungstarif - Beamtenanwärter
+BA30a;Ambulanter Tarif - Beamtenanwärter
+BAEa;Ambulanter Tarif - Beamtenanwärter
+BS30a;Stationärer Tarif - Beamtenanwärter
+BSEa;Stationärer Tarif - Beamtenanwärter
+ZS75a;Zahnergänzungstarif zu Tarif A75
+L1;Sterbegeldtarif (Beitragssenkungsplan)
+K1;Sterbegeldtarif (Beitragssenkungsplan)
+ZEa;Zahnergänzungstarif - Beihilfeberechtigte (Zahnersatz)
+BEa;Beitragsentlastungstarif
+AG80;Ambulanter Ergänzungstarif - GKV-Mitglieder
+ZG50;Zahnersatztarif - GKV-Mitglieder
+WG;Ambulanter Ergänzungstarif - GKV-Mitglieder
+AVa;Ambulanter Tarif - Beihilfeberechtigte (Selbstbeteiligungsvariante)
+PE1;Pflegetagegeldtarif
+PE2;Pflegetagegeldtarif
+R50a;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R45a;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R40a;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R35a;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+AR;Auslandsreisekrankenversicherung
+ARU;Auslandsreiseunfallversicherung
+PN;Pflegepflichtversicherung (Bestand)
+PB;Pflegepflichtversicherung - Beihilfeberechtigte (Bestand)
+PPN;Pflegepflichtversicherung (Neuzugang)
+PPB;Pflegepflichtversicherung - Beihilfeberechtigte (Neuzugang)
+WGG;Ambulanter Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+AGG;Ambulanter Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+SGG;Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+ZGG;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+R30a;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R25a;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R20a;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R15a;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+REa;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+VT;Gesetzlicher Zuschlag (10%)
+M1;Sterbegeldtarif (Beitragssenkungsplan)
+ST00;Standardtarif - Beihilfeberechtigte - Leistungsstufe 100%
+ST70;Standardtarif - Beihilfeberechtigte - Leistungsstufe 70%
+ST60;Standardtarif - Beihilfeberechtigte - Leistungsstufe 60%
+ST50;Standardtarif - Beihilfeberechtigte - Leistungsstufe 50%
+ST45;Standardtarif - Beihilfeberechtigte - Leistungsstufe 45%
+ST40;Standardtarif - Beihilfeberechtigte - Leistungsstufe 40%
+ST35;Standardtarif - Beihilfeberechtigte - Leistungsstufe 35%
+ST30;Standardtarif - Beihilfeberechtigte - Leistungsstufe 30%
+ST25;Standardtarif - Beihilfeberechtigte - Leistungsstufe 25%
+ST20;Standardtarif - Beihilfeberechtigte - Leistungsstufe 20%
+ST15;Standardtarif - Beihilfeberechtigte - Leistungsstufe 15%
+ST10;Standardtarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%
+ST09;Standardtarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%
+ST08;Standardtarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%
+ST07;Standardtarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%
+ST06;Standardtarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%
+ST05;Standardtarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%
+ST04;Standardtarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%
+ST03;Standardtarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%
+ST02;Standardtarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%
+ST01;Standardtarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%
+N1Z;Sterbegeldtarif (Beitragssenkungsplan) - 01.01.2004 - 31.12.2006
+ZH40;Zahnersatz- u. Heilpraktikertarif - GKV-Mitglieder
+V80;Auslandskrankenversicherung
+V09;Auslandskrankenversicherung
+WGF;Ambulanter Ergänzungstarif (Gruppenversicherung Firmen)
+SG1F;Stationärer Ergänzungstarif (Gruppenversicherung Firmen) *=Optionstarif
+SG2F;Stationärer Ergänzungstarif (Gruppenversicherung Firmen) *=Optionstarif
+ZG3F;Zahnersatztarif (Gruppenversicherung Firmen)
+ZH4F;Zahnersatztarif (Gruppenversicherung Firmen)
+AGF;Ambulanter Ergänzungstarif (Gruppenversicherung Firmen)
+TZ;Rentenversicherungstarif - 01.01.2004 - 31.12.2004
+AG8K;Ambulanter Ergänzungstarif für Kooperationspartner
+WGK;Ambulanter Ergänzungstarif für Kooperationspartner
+ZG2K;Zahnersatztarif für Kooperationspartner
+ZG3K;Zahnersatztarif für Kooperationspartner
+ZG5K;Zahnersatztarif für Kooperationspartner
+ZH4K;Zahnersatz- und Heilpraktikertarif für Kooperationspartner
+10K;Krankenhaustagegeldtarif für Kooperationspartner
+AGZK;Ergänzungstarif für Zahnbehandlung für Kooperationspartner
+AGZG;Ergänzungstarif für Zahnbehandlung (Gruppenvers. gen. Organisationen)
+AGZF;Ergänzungstarif für Zahnbehandlung (Gruppenversicherung Firmen)
+AGZ;Ergänzungstarif für Zahnbehandlung
+SGPG;Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+SG1G;Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+SG2G;Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+ZG3G;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+ZH4G;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+TY;Rentenversicherung - 01.01.2005 - 31.12.2006
+10F;Krankenhaustagegeld (Gruppenversicherung Firmen)
+10G;Krankenhaustagegeld (Gruppenversicherung gen. Organisationen)
+SG1O;Stationärer Ergänzungstarif (Optionstarif)
+SG2O;Stationärer Ergänzungstarif (Optionstarif)
+UB;Unfallversicherung Ergänzungstarif - Basis
+UT;Unfallversicherung Ergänzungstarif - Top
+U100;Unfallversicherung Invaliditätstarif (Linear)
+U350;Unfallversicherung Invaliditätstarif (Progression 350)
+U500;Unfallversicherung Invaliditätstarif (Progression 500)
+UBG;Unfallversicherung Ergänzungstarif - Basis (Gruppenv. gen. Organisationen)
+UTG;Unfallversicherung Ergänzungstarif - Top (Gruppenv. gen. Organisationen)
+U10G;Unfallversicherung Inval.tarif (Linear - Gruppenv. gen. Organisationen)
+U35G;Unfallversicherung Inval.tarif (Progress. 350 - Gruppenv. gen. Organisationen)
+U50G;Unfallversicherung Inval.tarif (Progress. 500 - Gruppenv. gen. Organisationen)
+PE3;Pflegetagegeldtarif
+GKVP;Ergänzungstarif für Versicherte der GEK
+UBF;Unfallversicherung Ergänzungstarif - Basis (Gruppenversicherung Firmen)
+UTF;Unfallversicherung Ergänzungstarif - Top (Gruppenversicherung Firmen)
+U10F;Unfallversicherung Inval.tarif (Linear - Gruppenversicherung Firmen)
+U35F;Unfallversicherung Inval.tarif (Progress. 350 - Gruppenversicherung Firmen)
+U50F;Unfallversicherung Inval.tarif (Progress. 500 - Gruppenversicherung Firmen)
+N1Y;Sterbegeldtarif (Beitragssenkungsplan) - 01.01.2007 - 31.12.2007
+WGZ2;Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre
+WGZ3;Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre
+WGZ4;Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre
+TX;Rentenversicherung - 01.01.2007 - 31.12.2007
+SN;Standardtarif Nichtversicherte
+SN00;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 100%
+SN70;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 70%
+SN60;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 60%
+SN50;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 50%
+SN45;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 45%
+SN40;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 40%
+SN35;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 35%
+SN30;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 30%
+SN25;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 25%
+SN20;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 20%
+SN15;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 15%
+SN10;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 70% / 55%
+SN09;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 60% / 45%
+SN08;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 55% / 40%
+SN07;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 50% / 35%
+SN06;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 45% / 30%
+SN05;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 40% / 25%
+SN04;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 35% / 20%
+SN03;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 30% / 15%
+SN02;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 25% / 15%
+SN01;Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 20% / 15%
+ZGPG;Zahnergänzungstarif (Gruppenversicherung gen. Organisationen)
+UR;Unfallversicherung Assistancetarif - Reha
+UH;Unfallversicherung Assistancetarif - Haushaltshilfen
+UF;Unfallversicherung Assistancetarif - Familienpolice
+UK;Unfallversicherung Assistancetarif - Kinder
+URG;Unfallversicherung Ass.tarif - Reha (Gruppenversicherung gen. Organisationen)
+UHG;Unfallversicherung Ass.tarif - Haushaltsh. (Gruppenvers. gen. Organisationen)
+UFG;Unfallversicherung Ass.tarif - Fam.police (Gruppenvers. gen. Organisationen)
+UKG;Unfallversicherung Ass.tarif - Kinder (Gruppenvers. gen. Organisationen)
+URF;Unfallversicherung Ass.tarif - Reha (Gruppenversicherung Frimen)
+UHF;Unfallversicherung Ass.tarif - Haushaltsh. (Gruppenversicherung Firmen)
+UFF;Unfallversicherung Ass.tarif - Fam.police (Gruppenversicherung Firmen)
+UKF;Unfallversicherung Ass.tarif - Kinder (Gruppenversicherung Firmen)
+N1X;Sterbegeldtarif (Beitragssenkungsplan) - 01.01.2008 - 31.12.2011
+TW;Rentenversicherung - 01.01.2008 - 31.12.2011
+OPT;Optionstarif
+BT;Basistarif - Leistungsstufe 100%
+BT00;Basistarif - Beihilfeberechtigte - Leistungsstufe 100%
+BT70;Basistarif - Beihilfeberechtigte - Leistungsstufe 70%
+BT60;Basistarif - Beihilfeberechtigte - Leistungsstufe 60%
+BT50;Basistarif - Beihilfeberechtigte - Leistungsstufe 50%
+BT45;Basistarif - Beihilfeberechtigte - Leistungsstufe 45%
+BT40;Basistarif - Beihilfeberechtigte - Leistungsstufe 40%
+BT35;Basistarif - Beihilfeberechtigte - Leistungsstufe 35%
+BT30;Basistarif - Beihilfeberechtigte - Leistungsstufe 30%
+BT25;Basistarif - Beihilfeberechtigte - Leistungsstufe 25%
+BT20;Basistarif - Beihilfeberechtigte - Leistungsstufe 20%
+BT15;Basistarif - Beihilfeberechtigte - Leistungsstufe 15%
+BT10;Basistarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%
+BT09;Basistarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%
+BT08;Basistarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%
+BT07;Basistarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%
+BT06;Basistarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%
+BT05;Basistarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%
+BT04;Basistarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%
+BT03;Basistarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%
+BT02;Basistarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%
+BT01;Basistarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%
+SC;Schattenbasistarif - Leistungsstufe 100%
+SC00;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 100%
+SC70;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 70%
+SC60;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 60%
+SC50;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 50%
+SC45;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 45%
+SC40;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 40%
+SC35;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 35%
+SC30;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 30%
+SC25;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 25%
+SC20;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 20%
+SC15;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 15%
+SC10;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%
+SC09;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%
+SC08;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%
+SC07;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%
+SC06;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%
+SC05;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%
+SC04;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%
+SC03;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%
+SC02;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%
+SC01;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%
+AGM;"Ambulanter Ergänzungstarif ""mhplus"""
+WGM;"Ambulanter Ergänzungstarif ""mhplus"""
+AGZM;"Ergänzungstarif für Zahnbehandlung ""mhplus"""
+ZG3M;"Zahnersatztarif ""mhplus"""
+ZH4M;"Zahnersatztarif ""mhplus"""
+SG1M;"Stationärer Ergänzungstarif ""mhplus"", * = Optionstarif"
+SG2M;"Stationärer Ergänzungstarif ""mhplus"", * = Optionstarif"
+10M;"Krankenhaustagegeldtarif ""mhplus"""
+UBM;"Unfallversicherung Ergänzungstarif - Basis - ""mhplus"""
+UTM;"Unfallversicherung Ergänzungstarif - Top - ""mhplus"""
+U10M;"Unfallversicherung Inval.tarif - Linear - ""mhplus"""
+U35M;"Unfallversicherung Inval.tarif - Progression 350 - ""mhplus"""
+U50M;"Unfallversicherung Inval.tarif - Progression 500 - ""mhplus"""
+URM;"Unfallversicherung Assistancetarif - Reha - ""mhplus"""
+UHM;"Unfallversicherung Assistancetarif - Haushaltshilfen - ""mhplus"""
+UFM;"Unfallversicherung Assistancetarif - Familienpolice - ""mhplus"""
+UKM;"Unfallversicherung Assistancetarif - Kinder - ""mhplus"""
+ZG5M;"Zahnersatztarif ""mhplus"""
+ZG7M;"Zahnersatztarif ""mhplus"""
+ZGBM;"Zahnbehandlungstarif ""mhplus"""
+ZG5G;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+ZG7G;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+ZGBG;Zahnbehandlungstarif (Gruppenversicherung gen. Organisationen)
+ZG5F;Zahnersatztarif (Gruppenversicherung Firmen)
+ZG7F;Zahnersatztarif (Gruppenversicherung Firmen)
+ZGBF;Zahnbehandlungstarif (Gruppenversicherung Firmen)
+ZG70;Zahnersatztarif - GKV-Mitglieder
+ZGB;Zahnbehandlungstarif - GKV-Mitglieder
+ZG7K;Zahnersatztarif für Kooperationspartner
+ZGBK;Zahnbehandlungstarif für Kooperationspartner
+NH;Naturheilverfahren - GKV-Mitglieder
+NHK;Naturheilverfahren für Kooperationspartner
+NHG;Naturheilverfahren (Gruppenversicherung gen. Organisationen)
+NHF;Naturheilverfahren (Gruppenversicherung Firmen)
+NHM;"Naturheilverfahren ""mhplus"""
+NTW;Sterbegeldtarif ohne Gesundheitsprüfung - 01.01.2011 - 31.12.2012
+NTPW;"Sterbegeldtarif ohne Gesundheitsprüfung - ""mhplus"" - 01.01.2011 - 31.12.2012"
+PS0A;Pflegeergänzungstarif - Pflegestufe 0 (häusliche / teilstationäre Pflege)
+PS1A;Pflegeergänzungstarif - Pflegestufe 1 (häusliche / teilstationäre Pflege)
+PS2A;Pflegeergänzungstarif - Pflegestufe 2 (häusliche / teilstationäre Pflege)
+PS3A;Pflegeergänzungstarif - Pflegestufe 3 (häusliche / teilstationäre Pflege)
+PS0S;Pflegeergänzungstarif - Pflegestufe 0 (vollstationäre Pflege)
+PS1S;Pflegeergänzungstarif - Pflegestufe 1 (vollstationäre Pflege)
+PS2S;Pflegeergänzungstarif - Pflegestufe 2 (vollstationäre Pflege)
+PS3S;Pflegeergänzungstarif - Pflegestufe 3 (vollstationäre Pflege)
+PSU;Pflegeergänzungstarif - Unfallkomponente
+PS0AD;Pflegeergänzungstarif - PS0A (mit Dynamik ohne Altersbegrenzung)
+PS1AD;Pflegeergänzungstarif - PS1A (mit Dynamik ohne Altersbegrenzung)
+PS2AD;Pflegeergänzungstarif - PS2A (mit Dynamik ohne Altersbegrenzung)
+PS3AD;Pflegeergänzungstarif - PS3A (mit Dynamik ohne Altersbegrenzung)
+PS0SD;Pflegeergänzungstarif - PS0S (mit Dynamik ohne Altersbegrenzung)
+PS1SD;Pflegeergänzungstarif - PS1S (mit Dynamik ohne Altersbegrenzung)
+PS2SD;Pflegeergänzungstarif - PS2S (mit Dynamik ohne Altersbegrenzung)
+PS3SD;Pflegeergänzungstarif - PS3S (mit Dynamik ohne Altersbegrenzung)
+SG1K;Stationärer Ergänzungstarif für Kooperationspartner
+SG2K;Stationärer Ergänzungstarif für Kooperationspartner
+N1W;Sterbegeldtarif (Beitragssenkungsplan) - 01.01.2012 - 31.12.2012
+TV;Rentenversicherung - 01.01.2012 - 31.12.2012
+TG6;Krankentagegeldtarif - GKV-Mitglieder
+TG6K;Krankentagegeldtarif - GKV-Mitglieder für Kooperationspartner
+TG6G;Krankentagegeldtarif - GKV-Mitglieder (Gruppenvers. gen. Organisationen)
+TG6F;Krankentagegeldtarif - GKV-Mitglieder (Gruppenversicherung Firmen)
+TG6M;"Krankentagegeldtarif - GKV-Mitglieder ""mhplus"""
+N1;Sterbegeldtarif (Beitragssenkungsplan) - 01.12.2012 - 31.12.2014
+T;Rentenversicherung - 01.12.2012 - 31.12.2014
+NTV;Sterbegeldtarif ohne Gesundheitsprüfung - 01.12.2012 - 31.12.2014
+NTPV;"Sterbegeldtarif ohne Gesundheitsprüfung - ""mhplus"" - 01.12.2012 - 31.12.2014"
+PZ;"Geförderter Pflegevorsorgetarif (""Pflegebahr"")"
+PZM;"Geförderter Pflegevorsorgetarif - ""mhplus"" (""Pflegebahr"")"
+BA50a;Ambulanter Tarif - Beamtenanwärter
+BA50n;Ambulanter Tarif - Beamtenanwärter
+BA50u;Ambulanter Tarif - Beamtenanwärter
+BS50a;Stationärer Tarif - Beamtenanwärter (Wahlleistungen)
+BS50n;Stationärer Tarif - Beamtenanwärter (Wahlleistungen)
+BS50u;Stationärer Tarif - Beamtenanwärter (Wahlleistungen)
+BR50a;Stationärer Tarif - Beamtenanwärter (Regelleistung)
+BR50n;Stationärer Tarif - Beamtenanwärter (Regelleistung)
+BR50u;Stationärer Tarif - Beamtenanwärter (Regelleistung)
+NLT;Notlagentarif
+NLT50;Notlagentarif - Beihilfeberechtigte - Leistungsstufe 50%
+NLT30;Notlagentarif - Beihilfeberechtigte - Leistungsstufe 30%
+NLT20;Notlagentarif - Beihilfeberechtigte - Leistungsstufe 20%
+SCN;Schattennotlagentarif - Leistungsstufe 100%
+SCN50;Schattennotlagentarif - Leistungsstufe 50%
+SCN30;Schattennotlagentarif - Leistungsstufe 30%
+SCN20;Schattennotlagentarif - Leistungsstufe 20%
+V;Vorsorgetarif für GKV-Versicherte
+VK;Vorsorgetarif für Kooperationspartner
+VG;Vorsorgetarif (Gruppenversicherung genossenschaftliche Organisationen)
+VF;Vorsorgetarif (Gruppenversicherung Firmen)
+VM;"Vorsorgetarif ""mhplus"""
+VP;Vorsorgetarif für Privatversicherte
+N1U;Sterbegeldtarif (Beitragssenkungsplan) - ab 01.01.2015
+TT;Rentenversicherung - ab 01.01.2015
+NTU;Sterbegeldtarif ohne Gesundheitsprüfung - ab 01.01.2015
+NTPU;"Sterbegeldtarif ohne Gesundheitsprüfung - ""mhplus"" - ab 01.01.2015"
+TG6R;Krankentagegeldtarif (ohne Risikoprüfung) - GKV-Mitglieder
+PG1A;Pflegeergänzungstarif - Pflegegrad 1
+PG2A;Pflegeergänzungstarif - Pflegegrad 2
+PG3A;Pflegeergänzungstarif - Pflegegrad 3
+PG4A;Pflegeergänzungstarif - Pflegegrad 4
+PG5A;Pflegeergänzungstarif - Pflegegrad 5
+PG1S;Pflegeergänzungstarif - Pflegegrad 1 (vollstationäre Pflege)
+PG2S;Pflegeergänzungstarif - Pflegegrad 2 (vollstationäre Pflege)
+PG3S;Pflegeergänzungstarif - Pflegegrad 3 (vollstationäre Pflege)
+PG4S;Pflegeergänzungstarif - Pflegegrad 4 (vollstationäre Pflege)
+PG5S;Pflegeergänzungstarif - Pflegegrad 5 (vollstationäre Pflege)
+PGU;Pflegeergänzungstarif - Unfallkomponente
+PG1AD;Pflegeergänzungstarif - PG1A (mit Dynamik ohne Altersbegrenzung)
+PG2AD;Pflegeergänzungstarif - PG2A (mit Dynamik ohne Altersbegrenzung)
+PG3AD;Pflegeergänzungstarif - PG3A (mit Dynamik ohne Altersbegrenzung)
+PG4AD;Pflegeergänzungstarif - PG4A (mit Dynamik ohne Altersbegrenzung)
+PG5AD;Pflegeergänzungstarif - PG5A (mit Dynamik ohne Altersbegrenzung)
+PG1SD;Pflegeergänzungstarif - PG1S (mit Dynamik ohne Altersbegrenzung)
+PG2SD;Pflegeergänzungstarif - PG2S (mit Dynamik ohne Altersbegrenzung)
+PG3SD;Pflegeergänzungstarif - PG3S (mit Dynamik ohne Altersbegrenzung)
+PG4SD;Pflegeergänzungstarif - PG4S (mit Dynamik ohne Altersbegrenzung)
+PG5SD;Pflegeergänzungstarif - PG5S (mit Dynamik ohne Altersbegrenzung)
+AM10;Ambulanter Tarif
+AM11;Ambulanter Tarif
+AM12;Ambulanter Tarif
+AM13;Ambulanter Tarif
+AM30;Ambulanter Tarif
+AM31;Ambulanter Tarif
+AM32;Ambulanter Tarif
+AM33;Ambulanter Tarif
+S1;Stationärer Tarif
+S1DD;Stationärer Tarif
+S3;Stationärer Tarif
+Z9;Zahnergänzungstarif
+Z8;Zahnergänzungstarif
+Z6;Zahnergänzungstarif
+Z6SB;Zahnergänzungstarif
+PEV1;Pflegetagegeldtarif - ab Pflegegrad 1
+PEV3;Pflegetagegeldtarif - ab Pflegegrad 3
+PEV4;Pflegetagegeldtarif - ab Pflegegrad 4
+AGGz;Ambulanter Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+WGGz;Ambulanter Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+NHGz;Naturheilverfahren (Gruppenversicherung gen. Organisationen)
+VGz;Vorsorgetarif (Gruppenversicherung genossenschaftliche Organisationen)
+AGZGz;Ergänzungstarif für Zahnbehandlung (Gruppenvers. gen. Organisationen)
+ZG3Gz;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+ZH4Gz;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+ZG5Gz;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+ZG7Gz;Zahnersatztarif (Gruppenversicherung gen. Organisationen)
+ZGBGz;Zahnbehandlungstarif (Gruppenversicherung gen. Organisationen)
+SG1Gz;Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+SG2Gz;Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+10Gz;Krankenhaustagegeld (Gruppenversicherung gen. Organisationen)
+TG6Gz;Krankentagegeldtarif - GKV-Mitglieder (Gruppenvers. gen. Organisationen)
+ZGPGz;Zahnergänzungstarif (Gruppenversicherung gen. Organisationen)
+SGPGz;Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)
+AGFz;Ambulanter Ergänzungstarif (Gruppenversicherung Firmen)
+WGFz;Ambulanter Ergänzungstarif (Gruppenversicherung Firmen)
+NHFz;Naturheilverfahren (Gruppenversicherung Firmen)
+VFz;Vorsorgetarif (Gruppenversicherung Firmen)
+AGZFz;Ergänzungstarif für Zahnbehandlung (Gruppenversicherung Firmen)
+ZG3Fz;Zahnersatztarif (Gruppenversicherung Firmen)
+ZH4Fz;Zahnersatztarif (Gruppenversicherung Firmen)
+ZG5Fz;Zahnersatztarif (Gruppenversicherung Firmen)
+ZG7Fz;Zahnersatztarif (Gruppenversicherung Firmen)
+ZGBFz;Zahnbehandlungstarif (Gruppenversicherung Firmen)
+SG1Fz;Stationärer Ergänzungstarif (Gruppenversicherung Firmen) *=Optionstarif
+SG2Fz;Stationärer Ergänzungstarif (Gruppenversicherung Firmen) *=Optionstarif
+10Fz;Krankenhaustagegeld (Gruppenversicherung Firmen)
+TG6Fz;Krankentagegeldtarif - GKV-Mitglieder (Gruppenversicherung Firmen)
+AGMz;"Ambulanter Ergänzungstarif ""mhplus"""
+WGMz;"Ambulanter Ergänzungstarif ""mhplus"""
+NHMz;"Naturheilverfahren ""mhplus"""
+VMz;"Vorsorgetarif ""mhplus"""
+AGZMz;"Ergänzungstarif für Zahnbehandlung ""mhplus"""
+ZG3Mz;"Zahnersatztarif ""mhplus"""
+ZH4Mz;"Zahnersatztarif ""mhplus"""
+ZG5Mz;"Zahnersatztarif ""mhplus"""
+ZG7Mz;"Zahnersatztarif ""mhplus"""
+ZGBMz;"Zahnbehandlungstarif ""mhplus"""
+SG1Mz;"Stationärer Ergänzungstarif ""mhplus"", * = Optionstarif"
+SG2Mz;"Stationärer Ergänzungstarif ""mhplus"", * = Optionstarif"
+10Mz;"Krankenhaustagegeldtarif ""mhplus"""
+TG6Mz;"Krankentagegeldtarif - GKV-Mitglieder ""mhplus"""
+Bn;Ergänzungstarif - Beihilfeberechtigte (Bund)
+BW1n;Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)
+BW2n;Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)
+BR30n;Stationärer Tarif - Beamtenanwärter (Regelleistungen)
+BREn;Stationärer Tarif - Beamtenanwärter (Regelleistungen)
+BWn;Stationärer Tarif - Beamtenanwärter (Wahlleistungen)
+Zn;Zahnergänzungstarif - Beihilfeberechtigte
+A20n;Ambulanter Tarif - Beihilfeberechtigte
+A25n;Ambulanter Tarif - Beihilfeberechtigte
+AZn;Zahnergänzungstarif
+A55n;Ambulanter Tarif - Beihilfeberechtigte
+A60n;Ambulanter Tarif - Beihilfeberechtigte
+A100n;Ambulanter Tarif
+A80n;Ambulanter Tarif
+A50n;Ambulanter Tarif - Beihilfeberechtigte
+A30n;Ambulanter Tarif - Beihilfeberechtigte
+A40n;Ambulanter Tarif - Beihilfeberechtigte
+A103n;Ambulanter Tarif
+A105n;Ambulanter Tarif
+AEn;Ambulanter Tarif - Beihilfeberechtigte
+A35n;Ambulanter Tarif - Beihilfeberechtigte
+A45n;Ambulanter Tarif - Beihilfeberechtigte
+S102n;Stationärer Tarif
+S50n;Stationärer Tarif - Beihilfeberechtigte
+S30n;Stationärer Tarif - Beihilfeberechtigte
+S101n;Stationärer Tarif
+S103n;Stationärer Tarif
+S40n;Stationärer Tarif - Beihilfeberechtigte
+S15n;Stationärer Tarif - Beihilfeberechtigte
+S20n;Stationärer Tarif - Beihilfeberechtigte
+S25n;Stationärer Tarif - Beihilfeberechtigte
+S35n;Stationärer Tarif - Beihilfeberechtigte
+S45n;Stationärer Tarif - Beihilfeberechtigte
+S55n;Stationärer Tarif - Beihilfeberechtigte
+S60n;Stationärer Tarif - Beihilfeberechtigte
+SEn;Stationärer Tarif - Beihilfeberechtigte
+Wn;Stationärer Tarif - Beihilfeberechtigte (Wahlleistungen)
+A107n;Ambulanter Tarif
+A109n;Ambulanter Tarif
+A75n;Ambulanter Tarif
+A210n;Ambulanter Tarif
+A220n;Ambulanter Tarif
+Z250n;Zahnergänzungstarif zu Tarif A210n/A220n
+Z260n;Zahnergänzungstarif zu Tarif A210n/A220n
+A80Bn;Ambulanter Tarif
+BZn;Zahnergänzungstarif - Beamtenanwärter
+BA30n;Ambulanter Tarif - Beamtenanwärter
+BAEn;Ambulanter Tarif - Beamtenanwärter
+BS30n;Stationärer Tarif - Beamtenanwärter
+BSEn;Stationärer Tarif - Beamtenanwärter
+ZS75n;Zahnergänzungstarif zu Tarif A75
+ZEn;Zahnergänzungstarif - Beihilfeberechtigte (Zahnersatz)
+BEn;Beitragsentlastungstarif
+AVn;Ambulanter Tarif - Beihilfeberechtigte (Selbstbeteiligungsvariante)
+R50n;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R45n;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R40n;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R35n;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R30n;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R25n;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R20n;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R15n;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+REn;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+STu;Standardtarif
+ST00u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 100%
+ST70u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 70%
+ST60u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 60%
+ST50u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 50%
+ST45u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 45%
+ST40u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 40%
+ST35u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 35%
+ST30u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 30%
+ST25u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 25%
+ST20u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 20%
+ST15u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 15%
+ST10u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%
+ST09u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%
+ST08u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%
+ST07u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%
+ST06u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%
+ST05u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%
+ST04u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%
+ST03u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%
+ST02u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%
+ST01u;Standardtarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%
+BTu;Basistarif - Leistungsstufe 100%
+BT00u;Basistarif - Beihilfeberechtigte - Leistungsstufe 100%
+BT70u;Basistarif - Beihilfeberechtigte - Leistungsstufe 70%
+BT60u;Basistarif - Beihilfeberechtigte - Leistungsstufe 60%
+BT50u;Basistarif - Beihilfeberechtigte - Leistungsstufe 50%
+BT45u;Basistarif - Beihilfeberechtigte - Leistungsstufe 45%
+BT40u;Basistarif - Beihilfeberechtigte - Leistungsstufe 40%
+BT35u;Basistarif - Beihilfeberechtigte - Leistungsstufe 35%
+BT30u;Basistarif - Beihilfeberechtigte - Leistungsstufe 30%
+BT25u;Basistarif - Beihilfeberechtigte - Leistungsstufe 25%
+BT20u;Basistarif - Beihilfeberechtigte - Leistungsstufe 20%
+BT15u;Basistarif - Beihilfeberechtigte - Leistungsstufe 15%
+BT10u;Basistarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%
+BT09u;Basistarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%
+BT08u;Basistarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%
+BT07u;Basistarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%
+BT06u;Basistarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%
+BT05u;Basistarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%
+BT04u;Basistarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%
+BT03u;Basistarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%
+BT02u;Basistarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%
+BT01u;Basistarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%
+SCu;Schattenbasistarif - Leistungsstufe 100%
+SC00u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 100%
+SC70u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 70%
+SC60u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 60%
+SC50u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 50%
+SC45u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 45%
+SC40u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 40%
+SC35u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 35%
+SC30u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 30%
+SC25u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 25%
+SC20u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 20%
+SC15u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 15%
+SC10u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%
+SC09u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%
+SC08u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%
+SC07u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%
+SC06u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%
+SC05u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%
+SC04u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%
+SC03u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%
+SC02u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%
+SC01u;Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%
+A100u;Ambulanter Tarif
+A103u;Ambulanter Tarif
+A105u;Ambulanter Tarif
+A107u;Ambulanter Tarif
+A109u;Ambulanter Tarif
+A80u;Ambulanter Tarif
+A80Bu;Ambulanter Basistarif
+A75u;Ambulanter Tarif
+A210u;Ambulanter Tarif
+A220u;Ambulanter Tarif
+S101u;Stationärer Tarif
+S102u;Stationärer Tarif
+S103u;Stationärer Tarif
+AZu;Zahnergänzungstarif
+ZS75u;Zahnergänzungstarif zu Tarif A75u
+Z250u;Zahnergänzungstarif zu Tarif A210u/A220u
+Z260u;Zahnergänzungstarif zu Tarif A210u/A220u
+A60u;Ambulanter Tarif - Beihilfeberechtigte
+A55u;Ambulanter Tarif - Beihilfeberechtigte
+A50u;Ambulanter Tarif - Beihilfeberechtigte
+A45u;Ambulanter Tarif - Beihilfeberechtigte
+A40u;Ambulanter Tarif - Beihilfeberechtigte
+A35u;Ambulanter Tarif - Beihilfeberechtigte
+A30u;Ambulanter Tarif - Beihilfeberechtigte
+A25u;Ambulanter Tarif - Beihilfeberechtigte
+A20u;Ambulanter Tarif - Beihilfeberechtigte
+AVu;Ambulanter Tarif - Beihilfeberechtigte (Selbstbeteiligungsvariante)
+AEu;Ambulanter Tarif - Beihilfeberechtigte
+S60u;Stationärer Tarif - Beihilfeberechtigte
+S55u;Stationärer Tarif - Beihilfeberechtigte
+S50u;Stationärer Tarif - Beihilfeberechtigte
+S45u;Stationärer Tarif - Beihilfeberechtigte
+S40u;Stationärer Tarif - Beihilfeberechtigte
+S35u;Stationärer Tarif - Beihilfeberechtigte
+S30u;Stationärer Tarif - Beihilfeberechtigte
+S25u;Stationärer Tarif - Beihilfeberechtigte
+S20u;Stationärer Tarif - Beihilfeberechtigte
+S15u;Stationärer Tarif - Beihilfeberechtigte
+SEu;Stationärer Tarif - Beihilfeberechtigte
+R50u;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R45u;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R40u;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R35u;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R30u;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R25u;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R20u;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+R15u;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+REu;Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)
+Wu;Stationärer Tarif - Beihilfeberechtigte (Wahlleistungen)
+Zu;Zahnergänzungstarif - Beihilfeberechtigte
+Bu;Ergänzungstarif - Beihilfeberechtigte (Bund)
+BW1u;Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)
+BW2u;Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)
+BA30u;Ambulanter Tarif - Beamtenanwärter
+BAEu;Ambulanter Tarif - Beamtenanwärter
+BS30u;Stationärer Tarif - Beamtenanwärter
+BSEu;Stationärer Tarif - Beamtenanwärter
+BR30u;Stationärer Tarif - Beamtenanwärter (Regelleistungen)
+BREu;Stationärer Tarif - Beamtenanwärter (Regelleistungen)
+BWu;Stationärer Tarif - Beamtenanwärter (Wahlleistungen)
+BZu;Zahnergänzungstarif - Beamtenanwärter
+V80u;Auslandsversicherung
+V09u;Auslandsversicherung
+AG80u;Ambulanter Ergänzungstarif - GKV-Mitglieder
+WGu;Ambulanter Ergänzungstarif - GKV-Mitglieder
+WGZ2u;Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre
+WGZ3u;Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre
+WGZ4u;Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre
+NHu;Naturheilverfahren - GKV-Mitglieder
+SG1u;Stationärer Ergänzungstarif - GKV-Mitglieder (* = Optionstarif)
+SG2u;Stationärer Ergänzungstarif - GKV-Mitglieder (* = Optionstarif)
+SG1Ou;Stationärer Ergänzungstarif (Optionstarif)
+SG2Ou;Stationärer Ergänzungstarif (Optionstarif)
+AGZu;Ergänzungstarif für Zahnbehandlung
+ZG70u;Zahnersatztarif - GKV-Mitglieder
+ZG50u;Zahnersatztarif - GKV-Mitglieder
+ZG30u;Zahnersatztarif - GKV-Mitglieder
+ZG20u;Zahnersatztarif - GKV-Mitglieder
+ZH40u;Zahnersatz- u. Heilpraktikertarif - GKV-Mitglieder
+ZGBu;Zahnbehandlungstarif - GKV-Mitglieder
+PS0Au;Pflegeergänzungstarif - Pflegestufe 0 (häusliche / teilstationäre Pflege)
+PS1Au;Pflegeergänzungstarif - Pflegestufe 1 (häusliche / teilstationäre Pflege)
+PS2Au;Pflegeergänzungstarif - Pflegestufe 2 (häusliche / teilstationäre Pflege)
+PS3Au;Pflegeergänzungstarif - Pflegestufe 3 (häusliche / teilstationäre Pflege)
+PS0Su;Pflegeergänzungstarif - Pflegestufe 0 (vollstationäre Pflege)
+PS1Su;Pflegeergänzungstarif - Pflegestufe 1 (vollstationäre Pflege)
+PS2Su;Pflegeergänzungstarif - Pflegestufe 2 (vollstationäre Pflege)
+PS3Su;Pflegeergänzungstarif - Pflegestufe 3 (vollstationäre Pflege)
+PSUu;Pflegeergänzungstarif - Unfallkomponente
+PS0ADu;Pflegeergänzungstarif - PS0Au (mit Dynamik ohne Altersbegrenzung)
+PS1ADu;Pflegeergänzungstarif - PS1Au (mit Dynamik ohne Altersbegrenzung)
+PS2ADu;Pflegeergänzungstarif - PS2Au (mit Dynamik ohne Altersbegrenzung)
+PS3ADu;Pflegeergänzungstarif - PS3Au (mit Dynamik ohne Altersbegrenzung)
+PS0SDu;Pflegeergänzungstarif - PS0Su (mit Dynamik ohne Altersbegrenzung)
+PS1SDu;Pflegeergänzungstarif - PS1Su (mit Dynamik ohne Altersbegrenzung)
+PS2SDu;Pflegeergänzungstarif - PS2Su (mit Dynamik ohne Altersbegrenzung)
+PS3SDu;Pflegeergänzungstarif - PS3Su (mit Dynamik ohne Altersbegrenzung)
+BEu;Beitragsentlastungstarif
+10u;Krankenhaustagegeldtarif
+TA2u;Krankentagegeldtarif
+TA4u;Krankentagegeldtarif
+TA6u;Krankentagegeldtarif
+TA13u;Krankentagegeldtarif
+TA26u;Krankentagegeldtarif
+TA52u;Krankentagegeldtarif
+AG8Ku;Ambulanter Ergänzungstarif für Kooperationspartner
+WGKu;Ambulanter Ergänzungstarif für Kooperationspartner
+NHKu;Naturheilverfahren für Kooperationspartner
+SG1Ku;Stationärer Ergänzungstarif für Kooperationspartner
+SG2Ku;Stationärer Ergänzungstarif für Kooperationspartner
+AGZKu;Ergänzungstarif für Zahnbehandlung für Kooperationspartner
+ZG7Ku;Zahnersatztarif für Kooperationspartner
+ZG5Ku;Zahnersatztarif für Kooperationspartner
+ZG3Ku;Zahnersatztarif für Kooperationspartner
+ZG2Ku;Zahnersatztarif für Kooperationspartner
+ZH4Ku;Zahnersatz- und Heilpraktikertarif für Kooperationspartner
+ZGBKu;Zahnbehandlungstarif für Kooperationspartner
+10Ku;Krankenhaustagegeldtarif für Kooperationspartner
+NHGu;Naturheilverfahren (Gruppenversicherung gen. Organisationen)
+NHFu;Naturheilverfahren (Gruppenversicherung Firmen)
+NHMu;"Naturheilverfahren ""mhplus"""
+PG1Au;Pflegeergänzungstarif - Pflegegrad 1
+PG2Au;Pflegeergänzungstarif - Pflegegrad 2
+PG3Au;Pflegeergänzungstarif - Pflegegrad 3
+PG4Au;Pflegeergänzungstarif - Pflegegrad 4
+PG5Au;Pflegeergänzungstarif - Pflegegrad 5
+PG1Su;Pflegeergänzungstarif - Pflegegrad 1 (vollstationäre Pflege)
+PG2Su;Pflegeergänzungstarif - Pflegegrad 2 (vollstationäre Pflege)
+PG3Su;Pflegeergänzungstarif - Pflegegrad 3 (vollstationäre Pflege)
+PG4Su;Pflegeergänzungstarif - Pflegegrad 4 (vollstationäre Pflege)
+PG5Su;Pflegeergänzungstarif - Pflegegrad 5 (vollstationäre Pflege)
+PGUu;Pflegeergänzungstarif - Unfallkomponente
+PG1ADu;Pflegeergänzungstarif - PG1Au (mit Dynamik ohne Altersbegrenzung)
+PG2ADu;Pflegeergänzungstarif - PG2Au (mit Dynamik ohne Altersbegrenzung)
+PG3ADu;Pflegeergänzungstarif - PG3Au (mit Dynamik ohne Altersbegrenzung)
+PG4ADu;Pflegeergänzungstarif - PG4Au (mit Dynamik ohne Altersbegrenzung)
+PG5ADu;Pflegeergänzungstarif - PG5Au (mit Dynamik ohne Altersbegrenzung)
+PG1SDu;Pflegeergänzungstarif - PG1Su (mit Dynamik ohne Altersbegrenzung)
+PG2SDu;Pflegeergänzungstarif - PG2Su (mit Dynamik ohne Altersbegrenzung)
+PG3SDu;Pflegeergänzungstarif - PG3Su (mit Dynamik ohne Altersbegrenzung)
+PG4SDu;Pflegeergänzungstarif - PG4Su (mit Dynamik ohne Altersbegrenzung)
+PG5SDu;Pflegeergänzungstarif - PG5Su (mit Dynamik ohne Altersbegrenzung)
+AP5;ambulante Zusatzversicherung - Einzelversicherung
+AP7;ambulante Zusatzversicherung - Einzelversicherung
+AP9;ambulante Zusatzversicherung - Einzelversicherung
+AP1;ambulante Zusatzversicherung - Einzelversicherung
+SPU;stationäre Zusatzversicherung - Einzelversicherung
+SP2;stationäre Zusatzversicherung - Einzelversicherung
+SP1;stationäre Zusatzversicherung - Einzelversicherung
+ZP5;Zahnzusatzversicherung - Einzelversicherung
+ZP7;Zahnzusatzversicherung - Einzelversicherung
+ZP9;Zahnzusatzversicherung - Einzelversicherung
+ZP1;Zahnzusatzversicherung - Einzelversicherung
+AP5F;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AP7F;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AP9F;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AP1F;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+SPUF;stationäre Zusatzversicherung - fakultative Gruppenversicherung
+SP2F;stationäre Zusatzversicherung - fakultative Gruppenversicherung
+SP1F;stationäre Zusatzversicherung - fakultative Gruppenversicherung
+ZP5F;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZP7F;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZP9F;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZP1F;Zahnzusatzversicherung - fakultative Gruppenversicherung
+AP5O;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AP7O;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AP9O;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AP1O;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+SPUO;stationäre Zusatzversicherung - obligatorische Gruppenversicherung
+SP2O;stationäre Zusatzversicherung - obligatorische Gruppenversicherung
+SP1O;stationäre Zusatzversicherung - obligatorische Gruppenversicherung
+ZP5O;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZP7O;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZP9O;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZP1O;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+AP5FR;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AP7FR;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AP9FR;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AP1FR;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+SPUFR;stationäre Zusatzversicherung - fakultative Gruppenversicherung
+SP2FR;stationäre Zusatzversicherung - fakultative Gruppenversicherung
+SP1FR;stationäre Zusatzversicherung - fakultative Gruppenversicherung
+ZP5FR;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZP7FR;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZP9FR;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZP1FR;Zahnzusatzversicherung - fakultative Gruppenversicherung
+AP5OR;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AP7OR;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AP9OR;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AP1OR;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+SPUOR;stationäre Zusatzversicherung - obligatorische Gruppenversicherung
+SP2OR;stationäre Zusatzversicherung - obligatorische Gruppenversicherung
+SP1OR;stationäre Zusatzversicherung - obligatorische Gruppenversicherung
+ZP5OR;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZP7OR;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZP9OR;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZP1OR;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+BFRO;Beitragsfreistellungstarif
+BFROR;Beitragsfreistellungstarif
+AB1F;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AB1O;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AB1FR;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AB1OR;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AB2F;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AB2O;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AB2FR;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AB2OR;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AB3F;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AB3O;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+AB3FR;ambulante Zusatzversicherung - fakultative Gruppenversicherung
+AB3OR;ambulante Zusatzversicherung - obligatorische Gruppenversicherung
+ZB1F;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZB1O;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZB1FR;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZB1OR;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZB2F;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZB2O;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZB2FR;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZB2OR;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZB3F;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZB3O;Zahnzusatzversicherung - obligatorische Gruppenversicherung
+ZB3FR;Zahnzusatzversicherung - fakultative Gruppenversicherung
+ZB3OR;Zahnzusatzversicherung - obligatorische Gruppenversicherung
