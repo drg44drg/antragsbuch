@@ -102,7 +102,23 @@
         h('div.karte', null, h('h3', null, 'Import-Ordner'), h('div', { style: { margin: '6px 0 10px' } }, ordnerText), ordnerBtns),
         h('div.karte', null, h('h3', null, 'Projektdatei'), h('div.muted.klein', { style: { margin: '6px 0 10px' } }, Sp.handle ? 'Automatisches Speichern in „' + Sp.dateiname + '". Zusätzlich liegt ein Spiegel im Browser.' : 'Das Projekt ist nur im Browser gesichert. Verbinden Sie es mit einer Datei oder laden Sie regelmäßig eine Kopie herunter.'),
           h('div.leiste', null, !Sp.handle && Sp.fsa ? D.btn('In Datei speichern …', function () { Sp.neuDatei(p).then(function (ok) { if (ok) { Sp.uebernimm(p, Sp.handle, Sp.dateiname); Sp.plane(p); App.zeige('einstellungen'); } }).catch(function (err) { if (err.name !== 'AbortError') D.toast(err.message, { krit: true }); }); }, { klasse: 'haupt-btn' }) : null,
-            D.btn('Kopie herunterladen', function () { Sp.ladeHerunter(p); }, { icon: 'runter' }), D.btn('Projekt schließen', function () { Sp.jetzt().then(App.schliesse); }, { klasse: 'leise' })))));
+            D.btn('Kopie herunterladen', function () { Sp.ladeHerunter(p); }, { icon: 'runter' }), D.btn('Projekt schließen', function () { Sp.jetzt().then(App.schliesse); }, { klasse: 'leise', titel: 'Speichert und schließt – bei Passwortschutz ist danach wieder das Passwort nötig' })))));
+      var geschuetzt = !!Sp.schluessel;
+      function setzePasswort() {
+        D.passwort(geschuetzt ? 'Passwort ändern' : 'Passwortschutz einschalten',
+          h('div', null, h('p.muted', { style: { margin: '0 0 8px' } }, 'Die Projektdatei und die Sicherung im Browser werden mit diesem Passwort verschlüsselt (AES-256). Beim Öffnen wird es abgefragt.'),
+            h('div.meldung.warn', null, h('b', null, 'Wichtig: '), 'Es gibt keine Hintertür. Ohne Passwort sind die Daten nicht wiederherstellbar – auch nicht durch den Ersteller der App. Bitte sicher notieren.')),
+          { neu: true, ja: geschuetzt ? 'Passwort ändern' : 'Schutz einschalten' }).then(function (pw) {
+          if (pw == null) return;
+          return AB.krypto.schluessel(pw).then(function (s) { Sp.schluessel = s; Sp.plane(p); App.zeige('einstellungen'); D.toast('Passwortschutz ist aktiv. Die Projektdatei wird ab jetzt verschlüsselt gespeichert.'); });
+        }).catch(function (err) { D.toast(err.message, { krit: true }); });
+      }
+      el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Passwortschutz'), h('span.marke-s' + (geschuetzt ? '.gut' : '.warn'), null, geschuetzt ? 'aktiv' : 'aus')),
+        h('div.muted.klein', { style: { margin: '6px 0 10px' } }, geschuetzt ? 'Projektdatei und Browser-Sicherung sind verschlüsselt. Wer die Datei findet oder weitergeschickt bekommt, kann sie ohne Passwort nicht lesen. Exporte (Excel, PDF) sind nicht geschützt.'
+          : 'Die Projektdatei ist lesbar gespeichert. Mit einem Passwort schützen Sie die Kundendaten, falls der Rechner verloren geht oder die Datei in falsche Hände gerät.'),
+        !AB.krypto.verfuegbar() ? h('div.meldung.warn', null, 'Dieser Browser unterstützt die Verschlüsselung nicht. Bitte Edge oder Chrome verwenden.')
+          : h('div.leiste', null, D.btn(geschuetzt ? 'Passwort ändern' : 'Passwortschutz einschalten', setzePasswort, { klasse: geschuetzt ? '' : 'haupt-btn' }),
+            geschuetzt ? D.btn('Schutz aufheben', function () { D.frage('Passwortschutz aufheben?', 'Die Projektdatei wird danach wieder unverschlüsselt gespeichert.', 'Schutz aufheben', { gefahr: true }).then(function (ja) { if (ja) { Sp.schluessel = null; Sp.plane(p); App.zeige('einstellungen'); } }); }, { klasse: 'leise gefahr' }) : null)));
       el.appendChild(h('div.karte', null, h('h3', null, 'Sicherungsstände'), h('div.unter', null, 'Vor jedem Import wird automatisch ein Stand angelegt; die letzten 10 bleiben im Projekt. Gesichert werden Anträge, Zuordnungen und Einstellungen (die Abrechnung lässt sich jederzeit neu einlesen).'),
         p.sicherungen.length ? h('table.einfach', null, sb) : h('div.muted.klein', null, 'Noch keine Sicherungsstände.')));
     } };

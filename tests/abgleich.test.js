@@ -335,7 +335,7 @@ test('Tarif-Einordnung aus dem Tarifverzeichnis: Beschreibung, Kategorie, Beihil
   assert.equal(T.einordnen('S30a', V).beihilfe, true); assert.equal(T.einordnen('S101a', V).beihilfe, false);
   assert.equal(T.einordnen('Ba', V).beihilfe, true); assert.equal(T.einordnen('BEa', V).kategorie, 'Beitragsentlastung');
   assert.equal(T.einordnen('TA6', V).kategorie, 'Krankentagegeld'); assert.equal(T.einordnen('PPN', V).kategorie, 'Pflegepflicht');
-  assert.equal(T.einordnen('VT', V).kategorie, 'Gesetzlicher Zuschlag'); assert.equal(T.einordnen('ST', V).kategorie, 'Sozialtarif');
+  assert.equal(T.einordnen('VT', V).kategorie, 'Gesetzlicher Zuschlag'); assert.equal(T.einordnen('ST', V).kategorie, 'Sozialtarif · Standardtarif'); assert.equal(T.einordnen('BT', V).kategorie, 'Sozialtarif · Basistarif'); assert.equal(T.einordnen('NLT', V).kategorie, 'Sozialtarif · Notlagentarif');
   assert.equal(T.einordnen('ZG50', ZL).kategorie, 'Zahn'); assert.equal(T.einordnen('ZG50', ZL).zielgruppe, 'GKV-Mitglieder'); assert.equal(T.einordnen('ZG50', ZL).zusatz, true);
   assert.equal(T.einordnen('SG1F', 'Firmentarife').zielgruppe, 'Firmen (bKV)'); assert.equal(T.einordnen('UT', 'Unfallversicherung').kategorie, 'Unfall');
   assert.equal(T.einordnen('A103n', V).welt, 'n'); assert.equal(T.einordnen('S101u', V).welt, 'u'); assert.equal(T.einordnen('TA6', V).welt, '');
@@ -345,6 +345,10 @@ test('Tarif-Einordnung aus dem Tarifverzeichnis: Beschreibung, Kategorie, Beihil
   assert.deepEqual([e.beschreibung, e.kategorie, e.sicher], ['', 'Berufsunfähigkeit', false]);
   assert.match(T.text('SBUx', 'Lebensversicherung (Standard)'), /geschätzt/);
   assert.equal(T.einordnen('XYZ', V).kategorie, ''); assert.equal(T.sparte('XYZ', V), 'Sonstige');
+  // ohne Endung oder mit Betrag erfasst: Tariffamilie
+  e = T.einordnen('A107', V); assert.deepEqual([e.kategorie, e.beihilfe, e.welt], ['Ambulant', false, '']); assert.match(e.hinweis, /Tariffamilie/);
+  assert.equal(T.einordnen('TA6/160', V).kategorie, 'Krankentagegeld'); assert.equal(T.einordnen('BE375', V).kategorie, 'Beitragsentlastung');
+  assert.equal(T.einordnen('A30', V).beihilfe, true);
 });
 
 test('Team: Summenzeile wird auch erkannt, wenn sie nicht exakt der Summe entspricht', () => {
@@ -363,4 +367,27 @@ test('Team: Summenzeile wird auch erkannt, wenn sie nicht exakt der Summe entspr
   // Titel entscheidet, wenn er eindeutig ist
   const titel = { zeilen: [z('2', 'C,D', [3000, 3000, 3000, 3000]), z('9', 'Summe Gebiet', [4000, 4000, 4000, 4000]), z('3', 'E,F', [1000, 1000, 1000, 1000])] };
   assert.equal(T.erkenneGesamt(titel), true); assert.equal(titel.zeilen[1].gesamt, true);
+});
+
+test('Auswertung nach Kategorie und Beihilfe: Kennzahlen, Filter, Management-Würfel', async () => {
+  const { p, zeilen, erg } = await stand('01-03');
+  const neu = M.neuerAntrag(); neu.id = 'a-bh'; neu.eingang = '2026-03-05'; neu.vn = { name: 'Vorlage', vorname: 'Eva' };
+  neu.positionen = [['A30a', 120], ['S30a', 45], ['PPB', 20]].map(([tarif, beitrag]) => Object.assign(M.neuePosition(), { tarif, beitrag }));
+  p.antraege.push(neu);
+  assert.equal(M.hatBeihilfe(neu), true); assert.equal(M.hatBeihilfe(p.antraege[0]), false);
+  let k = AB.kennzahlen.rechne(p, erg, zeilen, HEUTE);
+  assert.equal(k.jahr.beihilfeAnz, 1); assert.equal(k.jahr.beihilfe, 185);
+  assert.deepEqual(k.jahr.kategorien['Beihilfe · Ambulant'], { stueck: 1, beitrag: 120 });
+  assert.deepEqual(k.jahr.kategorien['Beihilfe · Pflegepflicht'], { stueck: 1, beitrag: 20 });
+  assert.ok(k.jahr.kategorien['Ambulant'].stueck >= 3);
+  k = AB.kennzahlen.rechne(p, erg, zeilen, HEUTE, { beihilfe: 'ja' });
+  assert.equal(k.jahr.antraege, 1); assert.equal(k.jahr.brutto, 185);
+  assert.equal(AB.kennzahlen.rechne(p, erg, zeilen, HEUTE, { beihilfe: 'nein' }).jahr.antraege, p.antraege.length - 1);
+  // Management: Beihilfe-Buchungen im Würfel
+  const bh = Object.assign({}, zeilen.find((z) => z.part === 'Hierarchie'), { tarif: 'A30a', mb: 120, mbd: 120, prov: 60, st: 0, stgrund: '' });
+  const w = AB.team.wuerfel(zeilen.concat([bh]), 2026), arten = new Set(['Hierarchie']);
+  const alle = AB.team.auswertung(w, { arten }), nur = AB.team.auswertung(w, { arten, beihilfe: 'ja' }), ohne = AB.team.auswertung(w, { arten, beihilfe: 'nein' });
+  assert.equal(U.runde(nur.gesamt.netto), 120); assert.equal(U.runde(alle.gesamt.beihilfe), 120);
+  assert.equal(U.runde(alle.gesamt.sparten['Beihilfe · Ambulant']), 120);
+  assert.ok(Math.abs(alle.gesamt.netto - nur.gesamt.netto - ohne.gesamt.netto) < 0.01);
 });

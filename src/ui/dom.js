@@ -116,6 +116,26 @@
     });
   };
 
+  /** Passwort abfragen. opt.neu: zweimal eingeben, Mindestlänge. → Promise<string|null> */
+  D.passwort = function (titel, text, opt) {
+    opt = opt || {};
+    return new Promise(function (res) {
+      var fertig = false, d = D.dialog(titel, { klasse: 'schmal', nachSchliessen: function () { if (!fertig) res(null); } });
+      var p1 = D.h('input', { type: 'password', autocomplete: opt.neu ? 'new-password' : 'current-password' }), p2 = D.h('input', { type: 'password', autocomplete: 'new-password' }), meld = D.h('div');
+      function ok() {
+        D.leere(meld);
+        var f = opt.neu && p1.value.length < 8 ? 'Bitte mindestens 8 Zeichen.' : opt.neu && p1.value !== p2.value ? 'Die beiden Eingaben stimmen nicht überein.' : !p1.value ? 'Bitte das Passwort eingeben.' : '';
+        if (f) { meld.appendChild(D.h('div.meldung.krit', { role: 'alert' }, f)); return; }
+        fertig = true; res(p1.value); d.zu();
+      }
+      D.anhaengen(d.rumpf, [typeof text === 'string' ? D.h('p.muted', { style: { margin: 0 } }, text) : text, opt.fehler ? D.h('div.meldung.krit', { role: 'alert' }, opt.fehler) : null,
+        D.feld(opt.neu ? 'Neues Passwort (mindestens 8 Zeichen)' : 'Passwort', p1), opt.neu ? D.feld('Passwort wiederholen', p2) : null, meld]);
+      D.anhaengen(d.fuss, [D.h('span', { style: { flex: 1 } }), D.btn('Abbrechen', function () { d.zu(); }), D.btn(opt.ja || 'OK', ok, { klasse: 'haupt-btn' })]);
+      d.el.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ok(); } });
+      p1.focus();
+    });
+  };
+
   D.lade = function (dateiname, inhalt, typ) {
     var blob = inhalt instanceof Blob ? inhalt : new Blob([inhalt], { type: typ || 'text/csv;charset=utf-8' });
     var a = D.h('a', { href: URL.createObjectURL(blob), download: dateiname });

@@ -47,7 +47,7 @@
       if (z && z.projektId) liste.appendChild(wahl('funke', 'Weiterarbeiten', (z.name || 'Antragsbuch ' + z.jahr) + ' · zuletzt ' + new Date(z.wann).toLocaleDateString('de-DE'), async function () {
         try {
           if (z.handle) { var r = await Sp.leseHandle(z.handle); await App.oeffneMitSpiegel(r.projekt, r.handle, r.name); }
-          else { var sp = await Sp.spiegel(z.projektId); if (!sp) throw new Error('Der gesicherte Stand wurde im Browser nicht mehr gefunden. Bitte die Projektdatei öffnen.'); App.oeffne(JSON.parse(sp.text), null, z.name); }
+          else { var sp = await Sp.spiegel(z.projektId); if (!sp) throw new Error('Der gesicherte Stand wurde im Browser nicht mehr gefunden. Bitte die Projektdatei öffnen.'); var roh = await App.entsperre(JSON.parse(sp.text)); if (roh) App.oeffne(roh, null, z.name); }
         } catch (e) { fehler(e); }
       }));
       liste.appendChild(wahl('ordner', 'Projekt öffnen', 'Vorhandene Projektdatei (.antragsbuch.json) auswählen', App.oeffneProjekt));

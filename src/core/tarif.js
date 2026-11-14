@@ -17,7 +17,7 @@
   var KATEGORIEN = [
     [/Pflegepflicht/, 'Pflegepflicht'], [/Pflege/, 'Pflegezusatz'], [/Beitragsentlastung/, 'Beitragsentlastung'],
     [/Krankentagegeld/, 'Krankentagegeld'], [/Krankenhaustagegeld/, 'Krankenhaustagegeld'],
-    [/Standardtarif|asistarif|otlagentarif/, 'Sozialtarif'], [/Unfall/, 'Unfall'], [/Ausland/, 'Ausland'],
+    [/otlagentarif/, 'Sozialtarif · Notlagentarif'], [/asistarif/, 'Sozialtarif · Basistarif'], [/Standardtarif/, 'Sozialtarif · Standardtarif'], [/Unfall/, 'Unfall'], [/Ausland/, 'Ausland'],
     [/Sterbegeld|Renten|Beitragsfreistellung/, 'Leben und Vorsorge'], [/Zahn/, 'Zahn'], [/Naturheil|Heilpraktiker/, 'Naturheilverfahren'],
     [/Vorsorgetarif/, 'Vorsorge'], [/mbulant/, 'Ambulant'], [/tationär/, 'Stationär'], [/Gesetzlicher Zuschlag/, 'Gesetzlicher Zuschlag'],
     [/Ergänzungstarif/, 'Ergänzung'], [/Optionstarif/, 'Option']
@@ -32,7 +32,13 @@
   T.einordnen = function (tarif, gruppe) {
     var t = String(tarif == null ? '' : tarif).trim(), g = String(gruppe || '');
     var o = { beschreibung: '', kategorie: '', beihilfe: false, zusatz: false, zielgruppe: '', welt: '', weltName: '', hinweis: '', sicher: false };
-    var b = T.verzeichnis().get(t);
+    var v = T.verzeichnis(), b = v.get(t), familie = false;
+    if (!b && t) { // ohne Endung erfasst (A107 statt A107a) oder mit Betrag (TA6/160, BE375): Tariffamilie suchen
+      var kern = t.split(/[\s\/(]/)[0], kand = [kern, kern + 'a', kern + 'n', kern + 'u', kern + 'z'], stamm = kern.replace(/\d+$/, '');
+      if (stamm && stamm !== kern) kand = kand.concat([stamm, stamm + 'a', stamm + 'n', stamm + 'u']);
+      for (var q = 0; q < kand.length && !b; q++) b = v.get(kand[q]);
+      familie = !!b;
+    }
     if (b) {
       o.beschreibung = b; o.sicher = true;
       for (var i = 0; i < KATEGORIEN.length; i++) if (KATEGORIEN[i][0].test(b)) { o.kategorie = KATEGORIEN[i][1]; break; }
@@ -43,7 +49,8 @@
       for (var k = 0; k < SCHAETZUNG.length; k++) if (SCHAETZUNG[k][0].test(g) && SCHAETZUNG[k][1].test(t)) { o.kategorie = SCHAETZUNG[k][2]; break; }
     }
     var m = /^[A-Z0-9][A-Za-z0-9]*?([anuz])$/.exec(t);
-    if (m && (b || /^Voll/.test(g))) { o.welt = m[1]; o.weltName = T.WELTEN[m[1]]; }
+    if (m && !familie && (b || /^Voll/.test(g))) { o.welt = m[1]; o.weltName = T.WELTEN[m[1]]; }
+    if (familie) o.hinweis = 'Tariffamilie – Kürzel ohne Endung oder mit Betrag erfasst';
     if (/^PG\d[AS]?D/.test(t)) o.hinweis = 'mit Dynamik über das 70. Lebensjahr';
     return o;
   };

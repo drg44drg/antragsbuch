@@ -164,13 +164,14 @@
    * → { zellen:[{adp, m, tg, kat, art, n, plus, minus, prov}], adps:[nr], gruppen:[tg], arten:[...] }
    */
   T.wuerfel = function (zeilen, jahr) {
-    var map = new Map(), adps = {}, gruppen = {}, arten = {};
+    var map = new Map(), adps = {}, gruppen = {}, arten = {}, tarifCache = {};
     for (var i = 0; i < zeilen.length; i++) {
       var z = zeilen[i];
       if (jahr && +z.bdat.slice(0, 4) !== +jahr) continue;
       var adp = T.schreiber(z), kat = T.kategorie(z), m = +z.bdat.slice(5, 7) - 1;
-      var key = adp + '|' + m + '|' + z.tg + '|' + kat + '|' + z.part, c = map.get(key);
-      if (!c) { c = { adp: adp, m: m, tg: z.tg, kat: kat, art: z.part, n: 0, plus: 0, minus: 0, prov: 0, vn: new Set() }; map.set(key, c); }
+      var te = tarifCache[z.tarif] || (tarifCache[z.tarif] = AB.tarif.einordnen(z.tarif, z.tg)), sp = te.kategorie || 'Sonstige';
+      var key = adp + '|' + m + '|' + z.tg + '|' + kat + '|' + z.part + '|' + sp + '|' + (te.beihilfe ? 1 : 0), c = map.get(key);
+      if (!c) { c = { adp: adp, m: m, tg: z.tg, kat: kat, art: z.part, sp: sp, bh: !!te.beihilfe, n: 0, plus: 0, minus: 0, prov: 0, vn: new Set() }; map.set(key, c); }
       c.n++; if (z.mbd > 0) c.plus += z.mbd; else c.minus += z.mbd; c.prov += z.prov; c.vn.add(z.vnr);
       adps[adp] = (adps[adp] || 0) + 1; gruppen[z.tg] = 1; arten[z.part] = 1;
     }
@@ -183,17 +184,20 @@
   /** Würfel filtern und je ADP sowie je Monat summieren. f: { adps:Set|null, arten:Set|null, gruppen:Set|null, monate:[von,bis] } */
   T.auswertung = function (w, f) {
     f = f || {};
-    function neu() { return { n: 0, plus: 0, minus: 0, netto: 0, prov: 0, kat: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, katN: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, gruppen: {}, monate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }; }
+    function neu() { return { n: 0, plus: 0, minus: 0, netto: 0, prov: 0, kat: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, katN: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, gruppen: {}, sparten: {}, beihilfe: 0, monate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }; }
     var proAdp = {}, gesamt = neu(), von = f.monate ? f.monate[0] : 0, bis = f.monate ? f.monate[1] : 11;
     w.zellen.forEach(function (c) {
       if (f.arten && !f.arten.has(c.art)) return;
       if (f.gruppen && !f.gruppen.has(c.tg)) return;
+      if (f.beihilfe && (f.beihilfe === 'ja') !== c.bh) return;
       if (c.m < von || c.m > bis) return;
       var o = proAdp[c.adp] || (proAdp[c.adp] = neu());
       [o].concat(!f.adps || f.adps.has(c.adp) ? [gesamt] : []).forEach(function (x) {
         x.n += c.n; x.plus += c.plus; x.minus += c.minus; x.netto += c.plus + c.minus; x.prov += c.prov;
         x.kat[c.kat] += c.plus + c.minus; x.katN[c.kat] += c.n;
         x.gruppen[c.tg] = (x.gruppen[c.tg] || 0) + c.plus + c.minus;
+        var spn = (c.bh ? 'Beihilfe · ' : '') + c.sp; x.sparten[spn] = (x.sparten[spn] || 0) + c.plus + c.minus;
+        if (c.bh) x.beihilfe += c.plus + c.minus;
         x.monate[c.m] += c.plus + c.minus;
       });
     });

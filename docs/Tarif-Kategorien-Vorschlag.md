@@ -61,16 +61,21 @@ Von 300 Tarifen in Ihrer Abrechnung stehen 283 im Tarifschlüssel (99,8 % der Bu
 | Zusatzversicherung (Art Schaden) | Vorsorge | 1 | VGz |
 | Zusatzversicherung (Art Schaden) | Zahn | 10 | AGZMz, ZG7K, ZG7M, ZGBM, ZH4K, ZH4Ku, ZP1, ZP5, ZP7, ZP9 |
 
-## Bitte absegnen
+## Entschieden (14.11.2026)
 
-| Nr. | Punkt | Mein Vorschlag | Ihre Antwort |
-|---|---|---|---|
-| 1 | Nicht im Tarifschlüssel (alle Sparte Leben): N3x, BTw, Tv, Tu, SBUx, SBUy, SBUw, BTv, SBUz, L2, DTv, SBUv, Tw, N2z, N2x, R, Ty | Bereich „Leben"; `SBU…` als Berufsunfähigkeit. Gibt es eine Liste der Leben-Tarife? | |
-| 2 | Der Tarifschlüssel ist von 2021. Neuere Tarife fehlen möglicherweise. | Gibt es einen aktuelleren Stand? Unbekannte Tarife schätzt die App und markiert sie als „geschätzt". | |
-| 3 | Name „Sozialtarif" für Standard-, Basis- und Notlagentarif | so lassen? | |
-| 4 | Pflegepflicht (`PN`, `PB`, `PPN`, `PPB`) steht in der Abrechnung in der Tarifgruppe Vollversicherung. | Beim Erfassen als eigene Position mit Bereich „Pflege", damit der eigene Provisionsfaktor greift. Soll die App das automatisch tun? | |
-| 5 | `VT` = gesetzlicher Zuschlag (10 %) | zählt zum Beitrag, aber provisionsfrei? | |
-| 6 | Auswertung nach Kategorie und Beihilfe im Dashboard und im Management-Vergleich | als nächsten Schritt einbauen? | |
+| Punkt | Entscheidung |
+|---|---|
+| Aktualität | Es gibt keinen neueren Tarifschlüssel. AP-, ZP-, SP- und AB-Tarife (Budget) sind enthalten. |
+| Pflegepflicht (`PN`, `PB`, `PPN`, `PPB`) | zählt zur KV-Vollversicherung |
+| Pflegezusatz | `PG`, `PE`, `PEV`, `PS`; im Neugeschäft erscheinen nur noch `PG` und `PEV` |
+| `VT` | gesetzlicher Zuschlag: zählt zum Beitrag, löst keine Provision aus |
+| Sozialtarife | bleiben eine Gruppe, werden aber einzeln ausgewiesen: Standardtarif (`ST…`), Basistarif (`BT…`), Notlagentarif (`NLT…`) |
+| Beihilfe | wird im Dashboard und im Management-Vergleich ausgewertet und ist filterbar |
+
+## Noch offen
+
+- **Leben und Unfall:** Verkauft werden nur noch Tarife der Stuttgarter. Das Verzeichnis dazu wird nachgeliefert.
+  Bis dahin sind diese Kürzel unbekannt: SBUv/w/x/y/z, Tu/Tv/Tw/Ty, BTv/BTw, N2x/N2z/N3x, L2, DTv, R.
 
 ## Verzeichnis nach Kategorie (alle 787 Tarife)
 

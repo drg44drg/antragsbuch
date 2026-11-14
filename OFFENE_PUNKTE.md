@@ -19,8 +19,7 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Service-Level je Bereich und Liste der Postkörbe (bisher überall 5/10 Werktage als Platzhalter)
 - [ ] Unternehmensziele je Sparte (für den Vergleich im Team)
 - [ ] Produktunterlagen aus dem Ordner „ADP-Gewinnung" (zweimal gesucht, liegt nicht im verbundenen Google Drive)
-- [ ] Die 6 Punkte „Bitte absegnen" in `docs/Tarif-Kategorien-Vorschlag.md` beantworten
-- [ ] Bedingungswerke hochladen: `1.591_Bedingungen_Vollversicherung_Beihilfe.pdf`, Tarifbuch `1.700_…`, Prospekte
+- [ ] **Tarifverzeichnis der Stuttgarter für Leben und Unfall** (heute werden nur noch diese verkauft)
 - [ ] Genaue Dateinamen von Veränderungsdienst und Provisionsabrechnung (für Ablauf-Schaubild und Tour)
 - [ ] Rechtliche Einschätzung dem Datenschutzbeauftragten und der IT-Sicherheit vorlegen
 - [ ] Altes Antragsbuch eines ADP **mit** dessen Abrechnung (Test der Zusammenführung bei spärlichen Eingaben)
@@ -29,7 +28,6 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 
 ### Paket 2 – braucht ein Muster
 - [ ] Import des alten Excel-Antragsbuchs (Blatt je Jahr)
-- [ ] Auswertung nach Tarif-Kategorie und Beihilfe im Dashboard und im Management-Vergleich
 
 ### Paket 3 – Aktionen und Reporting
 - [ ] Reklamations-Auswertung nach dem Muster „Reporting Provisionsreklamationen": Anzahl, Quote, Ergebnis, Verursacher je Quartal
@@ -46,14 +44,20 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Rückweg ADP → Führungskraft nur im Bedarfsfall: Meldedatei mit ausgewählten Anträgen
 
 ### Paket 5 – Weitergabe, Schutz, Lizenz (erst entscheiden, dann bauen)
-- [ ] **Vorrangig:** Projektdatei mit Passwort verschlüsseln (Bedingung aus der rechtlichen Einschätzung)
-- [ ] Lizenzschlüssel je ADP mit Ablaufdatum, offline prüfbar (signiert); Verlängerung per neuem Schlüssel
+- [ ] Lizenzschlüssel je ADP mit Ablaufdatum, offline prüfbar (signiert); Verlängerung per neuem Schlüssel, keine neue Datei nötig.
+      Vor dem Bau zu entscheiden: Laufzeit (Monat/Jahr), Kulanzfrist, was nach Ablauf noch geht (Lesen + Export), Testlizenz
+- [ ] Quelltext erschweren (verkleinern/verschleiern) – verhindert das Nachbauen nicht, macht es aber mühsam
 - [ ] Ablaufdatum der App-Version („bitte neue Version holen")
 - [ ] Rechtliches klären: Verkauf an Kollegen, Datenschutz-Rolle, Freigabe durch den Versicherer
 
 ### Ideen aus dem Alltag
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
+
+## D000 · Erledigt (Version 1.5)
+
+Passwortschutz der Projektdatei (AES-256, auch für die Browser-Sicherung) · Auswertung nach Kategorie und Beihilfe in Übersicht und Management,
+Beihilfe-Filter · Sozialtarife einzeln (Standard/Basis/Notlage) · VT ohne Provision · Tarife ohne Endung werden der Tariffamilie zugeordnet
 
 ## D00 · Erledigt (Version 1.4)
 

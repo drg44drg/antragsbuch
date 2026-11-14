@@ -186,17 +186,36 @@
     }
   };
 
+  /** Passwortgeschützte Projektdatei entsperren. → Projekt-Objekt oder null (abgebrochen) */
+  App.entsperre = async function (roh) {
+    if (!roh || !roh.verschluesselt) { Sp.schluessel = null; return roh; }
+    if (!AB.krypto.verfuegbar()) throw new Error('Dieser Browser kann geschützte Projektdateien nicht öffnen. Bitte Edge oder Chrome verwenden.');
+    var fehler = '';
+    for (;;) {
+      var pw = await D.passwort('Projekt ist geschützt', 'Bitte das Passwort für dieses Projekt eingeben. Ohne Passwort lässt sich die Datei nicht lesen.', { fehler: fehler, ja: 'Öffnen' });
+      if (pw == null) return null;
+      try {
+        var e = await AB.krypto.entschluessele(roh, pw);
+        Sp.schluessel = e.schluessel;
+        return JSON.parse(e.text);
+      } catch (err) { if (!err.falschesPasswort) throw err; fehler = 'Das Passwort stimmt nicht. Bitte noch einmal versuchen.'; }
+    }
+  };
+
   /** Projekt öffnen und prüfen, ob im Browser ein neuerer Stand liegt. */
   App.oeffneMitSpiegel = async function (roh, handle, name) {
-    M.migriere(roh);
-    var sp = await Sp.spiegel(roh.projektId);
+    if (!roh || roh.format !== M.FORMAT) throw new Error('Das ist keine Antragsbuch-Projektdatei.');
+    var sp = await Sp.spiegel(roh.projektId), ausSpiegel = false;
     if (sp && sp.geaendert > roh.geaendert && sp.text) {
       var nimm = await D.frage('Neuerer Stand gefunden',
         'Im Browser liegt ein neuerer Stand dieses Projekts (' + new Date(sp.geaendert).toLocaleString('de-DE') + ') als in der Datei (' + new Date(roh.geaendert).toLocaleString('de-DE') + '). Soll der neuere Stand wiederhergestellt werden?',
         'Neueren Stand wiederherstellen', { nein: 'Datei-Stand verwenden' });
-      if (nimm) { roh = JSON.parse(sp.text); App.oeffne(roh, handle, name); Sp.plane(App.p); return; }
+      if (nimm) { roh = JSON.parse(sp.text); ausSpiegel = true; }
     }
-    App.oeffne(roh, handle, name);
+    var p = await App.entsperre(roh);
+    if (!p) return;
+    App.oeffne(p, handle, name);
+    if (ausSpiegel) Sp.plane(App.p);
   };
 
   // ---------- Ordner ----------

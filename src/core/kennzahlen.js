@@ -6,7 +6,7 @@
   function leer() {
     var o = { antraege: 0, brutto: 0, minder: 0, storno: 0, stornoAnz: 0, netto: 0, offen: 0, offenAnz: 0,
       policiertAnz: 0, abgerechnetAnz: 0, abgerechnet: 0, abgewiesenAnz: 0, eingereichtAnz: 0, reklamiertAnz: 0,
-      provSoll: 0, provIst: 0, provBuchung: 0, bereiche: {}, vorgaenge: {}, status: {} };
+      provSoll: 0, provIst: 0, provBuchung: 0, bereiche: {}, vorgaenge: {}, status: {}, kategorien: {}, beihilfeAnz: 0, beihilfe: 0 };
     M.BEREICHE.forEach(function (b) { o.bereiche[b.id] = { stueck: 0, beitrag: 0 }; });
     return o;
   }
@@ -25,6 +25,15 @@
     if (a.status === 'abgerechnet') { o.abgerechnetAnz++; o.abgerechnet += b; }
     var be = o.bereiche[a.bereich] || (o.bereiche[a.bereich] = { stueck: 0, beitrag: 0 });
     be.stueck += a.bereich === 'gkv' ? Math.max(1, a.positionen.length) : 1; be.beitrag += b;
+    var hatBeihilfe = false;
+    a.positionen.forEach(function (ps) {
+      if (!ps.tarif) return;
+      var e = AB.tarif.einordnen(ps.tarif), k = e.kategorie ? (e.beihilfe ? 'Beihilfe · ' : '') + e.kategorie : M.bereich[ps.bereich || a.bereich].kurz + ' (ohne Kategorie)';
+      var kk = o.kategorien[k] || (o.kategorien[k] = { stueck: 0, beitrag: 0 }), pb = M.vorzeichen(a, +ps.beitrag || 0);
+      kk.stueck++; kk.beitrag += pb;
+      if (e.beihilfe) { hatBeihilfe = true; o.beihilfe += pb; }
+    });
+    if (hatBeihilfe) o.beihilfeAnz++;
     if (r) {
       if (a.status !== 'storno') o.provSoll += r.soll.laufend && r.sollPGesamt != null ? r.sollPGesamt : r.sollP;
       o.provIst += r.istP + (r.stP || 0);
@@ -42,6 +51,7 @@
     if (!f) return true;
     if (f.bereich && a.bereich !== f.bereich && !a.positionen.some(function (ps) { return ps.bereich === f.bereich; })) return false;
     if (f.tarif && !a.positionen.some(function (ps) { return String(ps.tarif).toLowerCase() === f.tarif.toLowerCase(); })) return false;
+    if (f.beihilfe) { var bh = M.hatBeihilfe(a); if ((f.beihilfe === 'ja') !== bh) return false; }
     return true;
   };
   /** filter: { bereich, tarif } – schränkt alle Kennzahlen ein. */
@@ -65,6 +75,7 @@
       if (!erlaubt[z.part]) return;
       if (gruppen && gruppen.indexOf(z.tg) < 0) return;
       if (filter && filter.tarif && String(z.tarif).toLowerCase() !== filter.tarif.toLowerCase()) return;
+      if (filter && filter.beihilfe && (filter.beihilfe === 'ja') !== AB.tarif.einordnen(z.tarif, z.tg).beihilfe) return;
       jahr.provBuchung += z.prov;
       if (+z.bdat.slice(0, 4) === +p.jahr) monate[+z.bdat.slice(5, 7) - 1].provBuchung += z.prov;
     });

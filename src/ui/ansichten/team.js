@@ -75,7 +75,7 @@
     if (!z.farben) z.farben = {};
     if (z.von == null) { z.von = 0; z.bis = 11; }
     if (!z.mass) z.mass = App.zeilen.length ? 'beitrag' : 'scheiben';
-    var f = { arten: z.arten, gruppen: z.gruppe ? new Set([z.gruppe]) : null, monate: [z.von, z.bis] };
+    var f = { arten: z.arten, gruppen: z.gruppe ? new Set([z.gruppe]) : null, monate: [z.von, z.bis], beihilfe: z.beihilfe || '' };
     var alle = T.auswertung(w, f), nrs = Object.keys(alle.proAdp);
     var scheibe = {}, vergeben = new Set();
     var merke = function (nr, t) { var s = 0; for (var m = z.von; m <= z.bis; m++) s += t.werte[m] || 0; scheibe[nr] = { summe: s, zeile: t }; vergeben.add(t); };
@@ -103,7 +103,8 @@
       D.seg([['beitrag', 'Beitrag lt. Abrechnung'], ['scheiben', 'Nettoproduktion lt. Monatsscheiben']], z.mass, function (v) { z.mass = v; neu(); }),
       h('span.klein.muted', null, 'von'), D.auswahl(mOpt, String(z.von), function (v) { z.von = +v; if (z.bis < z.von) z.bis = z.von; neu(); }, { style: { width: '124px' } }),
       h('span.klein.muted', null, 'bis'), D.auswahl(mOpt, String(z.bis), function (v) { z.bis = +v; if (z.von > z.bis) z.von = z.bis; neu(); }, { style: { width: '124px' } }),
-      D.auswahl([['', 'Alle Tarifgruppen']].concat(w.gruppen.map(function (g) { return [g, g]; })), z.gruppe || '', function (v) { z.gruppe = v; neu(); }, { style: { width: '230px' } }),
+      D.auswahl([['', 'Alle Tarifgruppen']].concat(w.gruppen.map(function (g) { return [g, g]; })), z.gruppe || '', function (v) { z.gruppe = v; neu(); }, { style: { width: '210px' } }),
+      D.auswahl([['', 'Beihilfe: alle'], ['ja', 'Nur Beihilfe'], ['nein', 'Ohne Beihilfe']], z.beihilfe || '', function (v) { z.beihilfe = v; neu(); }, { style: { width: '140px' }, title: 'Nach Beihilfe filtern' }),
       h('span.frei'), w.arten.map(function (a) { var an = z.arten.has(a); return h('button.chip' + (an ? '.aktiv' : ''), { type: 'button', title: 'Provisionsart ' + a, onclick: function () { if (an) z.arten.delete(a); else z.arten.add(a); neu(); } }, a); })));
 
     // ADP-Liste mit Checkboxen
@@ -129,7 +130,8 @@
     var rechts = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 } }, kacheln,
       h('div.raster.r-21', null,
         h('div.karte.rein', null, h('h3', null, 'Beitrag je Monat nach Kategorie'), h('div.unter', null, 'ausgewählte ADP · Zugänge nach oben, Abgänge nach unten'), dKat),
-        h('div.karte.rein', null, h('h3', null, 'Sparten-Mix'), h('div.unter', null, 'Netto-Beitrag nach Tarifgruppe'), dRing)),
+        h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Mix nach'), D.seg([['gruppe', 'Sparte'], ['kategorie', 'Kategorie']], z.ring || 'gruppe', function (v) { z.ring = v; neu(); })),
+          h('div.unter', null, 'Netto-Beitrag · davon Beihilfe ' + U.fmtEuro0(gew.beihilfe)), dRing)),
       h('div.raster.r-2', null,
         h('div.karte.rein', null, h('h3', null, 'ADP im Verlauf'), h('div.unter', null, (z.mass === 'scheiben' ? 'Nettoproduktion lt. Monatsscheiben' : 'Netto-Beitrag lt. Abrechnung') + ' · gestrichelt: Median aller ADP'), dLin),
         h('div.karte.rein', null, h('h3', null, 'Rangfolge'), h('div.unter', null, 'ausgewählte ADP im gewählten Zeitraum'), dQuer)));
@@ -138,12 +140,13 @@
     requestAnimationFrame(function () {
       var kats = [['neu', 'Neugeschäft', 0], ['mehr', 'Erhöhung', 2], ['minder', 'Reduzierung', 3], ['storno', 'Storno', 1]], proMonat = {};
       w.zellen.forEach(function (c) {
-        if (!z.arten.has(c.art) || (z.gruppe && c.tg !== z.gruppe) || !z.wahl.has(c.adp) || c.kat === 'sonst') return;
+        if (!z.arten.has(c.art) || (z.gruppe && c.tg !== z.gruppe) || !z.wahl.has(c.adp) || c.kat === 'sonst' || (z.beihilfe && (z.beihilfe === 'ja') !== c.bh)) return;
         (proMonat[c.kat] = proMonat[c.kat] || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])[c.m] += c.plus + c.minus;
       });
       G.balken(dKat, { titel: 'Beitrag je Monat nach Kategorie', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro, hoehe: 250,
         reihen: kats.map(function (k) { return { name: k[1], farbe: G.FARBEN[k[2]], werte: (proMonat[k[0]] || []).map(function (v) { return U.runde(v); }) }; }) });
-      var gr = Object.keys(gew.gruppen).map(function (g) { return { name: kurzGruppe(g), wert: gew.gruppen[g] }; }).sort(function (a, b) { return b.wert - a.wert; });
+      var quelle = z.ring === 'kategorie' ? gew.sparten : gew.gruppen;
+      var gr = Object.keys(quelle).map(function (g) { return { name: z.ring === 'kategorie' ? g : kurzGruppe(g), wert: quelle[g] }; }).sort(function (a, b) { return b.wert - a.wert; });
       G.ring(dRing, { titel: 'Netto-Beitrag nach Tarifgruppe', format: U.fmtEuro, mitte: { wert: U.fmtEuro0(gew.netto), label: 'netto' }, teile: gr.map(function (g, i) { return { name: g.name, wert: g.wert, farbe: i < 5 ? G.FARBEN[i] : G.GRAU }; }) });
       var reihe = function (nr) { return z.mass === 'scheiben' ? (scheibe[nr] ? scheibe[nr].zeile.werte : []) : (alle.proAdp[nr] ? alle.proAdp[nr].monate : []); };
       var letzter = -1; nrs.forEach(function (nr) { reihe(nr).forEach(function (v, i) { if (v) letzter = Math.max(letzter, i); }); });

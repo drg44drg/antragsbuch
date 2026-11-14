@@ -215,3 +215,30 @@ test('Im Code und in den Testdaten stehen keine externen Adressen', () => {
   }
   assert.equal(VM, '900999');
 });
+
+test('Passwortschutz: verschlüsseln, entschlüsseln, falsches Passwort, kein Klartext im Umschlag', async () => {
+  const K = AB.krypto, text = JSON.stringify({ format: 'antragsbuch', antraege: [{ vn: { name: 'Größmann', vorname: 'Björn' }, vertragsnummer: '012345' }] });
+  const s = await K.schluessel('ein-gutes-Passwort');
+  const u = await K.verschluessele(text, s, { format: 'antragsbuch', schema: 1, projektId: 'x', jahr: 2026, geaendert: '2026-11-14T10:00:00.000Z' });
+  const roh = JSON.stringify(u);
+  assert.equal(u.verschluesselt, 1); assert.equal(u.kdf.iter, 310000); assert.equal(u.projektId, 'x');
+  assert.ok(!roh.includes('Größmann') && !roh.includes('012345') && !roh.includes('antraege'), 'kein Klartext');
+  const e = await K.entschluessele(JSON.parse(roh), 'ein-gutes-Passwort');
+  assert.equal(e.text, text);
+  await assert.rejects(() => K.entschluessele(JSON.parse(roh), 'falsch'), (f) => f.falschesPasswort === true);
+  // jeder Speichervorgang nutzt einen neuen Zufallswert – gleiche Daten ergeben anderen Geheimtext
+  const u2 = await K.verschluessele(text, s, {});
+  assert.notEqual(u2.daten, u.daten); assert.notEqual(u2.iv, u.iv);
+  // manipulierte Daten werden erkannt
+  const kaputt = JSON.parse(roh); kaputt.daten = kaputt.daten.slice(0, 20) + (kaputt.daten[20] === 'A' ? 'B' : 'A') + kaputt.daten.slice(21);
+  await assert.rejects(() => K.entschluessele(kaputt, 'ein-gutes-Passwort'));
+  assert.throws(() => M.migriere(JSON.parse(roh)), /Passwort geschützt/);
+});
+
+test('Gesetzlicher Zuschlag (VT) zählt zum Beitrag, löst aber keine Provision aus', () => {
+  const a = M.neuerAntrag(); a.bereich = 'voll';
+  a.positionen = [['A107u', 300], ['VT', 30]].map(([tarif, beitrag]) => Object.assign(M.neuePosition(), { tarif, beitrag }));
+  assert.equal(M.beitrag(a), 330);
+  const s = P.soll(a, P.standardRegeln());
+  assert.equal(s.betrag, 1650); assert.match(s.teile[1].text, /gesetzlicher Zuschlag/);
+});

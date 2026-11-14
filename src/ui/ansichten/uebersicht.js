@@ -18,7 +18,7 @@
   AB.ansichten.uebersicht = { titel: 'Übersicht', icon: 'start',
     unter: function () { var e = App.p.einstellungen; return 'Jahr ' + App.p.jahr + (e.name ? ' · ' + e.name : '') + (e.vermittlernummer ? ' · Vermittler ' + e.vermittlernummer : ''); },
     zeige: function (el, aktionen, z) {
-      var p = App.p, filter = z.bereich || z.tarif ? { bereich: z.bereich || '', tarif: z.tarif || '' } : null;
+      var p = App.p, filter = z.bereich || z.tarif || z.beihilfe ? { bereich: z.bereich || '', tarif: z.tarif || '', beihilfe: z.beihilfe || '' } : null;
       var kz = filter ? AB.kennzahlen.rechne(p, App.erg, App.zeilen, null, filter) : App.kz, mon = z.monat == null ? null : z.monat, k = mon == null ? kz.jahr : kz.monate[mon];
       aktionen.appendChild(D.btn('Neuer Antrag', function () { AB.maske.oeffne(null); }, { klasse: 'haupt-btn', icon: 'plus', taste: 'N' }));
       if (!p.antraege.length && !App.zeilen.length) {
@@ -34,14 +34,15 @@
       el.appendChild(h('div.leiste', null, D.seg(wahl, mon == null ? 'j' : String(mon), function (v) { z.monat = v === 'j' ? null : +v; App.zeige('uebersicht'); }),
         D.auswahl([['', 'Alle Bereiche']].concat(M.BEREICHE.map(function (b) { return [b.id, b.name]; })), z.bereich || '', function (v) { z.bereich = v; z.tarif = ''; App.zeige('uebersicht'); }, { style: { width: '176px' }, title: 'Nach Bereich filtern' }),
         D.auswahl([['', 'Alle Tarife']].concat(Object.keys(tarife).sort(function (a, b) { return a.localeCompare(b, 'de', { numeric: true }); }).map(function (t) { return [t, t]; })), z.tarif || '', function (v) { z.tarif = v; App.zeige('uebersicht'); }, { style: { width: '150px' }, title: 'Nach Tarif filtern' }),
-        filter ? D.btn('Filter aufheben', function () { z.bereich = z.tarif = ''; App.zeige('uebersicht'); }, { klasse: 'klein-btn leise', icon: 'x' }) : null));
+        D.auswahl([['', 'Beihilfe: alle'], ['ja', 'Nur Beihilfe'], ['nein', 'Ohne Beihilfe']], z.beihilfe || '', function (v) { z.beihilfe = v; App.zeige('uebersicht'); }, { style: { width: '142px' }, title: 'Nach Beihilfe filtern' }),
+        filter ? D.btn('Filter aufheben', function () { z.bereich = z.tarif = z.beihilfe = ''; App.zeige('uebersicht'); }, { klasse: 'klein-btn leise', icon: 'x' }) : null));
       el.appendChild(h('div.leiste', null, h('div.hinweise', null, App.kz.hinweise.map(function (hw) {
           return h('button.hinweis.' + hw.art, { type: 'button', onclick: function () { App.zeige(hw.ziel, hw.ziel === 'abgleich' ? { reiter: hw.filter } : { spezial: hw.filter }); } }, hw.text);
         }))));
-      var titel = (mon == null ? 'im Jahr ' + p.jahr : 'im ' + U.MONATE[mon]) + (filter ? ' · ' + [z.bereich ? M.bereich[z.bereich].kurz : '', z.tarif].filter(Boolean).join(' · ') : '');
+      var titel = (mon == null ? 'im Jahr ' + p.jahr : 'im ' + U.MONATE[mon]) + (filter ? ' · ' + [z.bereich ? M.bereich[z.bereich].kurz : '', z.tarif, z.beihilfe === 'ja' ? 'Beihilfe' : z.beihilfe === 'nein' ? 'ohne Beihilfe' : ''].filter(Boolean).join(' · ') : '');
       var verlauf = function (f) { var w = kz.monate.map(function (m) { return m[f]; }); while (w.length > 2 && !w[w.length - 1]) w.pop(); return w; };
       el.appendChild(h('div.raster.r-6', null,
-        kachel('Anträge ' + titel, k.antraege, ganz, mon == null ? 'Ø ' + U.fmtZahl(kz.schnitt.antraege, 1) + ' je Monat' : 'Jahr: ' + kz.jahr.antraege, { akzent: true, i: 0, funke: mon == null ? verlauf('antraege') : null, klick: function () { App.zeige('antraege', { monat: mon == null ? '' : String(mon), status: '', spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '' }); } }),
+        kachel('Anträge ' + titel, k.antraege, ganz, mon == null ? 'Ø ' + U.fmtZahl(kz.schnitt.antraege, 1) + ' je Monat' : 'Jahr: ' + kz.jahr.antraege, { akzent: true, i: 0, funke: mon == null ? verlauf('antraege') : null, klick: function () { App.zeige('antraege', { monat: mon == null ? '' : String(mon), status: '', spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '', beihilfe: z.beihilfe || '' }); } }),
         kachel('Beitrag brutto', k.brutto, euro0, 'netto ' + U.fmtEuro(k.netto) + (mon == null ? ' · Ø ' + U.fmtEuro0(kz.schnitt.brutto) : ''), { einheit: '€', i: 1 }),
         kachel('Offen', k.offenAnz, ganz, U.fmtEuro(k.offen) + ' unterwegs · ' + kz.jahr.ampel.rot + ' rot, ' + kz.jahr.ampel.gelb + ' gelb', { punkt: 'var(--s6)', i: 2, klick: function () { App.zeige('antraege', { status: 'offen', monat: mon == null ? '' : String(mon), spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '' }); } }),
         kachel('Abgerechnet', k.abgerechnetAnz, ganz, U.fmtEuro(k.abgerechnet) + ' Beitrag', { punkt: 'var(--good)', i: 3 }),
@@ -52,7 +53,8 @@
       var dBalken = h('div'), dRing = h('div'), dLinie = h('div'), dQuer = h('div');
       el.appendChild(h('div.raster.r-21', null,
         h('div.karte.rein', null, h('h3', null, 'Anträge je Monat'), h('div.unter', null, 'nach aktuellem Status · Klick auf einen Monat filtert die Übersicht'), dBalken),
-        h('div.karte.rein', null, h('h3', null, 'Beitrag nach Bereich'), h('div.unter', null, titel + ', ohne abgelehnte Anträge'), dRing)));
+        h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Beitrag nach'), D.seg([['bereich', 'Bereich'], ['kategorie', 'Kategorie']], z.ring || 'bereich', function (v) { z.ring = v; App.zeige('uebersicht'); })),
+          h('div.unter', null, titel + ' · Beihilfe: ' + k.beihilfeAnz + (k.beihilfeAnz === 1 ? ' Antrag, ' : ' Anträge, ') + U.fmtEuro(k.beihilfe)), dRing)));
       // Bearbeitung: was wartet am längsten?
       var warte = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '1px' } }), wl = kz.jahr.warten.slice(0, 7);
       wl.forEach(function (w) {
@@ -66,7 +68,7 @@
         h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Bearbeitung: wartet am längsten'), h('span.frei'),
           kz.jahr.warten.length ? D.btn('Alle ' + kz.jahr.warten.length + ' · auswählen & senden', function () { App.zeige('antraege', { ampel: 'gelbrot', status: '', monat: '', spezial: '', suche: '', bereich: z.bereich || '', tarif: z.tarif || '' }); }, { klasse: 'klein-btn' }) : null),
           h('div.unter', null, 'Ampel nach Werktagen seit Einreichung (WT) · Fristen in den Einstellungen'), warte),
-        h('div.karte.rein', null, h('h3', null, 'Stückzahlen je Bereich'), h('div.unter', null, titel), dQuer)));
+        h('div.karte.rein', null, h('h3', null, z.ring === 'kategorie' ? 'Positionen je Kategorie' : 'Stückzahlen je Bereich'), h('div.unter', null, titel), dQuer)));
       el.appendChild(h('div.karte.rein', null, h('h3', null, 'Provision: Soll und Ist'), h('div.unter', null, 'aufgelaufen nach Eingangsmonat der Anträge'), dLinie));
       requestAnimationFrame(function () {
         var ms = kz.monate;
@@ -76,6 +78,7 @@
             { name: 'Storno', farbe: G.FARBEN[2], werte: ms.map(function (m) { return m.stornoAnz; }) },
             { name: 'Abgelehnt/Widerruf/Absage', farbe: G.FARBEN[3], werte: ms.map(function (m) { return m.abgewiesenAnz; }) }] });
         var bereiche = M.BEREICHE.map(function (b, i) { return { name: b.kurz, wert: k.bereiche[b.id].beitrag, stueck: k.bereiche[b.id].stueck, i: i }; });
+        if (z.ring === 'kategorie') bereiche = Object.keys(k.kategorien).map(function (n) { return { name: n, wert: k.kategorien[n].beitrag, stueck: k.kategorien[n].stueck }; });
         var top = bereiche.filter(function (b) { return b.wert > 0; }).sort(function (a, b) { return b.wert - a.wert; });
         G.ring(dRing, { titel: 'Beitrag nach Bereich', format: U.fmtEuro, mitte: { wert: U.fmtEuro0(k.brutto + k.minder), label: 'Beitrag' },
           teile: top.map(function (b, i) { return { name: b.name, wert: b.wert, farbe: i < 5 ? G.FARBEN[i] : G.GRAU }; }) });
@@ -84,7 +87,7 @@
         G.linie(dLinie, { titel: 'Provision Soll und Ist, aufgelaufen', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro,
           reihen: [{ name: 'Ist (abgerechnet)', farbe: G.FARBEN[0], flaeche: true, stark: true, werte: ms.map(function (m, i) { sI += m.provIst; return i <= letzter ? U.runde(sI) : null; }) },
             { name: 'Soll (erwartet)', farbe: G.FARBEN[1], werte: ms.map(function (m, i) { sS += m.provSoll; return i <= letzter ? U.runde(sS) : null; }) }] });
-        G.quer(dQuer, { format: ganz, zeilen: bereiche.filter(function (b) { return b.stueck; }).sort(function (a, b) { return b.stueck - a.stueck; })
+        G.quer(dQuer, { format: ganz, zeilen: bereiche.filter(function (b) { return b.stueck; }).sort(function (a, b) { return b.stueck - a.stueck; }).slice(0, 10)
           .map(function (b) { return { name: b.name, wert: b.stueck, zusatz: U.fmtEuro(b.wert) + ' Beitrag' }; }) });
       });
 

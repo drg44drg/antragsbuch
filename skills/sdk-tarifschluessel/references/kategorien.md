@@ -13,7 +13,9 @@ Geprüft wird die Beschreibung, in dieser Reihenfolge; die erste passende Regel 
 | Beitragsentlastung | Beitragsentlastung |
 | Krankentagegeld | Krankentagegeld |
 | Krankenhaustagegeld | Krankenhaustagegeld |
-| Standardtarif, Basistarif, Notlagentarif (auch Schatten-) | Sozialtarif |
+| Notlagentarif (auch Schatten-) | Sozialtarif · Notlagentarif |
+| Basistarif (auch Schatten-) | Sozialtarif · Basistarif |
+| Standardtarif | Sozialtarif · Standardtarif |
 | Unfall | Unfall |
 | Ausland | Ausland |
 | Sterbegeld, Renten, Beitragsfreistellung | Leben und Vorsorge |
@@ -66,13 +68,16 @@ Nur auswerten, wenn der Tarif mit dieser Endung im Verzeichnis steht – `TA6`, 
 
 ## Pflege
 
-- `PN`, `PB` – Pflegepflicht Bestand (B = Beihilfe) · `PPN`, `PPB` – Pflegepflicht Neuzugang
+- `PN`, `PB` – Pflegepflicht Bestand (B = Beihilfe) · `PPN`, `PPB` – Pflegepflicht Neuzugang. Die Pflegepflicht zählt zur KV-Vollversicherung.
+- Pflegezusatz sind `PG`, `PE`, `PEV`, `PS`; im Neugeschäft erscheinen nur noch `PG` und `PEV`.
+- `VT` – gesetzlicher Zuschlag (10 %): zählt zum Beitrag, löst aber keine Provision aus.
 - `PG1`–`PG5` – Pflegeergänzung nach Pflegegrad; `A` ambulant, `S` stationär, `D` mit Dynamik
 - `PE1`–`PE3`, `PEV…`, `PV` – Pflegetagegeld bzw. Pflegeergänzung
 
 ## Bekannte Lücken
 
+- Leben und Unfall: Verkauft werden heute nur noch Tarife der Stuttgarter; deren Verzeichnis wird nachgeliefert.
 - Leben-Tarife der Abrechnung fehlen fast vollständig: `SBUv/w/x/y/z`, `Tu/Tv/Tw/Ty`, `BTv/BTw`, `N2x/N2z/N3x`, `L2`, `DTv`, `R`.
   Vorsicht bei abweichender Schreibweise: `Ty` wird als `TY` (Rentenversicherung 2005/2006) abgeleitet – das ist unbestätigt.
-- Tarife, die nach dem 11.06.2021 eingeführt wurden.
+- Laut Auftraggeber gibt es keinen neueren Tarifschlüssel; AP-, ZP-, SP- und AB-Tarife (Budget) sind enthalten.
 - Beträge oder Stufen hinter dem Kürzel (`TA6/160`, `BE375`, `BE MAX`) stehen nicht im Verzeichnis; das Skript ordnet sie der Familie zu.

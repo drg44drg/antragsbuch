@@ -346,6 +346,34 @@ test('Speichern in die Projektdatei (File System Access API, nachgestellt) und W
     await page.waitForSelector('.toast:has-text("Keine neuen Dateien")');
     assert.equal(await page.evaluate(() => AB.app.p.importe.length), 3);
     assert.equal(await page.evaluate(() => AB.app.p.sicherungen.length >= 3), true, 'Sicherungsstand vor jedem Import');
+    // Passwortschutz: Datei wird verschlüsselt geschrieben; Öffnen verlangt das Passwort
+    await page.click('#nav button:has-text("Einstellungen")');
+    await page.click('button:has-text("Passwortschutz einschalten")');
+    await page.fill('dialog input[type=password] >> nth=0', 'kurz'); await page.fill('dialog input[type=password] >> nth=1', 'kurz');
+    await page.click('dialog button:has-text("Schutz einschalten")');
+    assert.match(await page.textContent('dialog .meldung.krit'), /mindestens 8 Zeichen/);
+    await page.fill('dialog input[type=password] >> nth=0', 'Geheim-2026!'); await page.fill('dialog input[type=password] >> nth=1', 'Geheim-2026!');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => { try { return JSON.parse(window.__datei).verschluesselt === 1; } catch (e) { return false; } });
+    const umschlag = await page.evaluate(() => window.__datei);
+    assert.ok(!umschlag.includes('Muster') && !umschlag.includes('antraege') && !umschlag.includes('MUSTER'), 'keine Kundendaten im Klartext');
+    assert.match(await page.textContent('#speichertext'), /verschlüsselt/);
+    const spiegel = await page.evaluate(async () => (await AB.speicher.spiegel(AB.app.p.projektId)).text);
+    assert.ok(!spiegel.includes('Muster'), 'auch die Browser-Sicherung ist verschlüsselt');
+    const vorher = await page.evaluate(() => AB.app.p.antraege.length);
+    await page.evaluate(() => { window.__alt = window.__datei; });
+    await page.click('button:has-text("Projekt schließen")');
+    await page.click('button.wahl:has-text("Projekt öffnen")');
+    await page.waitForSelector('dialog h2:has-text("Projekt ist geschützt")');
+    await page.fill('dialog input[type=password]', 'falsches-passwort'); await page.keyboard.press('Enter');
+    await page.waitForSelector('dialog .meldung.krit:has-text("stimmt nicht")');
+    await page.fill('dialog input[type=password]', 'Geheim-2026!'); await page.keyboard.press('Enter');
+    await page.waitForSelector('h1:has-text("Übersicht")');
+    assert.equal(await page.evaluate(() => AB.app.p.antraege.length), vorher);
+    // weitere Änderungen bleiben verschlüsselt
+    await page.evaluate(() => { AB.app.p.einstellungen.name = 'Geheimname'; AB.app.geaendert(); });
+    await page.waitForFunction(() => /^Gespeichert um .*verschlüsselt/.test(document.getElementById('speichertext').textContent));
+    assert.ok(!(await page.evaluate(() => window.__datei)).includes('Geheimname'));
     assert.deepEqual(fehler, []);
   } finally { await browser.close(); }
 });

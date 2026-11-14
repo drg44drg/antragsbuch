@@ -20,7 +20,7 @@ WELTEN = {'a': 'Alte Tarifwelt (Bisex, vor 2009)', 'n': 'Neue Tarifwelt (Bisex, 
 KATEGORIEN = [
     (r'Pflegepflicht', 'Pflegepflicht'), (r'Pflege', 'Pflegezusatz'), (r'Beitragsentlastung', 'Beitragsentlastung'),
     (r'Krankentagegeld', 'Krankentagegeld'), (r'Krankenhaustagegeld', 'Krankenhaustagegeld'),
-    (r'Standardtarif|asistarif|otlagentarif', 'Sozialtarif'), (r'Unfall', 'Unfall'), (r'Ausland', 'Ausland'),
+    (r'otlagentarif', 'Sozialtarif · Notlagentarif'), (r'asistarif', 'Sozialtarif · Basistarif'), (r'Standardtarif', 'Sozialtarif · Standardtarif'), (r'Unfall', 'Unfall'), (r'Ausland', 'Ausland'),
     (r'Sterbegeld|Renten|Beitragsfreistellung', 'Leben und Vorsorge'), (r'Zahn', 'Zahn'), (r'Naturheil|Heilpraktiker', 'Naturheilverfahren'),
     (r'Vorsorgetarif', 'Vorsorge'), (r'mbulant', 'Ambulant'), (r'tationär', 'Stationär'), (r'Gesetzlicher Zuschlag', 'Gesetzlicher Zuschlag'),
     (r'Ergänzungstarif', 'Ergänzung'), (r'Optionstarif', 'Option'),
@@ -45,7 +45,7 @@ def _aus_beschreibung(b):
     kat = next((k for muster, k in KATEGORIEN if re.search(muster, b)), 'Sonstige')
     beihilfe = bool(re.search(r'Beihilfe|Beamtenanwärter', b))
     zusatz = bool(re.search(r'Ergänzungs|Zusatz|Zahnersatz|GKV|mhplus|agegeld', b)) and not beihilfe
-    if kat in ('Pflegepflicht', 'Sozialtarif', 'Beitragsentlastung', 'Gesetzlicher Zuschlag'): art = 'Voll'
+    if kat in ('Pflegepflicht', 'Beitragsentlastung', 'Gesetzlicher Zuschlag') or kat.startswith('Sozialtarif'): art = 'Voll'
     elif kat in ('Unfall',): art = 'Unfall'
     elif kat in ('Leben und Vorsorge',): art = 'Leben'
     elif kat in ('Pflegezusatz', 'Ausland', 'Krankenhaustagegeld', 'Naturheilverfahren', 'Vorsorge', 'Option') or zusatz: art = 'Zusatz'

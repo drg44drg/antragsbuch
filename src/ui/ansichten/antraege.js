@@ -83,7 +83,7 @@
         tab.setze(p.antraege.filter(function (a) {
           if (z.monat !== '' && z.monat != null && (!a.eingang || +a.eingang.slice(5, 7) - 1 !== +z.monat || +a.eingang.slice(0, 4) !== +p.jahr)) return false;
           if (z.bereich && a.bereich !== z.bereich) return false;
-          if (z.tarif && !AB.kennzahlen.passt(a, { tarif: z.tarif })) return false;
+          if ((z.tarif || z.beihilfe) && !AB.kennzahlen.passt(a, { tarif: z.tarif, beihilfe: z.beihilfe })) return false;
           if (z.status === 'offen' ? !M.istOffen(a) : z.status && a.status !== z.status) return false;
           if (z.ampel && (z.ampel === 'gelbrot' ? !(ampel[a.id].stufe === 'gelb' || ampel[a.id].stufe === 'rot') : ampel[a.id].stufe !== z.ampel)) return false;
           if (z.spezial === 'ohneNr' && !ohneNr[a.id]) return false;

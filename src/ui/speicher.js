@@ -36,6 +36,15 @@
     return rest.slice(0, -1) + ',"abrechnung":' + cache.text + '}';
   };
 
+  /** Text für Datei und Browser-Spiegel: mit Passwortschutz verschlüsselt, sonst Klartext-JSON. */
+  Sp.schluessel = null;
+  Sp.verpacke = async function (p) {
+    var text = Sp.serialisiere(p);
+    if (!Sp.schluessel) return text;
+    var u = await AB.krypto.verschluessele(text, Sp.schluessel, { format: p.format, schema: p.schema, projektId: p.projektId, jahr: p.jahr, geaendert: p.geaendert });
+    return JSON.stringify(u);
+  };
+
   // ---------- Status ----------
   Sp.status = { art: 'ok', text: 'Kein Projekt geöffnet' };
   function melde(art, text) { Sp.status = { art: art, text: text }; Sp.onstatus && Sp.onstatus(Sp.status); }
@@ -82,7 +91,7 @@
     laeuft = true;
     var p = aktuell, text, fehler = null;
     try {
-      text = Sp.serialisiere(p);
+      text = await Sp.verpacke(p);
       await Sp.lege('spiegel:' + p.projektId, { geaendert: p.geaendert, jahr: p.jahr, name: Sp.dateiname, text: text });
       if (Sp.handle) {
         var w = await Sp.handle.createWritable();
@@ -91,19 +100,19 @@
     } catch (e) { fehler = e; console.error(e); }
     laeuft = false;
     if (fehler) melde('krit', 'Speichern fehlgeschlagen – bitte „Kopie herunterladen"');
-    else if (Sp.handle) melde('ok', 'Gespeichert um ' + uhr());
+    else if (Sp.handle) melde('ok', 'Gespeichert um ' + uhr() + (Sp.schluessel ? ' · verschlüsselt' : ''));
     else melde('warn', 'Im Browser gesichert um ' + uhr() + ' – Datei noch herunterladen');
     if (fehler && Sp.onfehler) Sp.onfehler(fehler);
     if (nochmal) { nochmal = false; Sp.jetzt(); }
   };
   /** Projektdatei als Download (Fallback ohne File System Access API oder Sicherheitskopie). */
-  Sp.ladeHerunter = function (p) {
+  Sp.ladeHerunter = async function (p) {
     var name = (Sp.dateiname || 'Antragsbuch_' + p.jahr + '.antragsbuch.json');
-    AB.dom.lade(name, Sp.serialisiere(p), 'application/json');
+    AB.dom.lade(name, await Sp.verpacke(p), 'application/json');
     Sp.ungesichert = false; Sp.letzteSicherung = new Date();
     if (!Sp.handle) melde('ok', 'Datei heruntergeladen um ' + uhr());
   };
-  Sp.schliesse = function () { aktuell = null; Sp.handle = null; Sp.dateiname = ''; Sp.ungesichert = false; clearTimeout(timer); melde('ok', 'Kein Projekt geöffnet'); };
+  Sp.schliesse = function () { Sp.schluessel = null; aktuell = null; Sp.handle = null; Sp.dateiname = ''; Sp.ungesichert = false; clearTimeout(timer); melde('ok', 'Kein Projekt geöffnet'); };
 
   // ---------- Ordner-Überwachung ----------
   Sp.verbindeOrdner = async function (p) {

@@ -86,6 +86,7 @@
   M.migriere = function (p) {
     if (!p || typeof p !== 'object' || p.format !== M.FORMAT)
       throw new Error('Das ist keine Antragsbuch-Projektdatei.');
+    if (p.verschluesselt) throw new Error('Diese Projektdatei ist mit einem Passwort geschützt.');
     if (p.schema > M.SCHEMA)
       throw new Error('Diese Projektdatei stammt aus einer neueren Version des Antragsbuchs (Schema ' + p.schema + '). Bitte die aktuelle antragsbuch.html verwenden.');
     // Schritte für künftige Versionen: if (p.schema === 1) { …; p.schema = 2; }
@@ -157,6 +158,8 @@
     return a.positionen.map(function (p) { return p.tarif; }).filter(Boolean).join(', ');
   };
 
+  /** Enthält der Antrag mindestens einen Beihilfetarif? */
+  M.hatBeihilfe = function (a) { return a.positionen.some(function (ps) { return ps.tarif && AB.tarif.einordnen(ps.tarif).beihilfe; }); };
   /** Wird der Antrag gegen die Abrechnung geprüft? */
   M.pruefbar = function (a) { return a.bereich !== 'gkv' && a.vorgang !== 'umstellung'; };
   /** Zählt der Antrag noch als „unterwegs"? */
