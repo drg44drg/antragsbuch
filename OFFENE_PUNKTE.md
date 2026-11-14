@@ -19,7 +19,7 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Service-Level je Bereich und Liste der Postkörbe (bisher überall 5/10 Werktage als Platzhalter)
 - [ ] Unternehmensziele je Sparte (für den Vergleich im Team)
 - [ ] Produktunterlagen aus dem Ordner „ADP-Gewinnung" (zweimal gesucht, liegt nicht im verbundenen Google Drive)
-- [ ] Die 15 Punkte „Bitte absegnen" in `docs/Tarif-Kategorien-Vorschlag.md` beantworten
+- [ ] Die 6 Punkte „Bitte absegnen" in `docs/Tarif-Kategorien-Vorschlag.md` beantworten
 - [ ] Bedingungswerke hochladen: `1.591_Bedingungen_Vollversicherung_Beihilfe.pdf`, Tarifbuch `1.700_…`, Prospekte
 - [ ] Genaue Dateinamen von Veränderungsdienst und Provisionsabrechnung (für Ablauf-Schaubild und Tour)
 - [ ] Rechtliche Einschätzung dem Datenschutzbeauftragten und der IT-Sicherheit vorlegen
@@ -29,7 +29,7 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 
 ### Paket 2 – braucht ein Muster
 - [ ] Import des alten Excel-Antragsbuchs (Blatt je Jahr)
-- [ ] Regel „Vollversicherung oder Zusatz" aus dem vorhandenen Skill (Bestands-/BAP-Analyse) übernehmen
+- [ ] Auswertung nach Tarif-Kategorie und Beihilfe im Dashboard und im Management-Vergleich
 
 ### Paket 3 – Aktionen und Reporting
 - [ ] Reklamations-Auswertung nach dem Muster „Reporting Provisionsreklamationen": Anzahl, Quote, Ergebnis, Verursacher je Quartal
@@ -54,6 +54,12 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 ### Ideen aus dem Alltag
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
+
+## D00 · Erledigt (Version 1.4)
+
+Tarifverzeichnis mit 787 Tarifen und Beschreibung aus dem Tarifschlüssel (Kategorie, Beihilfe, Tarifwelt, Zielgruppe; Vorschläge beim Erfassen) ·
+Teamvergleich: Summenzeile wird über Titel und Zahlen erkannt, auch wenn sie nicht exakt der Summe entspricht ·
+Vermittlernummer direkt im Teamvergleich eintragen · Erklärung der Rangfolge
 
 ## D0 · Erledigt (Version 1.3)
 

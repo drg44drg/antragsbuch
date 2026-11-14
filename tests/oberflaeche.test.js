@@ -125,6 +125,13 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       const vorher = await page.textContent('.kachel.akzent .neben');
       await page.click('.adp:has-text("900101") input');
       assert.notEqual(await page.textContent('.kachel.akzent .neben'), vorher);
+      // ohne passende Nummer: Eingabefeld direkt im Teamvergleich
+      await page.evaluate(() => { AB.app.p.einstellungen.modus = 'adp'; AB.app.p.einstellungen.vermittlernummer = ''; AB.app.zeige('team'); });
+      assert.match(await page.textContent('.meldung.warn'), /sechsstellige Vermittlernummer/);
+      await page.fill('.meldung.warn input', '900103'); await page.keyboard.press('Enter');
+      await page.waitForFunction(() => /Platz \d/.test(document.querySelector('.kachel.akzent').textContent));
+      assert.match(await page.textContent('#inhalt'), /So entsteht die Rangfolge/);
+      await page.evaluate(() => { AB.app.p.einstellungen.modus = 'mgmt'; AB.app.p.einstellungen.vermittlernummer = '900999'; AB.app.zeige('team'); });
       await page.click('#themaBtn'); assert.equal(await page.getAttribute('html', 'data-theme'), 'light');
       await page.click('#themaBtn'); assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
       assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(11, 10, 18)');
@@ -300,7 +307,10 @@ test('Speichern in die Projektdatei (File System Access API, nachgestellt) und W
     await page.waitForFunction(() => /^Gespeichert um \d\d:\d\d$/.test(document.getElementById('speichertext').textContent));
     const erst = JSON.parse(await page.evaluate(() => window.__datei));
     assert.equal(erst.format, 'antragsbuch'); assert.equal(erst.schema, 1); assert.equal(erst.antraege.length, 0);
+    // Nach dem Anlegen steht der Cursor im Feld Vermittlernummer (Pflicht für den Teamvergleich)
+    assert.equal(await page.evaluate(() => document.activeElement.placeholder), 'z. B. 900402');
     // Änderung → Autosave schreibt in die Datei
+    await page.click('#nav button:has-text("Anträge")');
     await page.keyboard.press('n');
     await page.fill('dialog input[data-feld="vn.name"]', 'Muster'); await page.fill('dialog input[data-feld="vn.vorname"]', 'Anna');
     await page.fill('dialog .pos-zeile input[placeholder="Tarif"]', 'A107'); await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '50');

@@ -34,7 +34,18 @@
   function zeigeAdp(el, p) {
     if (!p.team) { el.appendChild(ablage('Ihre Führungskraft kann Ihnen eine Teamdatei geben (oder die Monatsscheiben als Excel). Sie sehen dann, wo Sie im Team stehen – ohne Namen und Zahlen einzelner Kollegen.')); return; }
     var pos = T.position(p.team, p.einstellungen.vermittlernummer), lm = pos.letzterMonat;
-    if (!pos.ich || pos.ich.gesamt) el.appendChild(h('div.meldung.warn', null, pos.ich ? 'Ihre Vermittlernummer ist die Summenzeile des Teams – für den ADP-Vergleich bitte oben auf „Management" umschalten.' : 'Ihre Vermittlernummer wurde in den Teamdaten nicht gefunden. Bitte in den Einstellungen prüfen – angezeigt wird nur die Teamverteilung.'));
+    if (pos.ich && pos.ich.gesamt) el.appendChild(h('div.meldung.warn', null, 'Ihre Vermittlernummer ist die Summenzeile des Teams – für den ADP-Vergleich bitte oben auf „Management" umschalten.'));
+    else if (!pos.ich) {
+      var nrFeld = h('input', { type: 'text', inputMode: 'numeric', maxLength: 7, placeholder: 'z. B. 900402', value: p.einstellungen.vermittlernummer || '', style: { width: '130px' }, onkeydown: function (ev) { if (ev.key === 'Enter') setze(); } });
+      var setze = function () {
+        var v = nrFeld.value.replace(/\D/g, '');
+        if (v.length !== 6) { nrFeld.classList.add('fehler'); D.toast('Die Vermittlernummer hat sechs Ziffern.', { krit: true }); return; }
+        p.einstellungen.vermittlernummer = v; App.geaendert();
+        if (!T.findeEigene(p.team, v)) D.toast('Die Nummer ' + v + ' kommt in den Teamdaten nicht vor.', { krit: true });
+      };
+      el.appendChild(h('div.meldung.warn.leiste', null, h('b', null, p.einstellungen.vermittlernummer ? 'Die Vermittlernummer ' + p.einstellungen.vermittlernummer + ' steht nicht in den Teamdaten.' : 'Wer sind Sie?'),
+        h('span', null, 'Tragen Sie Ihre sechsstellige Vermittlernummer ein, dann sehen Sie Ihren Platz:'), nrFeld, D.btn('Übernehmen', setze, { klasse: 'klein-btn haupt-btn' })));
+    }
     var y = pos.ytd || { n: 0, median: 0 }, m = lm >= 0 ? pos.monate[lm] : null, hat = y.wert != null;
     el.appendChild(h('div.raster.r-4', null,
       kachel('Mein Platz im Team', hat ? 'Platz ' + y.rang : '–', null, 'von ' + y.n + ' · aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–'), { akzent: true }),
@@ -45,7 +56,7 @@
     el.appendChild(h('div.raster.r-21', null,
       h('div.karte.rein', null, h('h3', null, 'Mein Verlauf im Teamvergleich'), h('div.unter', null, 'Nettoproduktion je Monat · das Band zeigt die mittlere Hälfte des Teams'), dL),
       h('div.karte.rein', null, h('h3', null, 'Rangfolge (anonym)'), h('div.unter', null, 'aufgelaufen · Ihr Balken ist hervorgehoben'), dQ)));
-    el.appendChild(h('p.mini', null, 'Quelle: Monatsscheiben Nettoproduktion' + (p.team.stand ? ', Stand ' + U.fmtDatum(p.team.stand) : '') + '. Kollegen werden ohne Namen und Nummer dargestellt.'));
+    el.appendChild(h('p.mini', null, 'So entsteht die Rangfolge: Für jeden Vermittler wird die Nettoproduktion von Januar bis ' + (lm >= 0 ? U.MONATE[lm] : 'heute') + ' aufaddiert und absteigend sortiert; Platz 1 hat den höchsten Wert. Die Summenzeile des Teams' + (pos.gesamt ? ' (' + U.fmtEuro0(pos.gesamt.werte.reduce(function (s, w) { return s + (w || 0); }, 0)) + ')' : '') + ' zählt nicht mit. Der Median ist der Wert in der Mitte: die Hälfte liegt darüber, die Hälfte darunter. Quelle: Monatsscheiben Nettoproduktion' + (p.team.stand ? ', Stand ' + U.fmtDatum(p.team.stand) : '') + '. Kollegen erscheinen ohne Namen und Nummer.'));
     requestAnimationFrame(function () {
       var bis = function (f) { return pos.monate.map(function (x, i) { return x && i <= lm ? f(x) : null; }); };
       G.linie(dL, { titel: 'Nettoproduktion im Teamvergleich', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro0, hoehe: 260,

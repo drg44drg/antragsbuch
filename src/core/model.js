@@ -100,6 +100,7 @@
     if (!p.vdienst.zuordnungen) p.vdienst.zuordnungen = {};
     if (!p.vdienst.importe) p.vdienst.importe = [];
     p.antraege.forEach(M.ergaenzeAntrag);
+    if (p.team && p.team.zeilen && !p.team.zeilen.some(function (z) { return z.gesamt; }) && AB.team) AB.team.erkenneGesamt(p.team);
     return p;
   };
 

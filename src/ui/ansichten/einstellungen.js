@@ -16,7 +16,7 @@
       // Stammdaten + Toleranzen
       el.appendChild(h('div.raster.r-2', null,
         h('div.karte', null, h('h3', null, 'Meine Angaben'), h('div.formraster', { style: { marginTop: '10px' } },
-          D.feld('Vermittlernummer', text(e.vermittlernummer, function (v) { e.vermittlernummer = v; }, { inputMode: 'numeric' }), 's4'),
+          D.feld('Vermittlernummer (6-stellig)', text(e.vermittlernummer, function (v) { e.vermittlernummer = v.replace(/\s/g, ''); if (v && !/^\d{6}$/.test(e.vermittlernummer)) D.toast('Die Vermittlernummer hat normalerweise sechs Ziffern, z. B. 900402.', { krit: true }); }, { inputMode: 'numeric', placeholder: 'z. B. 900402', autofocus: !e.vermittlernummer }), 's4'),
           D.feld('Name (für Ausdrucke)', text(e.name, function (v) { e.name = v; }), 's5'),
           D.feld('Jahr', zahl(p.jahr, function (v) { p.jahr = Math.round(v); }), 's3'))),
         h('div.karte', null, h('h3', null, 'Abgleich'), h('div.formraster', { style: { marginTop: '10px' } },

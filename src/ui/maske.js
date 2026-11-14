@@ -15,7 +15,9 @@
     var ursprung = JSON.stringify(a), dublettenOk = false, felder = {};
 
     var dl = h('datalist', { id: 'tarifliste' });
-    p.tarife.forEach(function (t) { dl.appendChild(h('option', { value: t.name }, t.gruppe || '')); });
+    var gezeigt = {};
+    p.tarife.forEach(function (t) { gezeigt[t.name] = 1; dl.appendChild(h('option', { value: t.name }, AB.tarif.text(t.name, t.gruppe))); });
+    AB.tarif.verzeichnis().forEach(function (beschreibung, name) { if (!gezeigt[name]) dl.appendChild(h('option', { value: name }, beschreibung)); });
 
     function ein(feld, typ, wert, attrs) {
       var i = h('input', Object.assign({ type: typ || 'text', value: wert == null ? '' : wert, autocomplete: 'off', spellcheck: false }, attrs || {}));

@@ -324,21 +324,43 @@ test('Reklamation: Status, automatische Erledigung durch Korrekturbuchung', asyn
   assert.equal(A.schliesseReklamationen(p, e2), 0, 'nur einmal');
 });
 
-test('Tarif-Einordnung: Tarifwelt a/n/u und Kategorien', () => {
+test('Tarif-Einordnung aus dem Tarifverzeichnis: Beschreibung, Kategorie, Beihilfe, Tarifwelt', () => {
   const T = AB.tarif, V = 'Vollversicherung', ZL = 'Zusatzversicherung (Art Leben)';
-  assert.equal(T.einordnen('A107a', V).welt, 'a'); assert.match(T.einordnen('A107a', V).weltName, /Alte Tarifwelt/);
-  assert.equal(T.einordnen('A103n', V).welt, 'n'); assert.equal(T.einordnen('S101u', V).welt, 'u'); assert.equal(T.einordnen('VP', V).welt, '');
-  assert.equal(T.einordnen('TA6', V).welt, ''); assert.equal(T.einordnen('PG2SDu', ZL).welt, '', 'Tarifwelt nur in der Vollversicherung');
-  assert.deepEqual([T.einordnen('BEa', V).kategorie, T.einordnen('BEa', V).sicher], ['Beitragsentlastung', true]);
-  assert.equal(T.einordnen('Ba', V).kategorie, 'Beihilfe-Ergänzung'); assert.equal(T.einordnen('BA30a', V).kategorie, 'Beihilfe');
-  assert.equal(T.einordnen('R30u', V).kategorie, 'Beihilfe stationär'); assert.equal(T.einordnen('Wu', V).kategorie, 'Beihilfe stationär');
-  assert.equal(T.einordnen('A107a', V).kategorie, 'Ambulant'); assert.equal(T.einordnen('AM13', V).kategorie, 'Ambulant');
-  assert.equal(T.einordnen('S101u', V).kategorie, 'Stationär'); assert.equal(T.einordnen('Z8', V).kategorie, 'Zahn');
-  assert.match(T.einordnen('A20u', V).hinweis, /auch als Beihilfetarif/);
-  assert.equal(T.einordnen('PG3AD', ZL).kategorie, 'Pflegeergänzung'); assert.match(T.einordnen('PG3AD', ZL).hinweis, /Dynamik/);
-  assert.match(T.einordnen('PG3A', ZL).hinweis, /Pflegegrad 3/);
-  assert.equal(T.einordnen('NHu', ZL).kategorie, 'Naturheilverfahren'); assert.equal(T.einordnen('10u', ZL).kategorie, 'Krankenhaustagegeld');
-  assert.equal(T.einordnen('AB1O', 'Firmentarife').kategorie, 'bKV obligatorisch'); assert.equal(T.einordnen('ZP7F', 'Firmentarife').kategorie, 'bKV fakultativ');
-  assert.equal(T.einordnen('XYZ', V).kategorie, '');
-  assert.match(T.text('A107a', V), /Vollversicherung · Ambulant \(Vorschlag\) · Alte Tarifwelt/);
+  assert.ok(T.verzeichnis().size > 750);
+  let e = T.einordnen('A107a', V);
+  assert.deepEqual([e.beschreibung, e.kategorie, e.beihilfe, e.welt, e.sicher], ['Ambulanter Tarif', 'Ambulant', false, 'a', true]);
+  e = T.einordnen('A20a', V);
+  assert.deepEqual([e.beschreibung, e.kategorie, e.beihilfe], ['Ambulanter Tarif - Beihilfeberechtigte', 'Ambulant', true]);
+  assert.equal(T.sparte('A20a', V), 'Beihilfe · Ambulant'); assert.equal(T.sparte('A107a', V), 'Ambulant');
+  assert.equal(T.einordnen('S30a', V).beihilfe, true); assert.equal(T.einordnen('S101a', V).beihilfe, false);
+  assert.equal(T.einordnen('Ba', V).beihilfe, true); assert.equal(T.einordnen('BEa', V).kategorie, 'Beitragsentlastung');
+  assert.equal(T.einordnen('TA6', V).kategorie, 'Krankentagegeld'); assert.equal(T.einordnen('PPN', V).kategorie, 'Pflegepflicht');
+  assert.equal(T.einordnen('VT', V).kategorie, 'Gesetzlicher Zuschlag'); assert.equal(T.einordnen('ST', V).kategorie, 'Sozialtarif');
+  assert.equal(T.einordnen('ZG50', ZL).kategorie, 'Zahn'); assert.equal(T.einordnen('ZG50', ZL).zielgruppe, 'GKV-Mitglieder'); assert.equal(T.einordnen('ZG50', ZL).zusatz, true);
+  assert.equal(T.einordnen('SG1F', 'Firmentarife').zielgruppe, 'Firmen (bKV)'); assert.equal(T.einordnen('UT', 'Unfallversicherung').kategorie, 'Unfall');
+  assert.equal(T.einordnen('A103n', V).welt, 'n'); assert.equal(T.einordnen('S101u', V).welt, 'u'); assert.equal(T.einordnen('TA6', V).welt, '');
+  assert.match(T.text('A107a', V), /^Ambulanter Tarif · Alte Tarifwelt/);
+  // unbekannter Tarif: geschätzt, als unsicher markiert
+  e = T.einordnen('SBUx', 'Lebensversicherung (Standard)');
+  assert.deepEqual([e.beschreibung, e.kategorie, e.sicher], ['', 'Berufsunfähigkeit', false]);
+  assert.match(T.text('SBUx', 'Lebensversicherung (Standard)'), /geschätzt/);
+  assert.equal(T.einordnen('XYZ', V).kategorie, ''); assert.equal(T.sparte('XYZ', V), 'Sonstige');
+});
+
+test('Team: Summenzeile wird auch erkannt, wenn sie nicht exakt der Summe entspricht', () => {
+  const T = AB.team, z = (nr, name, w) => ({ nr, name, werte: w.concat([null, null, null, null, null, null, null, null]), hr: null, vj: null, gesamt: false });
+  // wie in der echten Datei: Summe der Einzelzeilen liegt rund 4 % unter der Summenzeile
+  const team = { zeilen: [z('900500', 'FD Testgebiet', [10300, 14600, 16900, 9660]), z('900101', 'A,B', [3669, 2000, 1406, 2471]), z('900102', 'C,D', [1469, 1198, 1397, 532]),
+    z('900103', 'E,F', [1455, 1913, 1194, 7]), z('900104', 'G,H', [800, 2293, 1605, 18]), z('900105', 'I,J', [2500, 6600, 10600, 6200])] };
+  assert.equal(T.erkenneGesamt(team), true); assert.equal(team.zeilen[0].gesamt, true);
+  assert.equal(T.position(team, '900105').ytd.rang, 1); assert.equal(T.position(team, '900105').ytd.n, 5);
+  // ohne Namen (pseudonymisiert) funktioniert es weiter über die Zahlen
+  const ps = { zeilen: team.zeilen.map((x) => Object.assign({}, x, { name: '', gesamt: false })) };
+  assert.equal(T.erkenneGesamt(ps), true); assert.equal(ps.zeilen[0].gesamt, true);
+  // kein Fehlalarm: starker Einzel-ADP ist keine Summenzeile
+  const ohne = { zeilen: [z('1', 'A,B', [9000, 9000, 9000, 9000]), z('2', 'C,D', [3000, 3000, 3000, 3000]), z('3', 'E,F', [2500, 2500, 2500, 2500]), z('4', 'G,H', [800, 900, 700, 600])] };
+  assert.equal(T.erkenneGesamt(ohne), false); assert.ok(ohne.zeilen.every((x) => !x.gesamt));
+  // Titel entscheidet, wenn er eindeutig ist
+  const titel = { zeilen: [z('2', 'C,D', [3000, 3000, 3000, 3000]), z('9', 'Summe Gebiet', [4000, 4000, 4000, 4000]), z('3', 'E,F', [1000, 1000, 1000, 1000])] };
+  assert.equal(T.erkenneGesamt(titel), true); assert.equal(titel.zeilen[1].gesamt, true);
 });

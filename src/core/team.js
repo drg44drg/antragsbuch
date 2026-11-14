@@ -63,14 +63,7 @@
           var m = /^(\d{6})\s+(.*)$/.exec(z.label);
           return { nr: m[1], name: m[2].trim(), werte: z.werte, hr: z.hr, vj: z.vj, gesamt: false };
         }) };
-        // Summenzeile erkennen: erste Zeile ≈ Summe der übrigen
-        var z0 = team.zeilen[0];
-        var ok = z0.werte.every(function (w, m) {
-          if (w == null) return true;
-          var s = 0; team.zeilen.slice(1).forEach(function (x) { s += x.werte[m] || 0; });
-          return Math.abs(s - w) <= Math.max(1, Math.abs(w) * 0.02);
-        });
-        if (ok && team.zeilen.length > 2) z0.gesamt = true;
+        T.erkenneGesamt(team);
       } else if (zl.length && !vm.length) {
         produkte = zl.map(function (z) { return { name: z.label, werte: z.werte, hr: z.hr, vj: z.vj }; });
       }
@@ -79,6 +72,34 @@
     team.stand = stand; team.produkte = produkte; team.pseudonym = false;
     team.importiert = new Date().toISOString();
     return team;
+  };
+
+  /**
+   * Summenzeile des Teams markieren. Zwei Wege:
+   * 1) Titel: kein „NAME,VORNAME", sondern eine Einheit (FD, Direktion, Gesamt, Summe, Gebiet, Region, Team).
+   * 2) Zahlen: die größte Zeile liegt in jedem Monat nahe an der Summe aller anderen (75–135 %).
+   *    Exakt muss es nicht passen – in der Praxis fehlen einzelne Vermittler in der Liste.
+   * → true, wenn eine Summenzeile gefunden wurde.
+   */
+  T.erkenneGesamt = function (team) {
+    var zl = team.zeilen;
+    zl.forEach(function (z) { z.gesamt = false; });
+    if (zl.length < 3) return false;
+    var summe = function (z) { return z.werte.reduce(function (s, w) { return s + (w || 0); }, 0); };
+    var titel = zl.filter(function (z) { return z.name && z.name.indexOf(',') < 0 && /(^|[^a-zäöü])(FD|GD|BD|RD|VD|Direktion|Gesamt|Summe|Gebiet|Region|Team|Bezirk)([^a-zäöü]|$)/i.test(z.name); });
+    var gross = zl.slice().sort(function (a, b) { return summe(b) - summe(a); })[0];
+    var rest = zl.filter(function (z) { return z !== gross; });
+    var monate = 0, passend = 0;
+    for (var m = 0; m < 12; m++) {
+      var w = gross.werte[m]; if (w == null) continue;
+      var s = 0; rest.forEach(function (z) { s += z.werte[m] || 0; });
+      if (Math.abs(s) < 1 && Math.abs(w) < 1) continue;
+      monate++; if (w >= s * 0.75 - 1 && w <= s * 1.35 + 1) passend++;
+    }
+    var zahlen = monate > 0 && passend === monate;
+    var treffer = titel.length === 1 && (titel[0] === gross || !zahlen) ? titel[0] : zahlen ? gross : null;
+    if (treffer) treffer.gesamt = true;
+    return !!treffer;
   };
 
   T.pseudo = function (nr) { return 'p' + U.hash('antragsbuch-team:' + String(nr).trim()); };

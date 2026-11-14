@@ -1,96 +1,99 @@
-# Tarif-Kategorien – Vorschlag zur Prüfung
+# Tarif-Kategorien
 
-Stand 14.11.2026. Der Ordner „ADP-Gewinnung" mit den Prospekten war im verbundenen Google Drive nicht auffindbar.
-Dieser Vorschlag ist deshalb aus zwei vorhandenen Quellen abgeleitet:
+Stand 14.11.2026. Grundlage ist jetzt der **Tarifschlüssel des Versicherers (Stand 11.06.2021)** mit 787 Tarifen und ihrer Beschreibung.
+Die Spalten Gruppe, Schlüssel, VT und Geschlecht werden nicht verwendet.
 
-1. **Tarifgruppe je Tarif** aus der Provisionsabrechnung – verlässlich, die App nutzt sie bereits.
-2. **Produkthierarchie** aus den Monatsscheiben – liefert die Kategorien, aber keine Zuordnung einzelner Tarife.
+## Was die App daraus ableitet
 
-Die feinere Zuordnung (Spalte „Unterkategorie") ist aus den Tarifkürzeln **geraten** und muss bestätigt werden.
+- **Beschreibung** je Tarif – erscheint als Vorschlag beim Erfassen und als Hinweis in Kundenakte und Tarifliste.
+- **Kategorie** aus der Beschreibung: Ambulant, Stationär, Zahn, Pflegepflicht, Pflegezusatz, Krankentagegeld, Krankenhaustagegeld, Beitragsentlastung, Naturheilverfahren, Unfall, Ausland, Sozialtarif (Standard-, Basis-, Notlagentarif), Leben und Vorsorge.
+- **Beihilfe:** ja, wenn die Beschreibung „Beihilfeberechtigte" oder „Beamtenanwärter" nennt. Damit ist geklärt: , , ,  sind Beihilfetarife, – und – nicht.
+- **Tarifwelt** aus der Endung:  alte Welt,  neue Welt,  Unisex,  modifizierte Kostensätze.
+- **Zielgruppe:** GKV-Mitglieder, Firmen (bKV), Gruppenversicherung, Kooperationspartner, mhplus.
 
-## Kategorien laut Produkthierarchie
+## Abdeckung Ihrer Abrechnung
 
-- **Kranken**
-  - Vollversicherung: mit Beihilfe · nicht Beihilfe (Ambulant, Beitragsentlastung, Kompakttarif, Stationär, Zahn) · Auslandskranken · Vorsorge & Prävention
-  - Pflegepflichtversicherung
-  - Pflegezusatz: ergänzend · gefördert
-  - Sonstige Zusatzversicherung: ambulant · Krankenhaustagegeld · Krankentagegeld · stationär · Zahn
-  - Betriebliche Krankenversicherung: F-Tarif · fakultativ (F) · G-Tarif · obligatorisch (O) · R-Tarife
-  - Mitglieder Krankenversicherung
-- **Unfall:** betrieblich · Mitglieder · sonstige
-- **Leben** (in der Abrechnung als eigene Sparte LV)
+Von 300 Tarifen in Ihrer Abrechnung stehen 283 im Tarifschlüssel (99,8 % der Buchungszeilen).
 
-## Bestätigt (von Ihnen bzw. aus dem Tarifbuch, Abschnitt „Beihilfeberechtigte")
-
-| Kürzel | Bedeutung | Quelle |
-|---|---|---|
-| Endung `a` | alte Tarifwelt: Bisex, ohne Verteilung der Schwangerschaftskosten (KV-Voll vor 2009) | Ihre Angabe |
-| Endung `n` | neue Tarifwelt: Bisex, 2009 bis 2013 | Ihre Angabe |
-| Endung `u` | Unisex-Tarife | Ihre Angabe |
-| `PG1`–`PG5` | Pflegeergänzung nach Pflegegrad | Ihre Angabe, Tarifbuch |
-| `PG…D` | wie oben, mit Dynamik über das 70. Lebensjahr | Ihre Angabe |
-| `PEV`, `PZ`, `PZM` | Pflegeergänzung | Tarifbuch |
-| `S`, `R`, `W` (Beihilfe) | stationäre Heilbehandlung | Tarifbuch |
-| `A` (Beihilfe) | ambulante Heilbehandlung | Tarifbuch |
-| `Z`, `ZE` (Beihilfe) | Zahn-Ergänzung | Tarifbuch |
-| `B`, `BW1`, `BW2` | Beihilfe-Ergänzungstarife | Tarifbuch |
-| `NH` | Naturheilverfahren | Tarifbuch |
-| `10` | Krankenhaustagegeld | Tarifbuch |
-| `PPB` | Pflegepflicht für Beihilfeberechtigte | Tarifbuch |
-
-Diese Regeln sind in der App hinterlegt (Tarif-Hinweis in Kundenakte und Tarifliste).
-
-## Bitte absegnen – hier bin ich nicht sicher
-
-| Nr. | Frage | Mein Vorschlag | Ihre Antwort |
+| Tarifgruppe (Abrechnung) | Kategorie laut Tarifschlüssel | Anzahl | Tarife |
 |---|---|---|---|
-| 1 | `A20`, `A30`, `S20`, `S30`, `Z…` gibt es in Voll **und** Beihilfe. Woran erkenne ich in der Abrechnung den Beihilfetarif? | An der Zahl = Erstattungssatz (A20 = 20 %, A30 = 30 %)? Dann wären `A20/A30/A35/A40/A75/A80` und `S20/S25/S30` Beihilfe, `A100–A109` und `S1/S3/S101–S103` Normaltarife. | |
-| 2 | `BA30`, `BS30`, `BZ`, `BAE`, `BSE` | Beihilfe (ambulant / stationär / Zahn / Ergänzung) | |
-| 3 | `VP` (Beiträge um 5–11 €) | Pflegepflicht? Oder Vorsorge? | |
-| 4 | `AM10`–`AM33` | Ambulant, modular (neue Tarifgeneration) | |
-| 5 | `AE…`, `AZ…`, `SE…`, `RE…` | Ergänzungstarife zu ambulant / stationär | |
-| 6 | `TA2`–`TA52` in der Vollversicherung | Krankentagegeld, Zahl = Karenzwoche? | |
-| 7 | `ZS75`, `Z260` | Zahn | |
-| 8 | `WG`, `WGZ3/4`, `V` (Zusatz Art Leben) | unklar | |
-| 9 | `ZG30/50/70`, `ZGB`, `ZH40`, `ZP1–ZP9` | Zahnzusatz | |
-| 10 | `SG1/SG2`, `SP1/SP2/SPU` | stationäre Zusatz | |
-| 11 | `AG`, `AG80`, `AGZ`, `AP1–AP9` | ambulante Zusatz | |
-| 12 | `GKVP` und die Endungen `K` und `M` (Zusatz Art Schaden) | Kollektiv / Mitglieder? | |
-| 13 | Gruppentarife: `…FR`/`…OR` = R-Tarife, `…G`/`…Gz` = G-Tarif | so übernehmen? | |
-| 14 | Leben: `SBU…` = Berufsunfähigkeit; `T…`, `BT…`, `N…`, `L2`, `DT…`, `R` | Unterarten offen | |
-| 15 | Wo steht die Pflegepflicht in der Abrechnung (`PVN`, `PPN`, `PPB`)? Im Reklamationsbeispiel kommt „PPN" vor. | eigener Bereich „Pflege" mit eigenem Faktor | |
+| Firmentarife | Ambulant | 13 | AB1F, AB1O, AB2F, AB2O, AB3F, AB3O, AP1F, AP5F, AP5O, AP7F, AP7O, AP9F, WGFz |
+| Firmentarife | Krankentagegeld | 1 | TG6Fz |
+| Firmentarife | Leben und Vorsorge | 1 | BFRO |
+| Firmentarife | Stationär | 7 | SG2Fz, SP1F, SP1O, SP2F, SP2O, SPUF, SPUO |
+| Firmentarife | Unfall | 2 | U35F, UTF |
+| Firmentarife | Vorsorge | 1 | VFz |
+| Firmentarife | Zahn | 16 | ZB1F, ZB1O, ZB2F, ZB2O, ZB3F, ZB3O, ZG3Fz, ZG5Fz, ZGBFz, ZH4Fz, ZP1F, ZP5F, ZP5O, ZP7F, ZP7O, ZP9F |
+| Gruppentarife | Ambulant | 10 | AB1FR, AB1OR, AGGz, AP1FR, AP5FR, AP5OR, AP7FR, AP9FR, WGG, WGGz |
+| Gruppentarife | Krankenhaustagegeld | 1 | 10Gz |
+| Gruppentarife | Naturheilverfahren | 1 | NHGz |
+| Gruppentarife | Stationär | 9 | SG1Gz, SG2G, SG2Gz, SGPGz, SP1FR, SP1OR, SP2FR, SP2OR, SPUFR |
+| Gruppentarife | Zahn | 17 | ZB1FR, ZB1OR, ZB2FR, ZB2OR, ZG3G, ZG5Gz, ZG7Gz, ZGBGz, ZH4G, ZH4Gz, ZP1FR, ZP1OR, ZP5FR, ZP5OR, ZP7FR, ZP7OR, ZP9FR |
+| Lebensversicherung (Standard) | Sozialtarif | 1 | BTu |
+| Unfallversicherung | Unfall | 4 | U350, U500, UB, UT |
+| Vollversicherung | Ambulant | 26 | A100a, A100n, A100u, A103a, A103n, A103u, A105a, A105u, A107a, A107n, A109a, A109n, A75a, A75u, A80Ba, A80a, A80n, A80u, AM10, AM11, AM12, AM13, AM30, AM31, AM32, AM33 |
+| Vollversicherung | Beihilfe · Ambulant | 14 | A20a, A20n, A20u, A30a, A30u, A35a, A40a, AEa, AEn, AEu, BA30a, BA30u, BAEa, BAEu |
+| Vollversicherung | Beihilfe · Ergänzung | 3 | Ba, Bn, Bu |
+| Vollversicherung | Beihilfe · Stationär | 17 | BS30a, BS30u, BSEa, BSEu, R30u, REa, REu, S20a, S20n, S20u, S25a, S30a, S30u, SEa, SEn, SEu, Wu |
+| Vollversicherung | Beihilfe · Zahn | 3 | BZa, BZu, Za |
+| Vollversicherung | Beitragsentlastung | 3 | BEa, BEn, BEu |
+| Vollversicherung | Krankentagegeld | 12 | TA13, TA13u, TA2, TA26, TA26u, TA2u, TA4, TA4u, TA52, TA52u, TA6, TA6u |
+| Vollversicherung | Stationär | 11 | S1, S101a, S101n, S101u, S102a, S102u, S103a, S103n, S103u, S1DD, S3 |
+| Vollversicherung | Vorsorge | 1 | VP |
+| Vollversicherung | Zahn | 9 | AZa, AZn, AZu, Z260u, Z6, Z8, Z9, ZS75a, ZS75u |
+| Zusatzversicherung (Art Leben) | Ambulant | 3 | AG, AG80u, WGu |
+| Zusatzversicherung (Art Leben) | Krankenhaustagegeld | 2 | 10, 10u |
+| Zusatzversicherung (Art Leben) | Krankentagegeld | 1 | TG6 |
+| Zusatzversicherung (Art Leben) | Naturheilverfahren | 1 | NHu |
+| Zusatzversicherung (Art Leben) | Pflegezusatz | 44 | PEV1, PEV3, PEV4, PG1A, PG1AD, PG1ADu, PG1Au, PG1S, PG1SD, PG1SDu, PG1Su, PG2A, PG2AD, PG2ADu, PG2Au, PG2S, PG2SD, PG2SDu, PG2Su, PG3A, PG3AD, PG3ADu, PG3Au, PG3S, PG3SD, PG3SDu, PG3Su, PG4A, PG4AD, PG4ADu, PG4Au, PG4S, PG4SD, PG4SDu, PG4Su, PG5A, PG5AD, PG5ADu, PG5Au, PG5S, PG5SD, PG5SDu, PG5Su, PGUu |
+| Zusatzversicherung (Art Leben) | Stationär | 7 | SG1Ou, SG1u, SG2Ou, SG2u, SP1, SP2, SPU |
+| Zusatzversicherung (Art Leben) | Vorsorge | 1 | V |
+| Zusatzversicherung (Art Leben) | Zahn | 12 | AGZu, WGZ3, WGZ4, ZG30, ZG30u, ZG50, ZG50u, ZG70, ZG70u, ZGBu, ZH40, ZH40u |
+| Zusatzversicherung (Art Schaden) | Ambulant | 10 | AG8Ku, AGMz, AP1, AP5, AP7, AP9, WGK, WGKu, WGM, WGMz |
+| Zusatzversicherung (Art Schaden) | Ergänzung | 1 | GKVP |
+| Zusatzversicherung (Art Schaden) | Krankenhaustagegeld | 2 | 10K, 10Ku |
+| Zusatzversicherung (Art Schaden) | Krankentagegeld | 1 | TG6K |
+| Zusatzversicherung (Art Schaden) | Naturheilverfahren | 1 | NHKu |
+| Zusatzversicherung (Art Schaden) | Stationär | 2 | SG2K, SG2M |
+| Zusatzversicherung (Art Schaden) | Unfall | 1 | U50M |
+| Zusatzversicherung (Art Schaden) | Vorsorge | 1 | VGz |
+| Zusatzversicherung (Art Schaden) | Zahn | 10 | AGZMz, ZG7K, ZG7M, ZGBM, ZH4K, ZH4Ku, ZP1, ZP5, ZP7, ZP9 |
 
-## Unterlagen
+## Bitte absegnen
 
-Prospekte oder Bedingungswerke habe ich nicht gefunden – weder im Repository noch im verbundenen Google Drive.
-Hilfreich wären als Upload: `1.591_Bedingungen_Vollversicherung_Beihilfe.pdf`, das allgemeine Tarifbuch (`1.700_…`)
-und je ein Prospekt für Vollversicherung, Zusatz und bKV.
+| Nr. | Punkt | Mein Vorschlag | Ihre Antwort |
+|---|---|---|---|
+| 1 | Nicht im Tarifschlüssel (alle Sparte Leben): N3x, BTw, Tv, Tu, SBUx, SBUy, SBUw, BTv, SBUz, L2, DTv, SBUv, Tw, N2z, N2x, R, Ty | Bereich „Leben";  als Berufsunfähigkeit. Gibt es eine Liste der Leben-Tarife? | |
+| 2 | Der Tarifschlüssel ist von 2021. Neuere Tarife fehlen möglicherweise. | Gibt es einen aktuelleren Stand? Unbekannte Tarife schätzt die App und markiert sie als „geschätzt". | |
+| 3 | Name „Sozialtarif" für Standard-, Basis- und Notlagentarif | so lassen? | |
+| 4 | Pflegepflicht (, , , ) steht in der Abrechnung in der Tarifgruppe Vollversicherung. | Beim Erfassen als eigene Position mit Bereich „Pflege", damit der eigene Provisionsfaktor greift. Soll die App das automatisch tun? | |
+| 5 |  = gesetzlicher Zuschlag (10 %) | zählt zum Beitrag, aber provisionsfrei? | |
+| 6 | Auswertung nach Kategorie und Beihilfe im Dashboard und im Management-Vergleich | als nächsten Schritt einbauen? | |
 
-## Zuordnung nach Tarifgruppe (Arbeitsstand)
+## Verzeichnis nach Kategorie (alle 787 Tarife)
 
-| Tarifgruppe (Abrechnung) | Bereich in der App | Kürzel-Muster | Unterkategorie (Vorschlag) | Sicher? |
-|---|---|---|---|---|
-| Vollversicherung | Voll | `A…` (A20, A30, A75, A80, A100–A109), `AM10–AM33` | Ambulant | bitte bestätigen |
-| Vollversicherung | Voll | `S…` (S1, S3, S20–S30, S101–S103), `SE…` | Stationär | bitte bestätigen |
-| Vollversicherung | Voll | `Z…` (Z6, Z8, Z9, Z260, ZS75) | Zahn | bitte bestätigen |
-| Vollversicherung | Voll | `BE…` (BEa, BEu, BEn; im alten Antragsbuch „BE560", „BE MAX") | Beitragsentlastung | ziemlich sicher |
-| Vollversicherung | Voll | `BA…`, `BS…`, `BZ…`, `BAE…`, `BSE…`, `B` + a/u/n | **Beihilfe** | bitte bestätigen |
-| Vollversicherung | Voll | `TA…` (TA2–TA52) | Krankentagegeld | bitte bestätigen |
-| Vollversicherung | ? | `VP` (kleine Beiträge um 5–11 €) | Pflegepflicht **oder** Vorsorge | **offen** |
-| Vollversicherung | ? | `AE…`, `AZ…`, `RE…`, `R30u`, `W…` | unklar | **offen** |
-| Zusatz (Art Leben) | Zusatz | `PG1–PG5` (A, S, AD, SD), `PEV…`, `PGU` | Pflegezusatz | ziemlich sicher |
-| Zusatz (Art Leben) | Zusatz | `ZG…`, `ZGB`, `ZH40` | Zahnzusatz | bitte bestätigen |
-| Zusatz (Art Leben) | Zusatz | `SG…`, `SP…` | Stationäre Zusatz | bitte bestätigen |
-| Zusatz (Art Leben) | Zusatz | `AG…`, `AGZ` | Ambulante Zusatz | bitte bestätigen |
-| Zusatz (Art Leben) | Zusatz | `TG6` | Tagegeld | bitte bestätigen |
-| Zusatz (Art Leben) | Zusatz | `WG…`, `NH`, `10`, `V` | unklar | **offen** |
-| Zusatz (Art Schaden) | Zusatz | `ZP1–ZP9` | Zahn | bitte bestätigen |
-| Zusatz (Art Schaden) | Zusatz | `AP1–AP9` | Ambulant | bitte bestätigen |
-| Zusatz (Art Schaden) | Zusatz | `GKVP`, Endung `K` / `M` | unklar (Kollektiv? Mitglieder?) | **offen** |
-| Firmentarife | bKV | Endung `F` / `Fz` | fakultativ | ziemlich sicher |
-| Firmentarife | bKV | Endung `O` | obligatorisch | ziemlich sicher |
-| Gruppentarife | Gruppe | Endung `FR` / `OR` | R-Tarife | bitte bestätigen |
-| Gruppentarife | Gruppe | Endung `G` / `Gz` | G-Tarif | bitte bestätigen |
-| Unfallversicherung | Unfall | `UT`, `UB`, `U350`, `U500` | Unfall | sicher |
-| Lebensversicherung (Standard) | Leben | `SBU…`, `T…`, `BT…`, `N…`, `L2`, `DT…`, `R` | Leben (BU, Risiko, Rente) | Bereich sicher, Unterart offen |
-
+| Kategorie | Anzahl |
+|---|---|
+| Beihilfe · Sozialtarif | 150 |
+| Zahn | 120 |
+| Ambulant | 92 |
+| Pflegezusatz | 85 |
+| Beihilfe · Stationär | 84 |
+| Stationär | 55 |
+| Beihilfe · Ambulant | 42 |
+| Unfall | 36 |
+| Leben und Vorsorge | 24 |
+| Krankentagegeld | 21 |
+| Sozialtarif | 13 |
+| Naturheilverfahren | 13 |
+| Krankenhaustagegeld | 10 |
+| Beihilfe · Ergänzung | 9 |
+| Vorsorge | 9 |
+| Beihilfe · Zahn | 8 |
+| Ausland | 6 |
+| Beitragsentlastung | 3 |
+| Pflegepflicht | 2 |
+| Beihilfe · Pflegepflicht | 2 |
+| Gesetzlicher Zuschlag | 1 |
+| Ergänzung | 1 |
+| Option | 1 |
