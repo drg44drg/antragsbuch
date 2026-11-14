@@ -17,17 +17,13 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Beispielliste für eine Aktion (z. B. Anschreiben Altersvorsorgedepot) und das zugehörige Schreiben
 - [ ] Alte Reportings als Muster
 - [ ] Abrechnung 2025 (für den Test mit dem alten Antragsbuch)
-- [ ] Service-Level je Bereich (z. B. Vollversicherung 5 Werktage) und Unternehmensziele je Sparte
+- [ ] Service-Level je Bereich und Liste der Postkörbe (bisher überall 5/10 Werktage als Platzhalter)
+- [ ] Unternehmensziele je Sparte (für den Vergleich im Team)
+- [ ] Produktunterlagen aus dem Ordner „ADP-Gewinnung" (liegt nicht im verbundenen Google Drive) –
+      daraus leiten wir die Tarif-Kategorien Voll/Zusatz ab
+- [ ] Altes Antragsbuch eines ADP **mit** dessen Abrechnung (Test der Zusammenführung bei spärlichen Eingaben)
 
 ## C · Erweiterungen
-
-### Paket 1 – ohne weitere Zulieferung baubar
-- [ ] Excel-Export (.xlsx) mit Farben und Formatierung statt CSV; PDF über die Druckansicht
-- [ ] Bearbeitungsampel im Antragsbuch: Werktage seit Einreichung, gelb/rot je Bereich nach Service-Level
-- [ ] Nachbearbeitung am Antrag: Kennzeichen, was fehlt, was an den Kunden ging, Datum
-- [ ] Anträge per Checkbox auswählen → „Prioritätsliste" (Kunde, Tarif, MB, Tage offen) als Excel/PDF für den Innendienst
-- [ ] Dashboard-Filter nach Bereich (Voll / Zusatz / …) und nach Tarif
-- [ ] Übersicht „lange keine Policierung"
 
 ### Paket 2 – braucht ein Muster
 - [ ] Provisionsreklamation: Zeile(n) unter „Abweichung"/„Offen" anklicken → vorausgefülltes Formular → Drucken/PDF
@@ -47,7 +43,24 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Vergleich mit Zielwerten des Unternehmens
 - [ ] Rückweg ADP → Führungskraft nur im Bedarfsfall: Meldedatei mit ausgewählten Anträgen
 
-## D · Erledigt (Version 1)
+### Paket 5 – Weitergabe, Schutz, Lizenz (erst entscheiden, dann bauen)
+- [ ] Projektdatei mit Passwort verschlüsseln (schützt Kundendaten bei Verlust/Weitergabe)
+- [ ] Lizenzschlüssel je ADP mit Ablaufdatum, offline prüfbar (signiert); Verlängerung per neuem Schlüssel
+- [ ] Ablaufdatum der App-Version („bitte neue Version holen")
+- [ ] Rechtliches klären: Verkauf an Kollegen, Datenschutz-Rolle, Freigabe durch den Versicherer
+
+### Ideen aus dem Alltag
+- [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
+- [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
+
+## D · Erledigt (Version 1.1 – Paket 1)
+
+Excel-Export mit Farben und Formaten (Umschalt-Taste: CSV) · Bearbeitungsampel nach Werktagen mit einstellbaren Fristen ·
+Nachbearbeitung am Antrag · Auswahl per Checkbox → Prioritätsliste (Excel/PDF) · Dashboard-Filter nach Bereich und Tarif ·
+Kurzüberblick im Kopf · Erinnerung „Abrechnung einlesen" · Kundensuche F3/F4 mit Kundenakte ·
+Korrekturbuchungen späterer Monate werden dem Antrag zugeordnet
+
+## E · Erledigt (Version 1)
 
 Antragsbuch mit Maske und Suche · Projektdatei mit Autosave · Abrechnungs-Import mit Kumulativ-Vergleich ·
 Abgleich mit fünf Listen · Veränderungsdienst · Dashboard · Team/Management · Ordner-Import · Hell/Dunkel

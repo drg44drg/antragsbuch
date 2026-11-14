@@ -87,7 +87,13 @@
       var vnrSp = { t: 'Vertragsnr.', b: '104px', w: function (r) { return r.antrag.vertragsnummer || '–'; }, s: function (r) { return r.antrag.vertragsnummer; } };
       var buchBtn = function (r) { return D.btn('Buchungen', function () { AB.zeigeBuchungen('Buchungen zu ' + M.vnName(r.antrag), r.buendel.concat(r.stornos)); }, { klasse: 'klein-btn leise' }); };
       var oeffne = function (r) { AB.maske.oeffne(r.antrag); };
-      function exportBtn() { return [D.btn('CSV', function () { D.lade('Abgleich_' + liste + '_' + p.jahr + '.csv', AB.kennzahlen.exportAbgleich(Object.assign({}, erg, (function () { var o = {}; o[liste] = tab.zeilen(); return o; })()), liste)); }, { icon: 'runter' }),
+      function sicht() { var o = {}; o[liste] = tab.zeilen(); return Object.assign({}, erg, o); }
+      function exportBtn() { return [D.exportBtn('Abgleich_' + liste + '_' + p.jahr, function () {
+          var t = AB.kennzahlen.tabelleAbgleich(sicht(), liste), name = liste === 'haftung' ? 'Stornohaftung' : REITER.find(function (r) { return r[0] === liste; })[1];
+          if (liste === 'abweichung') t.farbe = function (w, r, c) { return (c === 12 || c === 15) && Math.abs(w[c]) > 0.004 ? 'krit' : null; };
+          if (liste === 'offen') t.farbe = function (w, r, c) { return c === 16 ? (w[16] > e.offenTage * 2 ? 'krit' : 'warn') : null; };
+          return Object.assign({ name: name, titel: 'Abgleich – ' + name + (mon ? ' – ' + U.monatName(mon) : ' – kumuliert ' + p.jahr), unter: AB.ansichten.abgleich.unter() }, t);
+        }, function () { return AB.kennzahlen.exportAbgleich(sicht(), liste); }),
         D.btn('Drucken', function () { drucke(); }, { icon: 'druck' })]; }
       function drucke() {
         var sp = tab.spaltenDruck;
@@ -107,7 +113,7 @@
           { t: 'Prov. Soll', b: '100px', r: true, w: function (r) { return U.fmtEuro(r.sollPGesamt != null ? r.sollPGesamt : r.sollP); }, s: function (r) { return r.sollP; } },
           { t: 'Prov. Ist', b: '100px', r: true, w: function (r) { return U.fmtEuro(r.istP); }, s: function (r) { return r.istP; } },
           { t: 'Differenz', b: '92px', r: true, w: function (r) { return r.abwP ? h('span.marke-s.krit', null, U.fmtEuro(r.diffP)) : h('span.mini', null, U.fmtEuro(r.diffP)); }, s: function (r) { return r.diffP; }, d: function (r) { return U.fmtEuro(r.diffP); } },
-          { t: '', b: liste === 'abweichung' ? '196px' : '96px', w: function (r) { return [buchBtn(r), liste === 'abweichung' ? D.btn('Akzeptieren', function () { r.antrag.abweichungOk = r.fingerabdruck; App.geaendert(); D.toast('Abweichung akzeptiert – der Antrag steht jetzt unter „Gleich".'); }, { klasse: 'klein-btn', titel: 'Abweichung ist in Ordnung' }) : (r.akzeptiert ? h('span.marke-s', { title: 'Abweichung wurde akzeptiert' }, 'akz.') : null)]; }, d: function () { return ''; } }];
+          { t: '', b: liste === 'abweichung' ? '196px' : '96px', w: function (r) { return [buchBtn(r), liste === 'abweichung' ? D.btn('Akzeptieren', function () { r.antrag.abweichungOk = r.fingerabdruck; App.geaendert(); D.toast('Abweichung akzeptiert – der Antrag steht jetzt unter „Gleich".'); }, { klasse: 'klein-btn', titel: 'Abweichung ist in Ordnung' }) : (r.akzeptiert ? h('span.marke-s', { title: 'Abweichung wurde akzeptiert' }, 'akz.') : r.nachbuchung ? h('span.marke-s.gut', { title: 'Durch eine Korrekturbuchung in einem späteren Monat ausgeglichen' }, 'korr.') : null)]; }, d: function () { return ''; } }];
         D.anhaengen(werkzeug, [h('span.muted.klein', null, liste === 'gleich' ? 'Antrag gefunden, Beitrag und Provision innerhalb der Toleranz (' + U.fmtEuro(e.toleranzBeitrag) + ' / ' + U.fmtEuro(e.toleranzProvision) + ').' : 'Antrag gefunden, aber Beitrag oder Provision weicht ab. Faktor in den Einstellungen prüfen, Antrag korrigieren oder die Abweichung akzeptieren.'), h('span.frei'), artChips, exportBtn()]);
         tab = AB.tabelle(box, { zeilen: zl, spalten: sp, klick: oeffne, hoehe: 50, sort: { i: 2, ab: true }, leer: liste === 'gleich' ? 'Noch keine übereinstimmenden Buchungen.' : 'Keine Abweichungen – alles stimmt.',
           fuss: function (l) { var a = 0, b = 0, c = 0, d2 = 0; l.forEach(function (r) { a += r.sollB; b += r.istB; c += r.sollPGesamt != null ? r.sollPGesamt : r.sollP; d2 += r.istP; }); return [l.length + ' Anträge', '', '', U.fmtEuro(a), U.fmtEuro(b), U.fmtEuro(b - a), U.fmtEuro(c), U.fmtEuro(d2), U.fmtEuro(d2 - c), '']; } });

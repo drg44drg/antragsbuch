@@ -30,6 +30,19 @@
             return h('button.chip' + (an ? '.aktiv' : ''), { type: 'button', onclick: function () { if (an) e.provisionsarten = e.provisionsarten.filter(function (x) { return x !== a; }); else e.provisionsarten.push(a); App.geaendert(); } }, a);
           })))))));
 
+      // Bearbeitungsampel
+      var slaTb = h('tbody');
+      M.BEREICHE.forEach(function (b) {
+        var s = e.sla[b.id];
+        slaTb.appendChild(h('tr', null, h('td', null, b.name), h('td', { style: { width: '110px' } }, zahl(s.gelb, function (n) { s.gelb = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } })),
+          h('td', { style: { width: '110px' } }, zahl(s.rot, function (n) { s.rot = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } }))));
+      });
+      el.appendChild(h('div.karte', null, h('h3', null, 'Bearbeitungsampel (Service-Level)'),
+        h('div.unter', null, 'Werktage seit Einreichung, bis ein noch nicht policierter Antrag gelb bzw. rot wird. Wochenenden und bundesweite Feiertage zählen nicht. Eine offene Nachbearbeitung ist immer rot.'),
+        h('div.raster.r-2', null, h('table.einfach', null, h('thead', null, h('tr', null, ['Bereich', 'Gelb ab Werktag', 'Rot ab Werktag'].map(function (t) { return h('th', null, t); }))), slaTb),
+          h('div', null, D.feld('Abrechnung kommt am … des Monats', zahl(e.abrechnungTag, function (n) { e.abrechnungTag = Math.min(28, Math.max(1, Math.round(n))); }, { style: { width: '110px' } })),
+            h('p.mini', null, 'Ab diesem Tag erinnert die App daran, die neue Abrechnung einzulesen. Policierte Anträge werden erst gelb, wenn die Abrechnung des Folgemonats ohne Buchung vorliegen müsste.')))));
+
       // Provisionsregeln
       var regelBox = h('div');
       M.BEREICHE.forEach(function (b, bi) {

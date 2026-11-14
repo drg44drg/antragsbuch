@@ -45,12 +45,21 @@
     return 'zusatz';
   };
 
+  /** Bearbeitungszeit je Bereich in Werktagen: ab `gelb` Tagen gelb, ab `rot` Tagen rot. */
+  M.standardSla = function () {
+    var s = {};
+    M.BEREICHE.forEach(function (b) { s[b.id] = { gelb: 5, rot: 10 }; });
+    return s;
+  };
+  M.NACHBEARBEITUNG = [{ id: '', name: 'Keine' }, { id: 'offen', name: 'Offen' }, { id: 'erledigt', name: 'Erledigt' }];
+
   M.standardEinstellungen = function () {
     return {
       vermittlernummer: '', name: '',
       toleranzBeitrag: 0.05, toleranzProvision: 0.5, pruefeProvision: true,
       offenTage: 60, stornoSchwelle: 90,
-      provisionsarten: ['Abschluss', 'Erhöhung', 'Manuell', 'Bestand']
+      provisionsarten: ['Abschluss', 'Erhöhung', 'Manuell', 'Bestand'],
+      sla: M.standardSla(), abrechnungTag: 6
     };
   };
 
@@ -83,6 +92,7 @@
     Object.keys(leer).forEach(function (k) { if (p[k] == null && k !== 'team') p[k] = leer[k]; });
     var std = M.standardEinstellungen();
     Object.keys(std).forEach(function (k) { if (p.einstellungen[k] == null) p.einstellungen[k] = std[k]; });
+    Object.keys(std.sla).forEach(function (k) { if (!p.einstellungen.sla[k]) p.einstellungen.sla[k] = std.sla[k]; });
     var regeln = AB.provision.standardRegeln();
     Object.keys(regeln).forEach(function (k) { if (!p.regeln[k]) p.regeln[k] = regeln[k]; });
     if (!p.vdienst.zuordnungen) p.vdienst.zuordnungen = {};
@@ -103,7 +113,7 @@
       beginn: '', gruppenvertrag: '', firma: '', laufzeit: null,
       eantrag: false, bank: { aktiv: false, anteil: 50 }, bemerkung: '',
       status: 'eingereicht', statusDatum: U.heute(), statusManuell: false, historie: [],
-      provisionManuell: null, abweichungOk: null,
+      provisionManuell: null, abweichungOk: null, nachbearbeitung: { status: '', text: '', datum: '' },
       erstellt: new Date().toISOString(), geaendert: new Date().toISOString()
     };
     if (vorlage) {
@@ -121,6 +131,7 @@
     Object.keys(n).forEach(function (k) { if (a[k] === undefined) a[k] = n[k]; });
     if (!a.vn) a.vn = { name: '', vorname: '' };
     if (!a.bank) a.bank = { aktiv: false, anteil: 50 };
+    if (!a.nachbearbeitung) a.nachbearbeitung = { status: '', text: '', datum: '' };
     if (!Array.isArray(a.positionen) || !a.positionen.length) a.positionen = [M.neuePosition()];
     return a;
   };
@@ -147,6 +158,35 @@
   M.pruefbar = function (a) { return a.bereich !== 'gkv' && a.vorgang !== 'umstellung'; };
   /** Zählt der Antrag noch als „unterwegs"? */
   M.istOffen = function (a) { return a.status === 'eingereicht' || a.status === 'policiert' || a.status === 'reklamiert'; };
+
+  /**
+   * Bearbeitungsampel eines Antrags. hatBuchung: Abgleich hat eine Buchung gefunden.
+   * → { stufe: ''|'gruen'|'gelb'|'rot', wt (Werktage seit Einreichung), grund }
+   */
+  M.ampel = function (a, e, heute, hatBuchung) {
+    var nb = a.nachbearbeitung && a.nachbearbeitung.status === 'offen';
+    var wt = U.werktage(a.eingang, heute), o = { stufe: '', wt: wt, grund: '' };
+    if (a.status === 'eingereicht') {
+      var s = (e.sla && e.sla[a.bereich]) || { gelb: 5, rot: 10 };
+      o.stufe = wt >= s.rot ? 'rot' : wt >= s.gelb ? 'gelb' : 'gruen';
+      o.grund = wt + (wt === 1 ? ' Werktag' : ' Werktage') + ' seit Einreichung, noch nicht policiert (Ziel ' + s.gelb + ')';
+    } else if (a.status === 'policiert') {
+      o.wt = U.werktage(a.statusDatum, heute);
+      if (!M.pruefbar(a)) { o.stufe = 'gruen'; o.grund = 'Policiert'; }
+      else if (hatBuchung) { o.stufe = 'gruen'; o.grund = 'Policiert und gebucht'; }
+      else {
+        var d = a.statusDatum || a.eingang || heute, j = +d.slice(0, 4), m = +d.slice(5, 7) + 1;
+        if (m > 12) { m = 1; j++; }
+        var tag = Math.min(28, +e.abrechnungTag || 6), faellig = j + '-' + (m < 10 ? '0' : '') + m + '-' + (tag < 10 ? '0' : '') + tag;
+        var ueber = U.tageZwischen(faellig, heute);
+        o.stufe = ueber > 31 ? 'rot' : ueber > 0 ? 'gelb' : 'gruen';
+        o.grund = ueber > 0 ? 'Policiert, aber seit ' + U.fmtDatum(faellig) + ' nicht abgerechnet' : 'Policiert – Abrechnung erwartet ab ' + U.fmtDatum(faellig);
+      }
+      if (!U.normVnr(a.vertragsnummer) && a.bereich !== 'gkv' && o.stufe === 'gruen') { o.stufe = 'gelb'; o.grund = 'Policiert, aber Vertragsnummer fehlt'; }
+    } else if (a.status === 'reklamiert') { o.stufe = 'gelb'; o.grund = 'Reklamiert'; }
+    if (nb) { o.stufe = 'rot'; o.grund = 'Nachbearbeitung offen' + (a.nachbearbeitung.text ? ': ' + a.nachbearbeitung.text : '') + (o.grund ? ' · ' + o.grund : ''); }
+    return o;
+  };
 
   /** Pflichtfeldprüfung → Liste { feld, text }. */
   M.pruefeAntrag = function (a) {
@@ -207,7 +247,7 @@
   M.suchtext = function (a) {
     var t = [a.vn.name, a.vn.vorname, a.vertragsnummer, U.normVnr(a.vertragsnummer), M.name('bereich', a.bereich), M.name('vorgang', a.vorgang),
       M.name('status', a.status), U.fmtDatum(a.eingang), U.fmtDatum(a.beginn), a.gruppenvertrag, a.firma, a.bemerkung,
-      U.fmtZahl(M.beitrag(a))];
+      U.fmtZahl(M.beitrag(a)), a.nachbearbeitung && a.nachbearbeitung.status === 'offen' ? 'nachbearbeitung ' + a.nachbearbeitung.text : ''];
     a.positionen.forEach(function (p) { t.push(p.person, p.personennummer, p.tarif, p.beitrag == null ? '' : U.fmtZahl(+p.beitrag)); });
     return U.falte(t.join(' '));
   };

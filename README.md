@@ -31,6 +31,7 @@ Es gibt keine Laufzeit-Abhängigkeiten und keine Fremdbibliotheken im Bündel.
 | `src/core/kennzahlen.js` | Dashboard-Kennzahlen, CSV-Exporte |
 | `src/core/team.js` | Monatsscheiben, Team-Position, Management-Auswertung je ADP |
 | `src/core/vdienst.js` | Veränderungsdienst (generischer Import, gekapselt) |
+| `src/core/xlsxout.js` | Excel-Schreiber mit Farben und Zahlenformaten |
 | `src/core/import.js` | Erkennt jede Datei am Inhalt; läuft im Web Worker |
 | `src/ui/` | Speicher (Datei + IndexedDB + Ordner), Tabelle, Diagramme, Ansichten |
 | `tools/testdaten.js` | Synthetische Testdaten – keine echten Personen |
@@ -51,6 +52,9 @@ Es gibt keine Laufzeit-Abhängigkeiten und keine Fremdbibliotheken im Bündel.
 - **Storno:** Rückbuchungen (X) werden dem abgerechneten Antrag zugeordnet. Der Status „Storno" wird erst
   gesetzt, wenn die Rückbuchung die einstellbare Schwelle (Standard 90 % des Beitrags) erreicht.
 - **Abweichung:** Der Antrag gilt als abgerechnet, bleibt aber in der Liste, bis die Abweichung akzeptiert wird.
+- **Korrekturen:** Gleicht eine Buchung eines späteren Monats die Abweichung eines Antrags aus, wird sie ihm zugeordnet.
+- **Bearbeitungsampel:** Werktage seit Einreichung (ohne Wochenenden und bundesweite Feiertage), Fristen je Bereich einstellbar;
+  policierte Anträge werden erst nach dem Abrechnungstag des Folgemonats gelb.
 - **Nicht geprüft:** „Umstellung ohne Provision" und GKV.
 - **Teamdaten für ADP:** ohne Namen, Vermittlernummern durch Pseudonyme ersetzt.
 - **Datensparsamkeit:** Die Straße des Versicherungsnehmers wird nicht gespeichert.

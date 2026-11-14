@@ -85,14 +85,46 @@
     if (App.p) box.appendChild(D.seg([['adp', 'ADP', 'Ansicht für Außendienstpartner'], ['mgmt', 'Management', 'Ansicht für Führungskräfte: Team-Auswertung mit ADP-Vergleich']], App.modus(), function (m) {
       App.p.einstellungen.modus = m; Sp.plane(App.p); App.zeige(m === 'mgmt' ? 'team' : App.ansicht);
     }));
+    if (App.p) { box.appendChild(kurzueberblick()); box.appendChild(D.btn('', function () { AB.kundensuche('name'); }, { icon: 'suche', titel: 'Kundensuche (F4 Name, F3 Vertragsnummer)' })); }
     var th = D.thema();
-    box.appendChild(D.seg([['auto', 'Auto', 'Wie das Betriebssystem'], ['light', 'Hell'], ['dark', 'Dunkel']], th, function (t) { D.thema(t); }));
+    var folge = ['auto', 'light', 'dark'], namen = { auto: 'Auto', light: 'Hell', dark: 'Dunkel' };
+    var thBtn = D.btn(namen[th], function () { th = folge[(folge.indexOf(th) + 1) % 3]; D.thema(th); thBtn.lastChild.textContent = namen[th]; thBtn.dataset.thema = th; },
+      { icon: th === 'dark' ? 'mond' : 'sonne', titel: 'Darstellung wechseln: Auto (wie das Betriebssystem) → Hell → Dunkel' });
+    thBtn.id = 'themaBtn'; thBtn.dataset.thema = th;
+    box.appendChild(thBtn);
     if (App.p) {
       var wahl = h('input', { type: 'file', multiple: true, hidden: true, accept: '.csv,.txt,.xlsx,.xlsm,.json', onchange: function () { App.importiere(Array.from(wahl.files)); wahl.value = ''; } });
       box.appendChild(wahl);
-      box.appendChild(D.btn('Datei einlesen', function () { wahl.click(); }, { icon: 'hoch', titel: 'Abrechnung, Veränderungsdienst oder Monatsscheiben einlesen – oder einfach ins Fenster ziehen' }));
+      box.appendChild(D.btn('Einlesen', function () { wahl.click(); }, { icon: 'hoch', titel: 'Abrechnung, Veränderungsdienst oder Monatsscheiben einlesen – oder einfach ins Fenster ziehen' }));
     }
   }
+
+  /** Kleine Kennzahlenleiste im Kopf; Klick klappt mehr Details auf. */
+  function kurzueberblick() {
+    var kz = App.kz, j = kz.jahr, m = kz.monate[new Date().getMonth()], e = App.p.einstellungen;
+    var feld = h('div.karte.kurz-feld'), box = h('div.kurz');
+    var knopf = h('button', { type: 'button', title: 'Kurzüberblick – klicken für mehr', 'aria-expanded': 'false', onclick: function (ev) { ev.stopPropagation(); box.classList.toggle('auf'); knopf.setAttribute('aria-expanded', box.classList.contains('auf')); } },
+      h('span', null, 'Offen', h('b', null, String(j.offenAnz))),
+      j.ampel.rot ? h('span', null, h('i.ampel.rot'), h('b', null, String(j.ampel.rot))) : null,
+      j.ampel.gelb ? h('span', null, h('i.ampel.gelb'), h('b', null, String(j.ampel.gelb))) : null,
+      h('span', null, U.MONATE_KURZ[new Date().getMonth()], h('b', null, U.fmtEuro0(m.brutto))));
+    function dl(paare) { var d = h('dl'); paare.forEach(function (x) { d.appendChild(h('dt', null, x[0])); d.appendChild(h('dd', null, x[1])); }); return d; }
+    var imp = App.p.importe.filter(function (x) { return x.typ === 'Abrechnung'; }).pop();
+    D.anhaengen(feld, [h('h3', null, 'Stand der Anträge'),
+      dl([['Eingereicht (wartet auf Policierung)', j.eingereichtAnz], ['Policiert (wartet auf Abrechnung)', j.policiertAnz], ['Abgerechnet', j.abgerechnetAnz], ['Storno', j.stornoAnz], ['Reklamiert', j.reklamiertAnz]]),
+      h('h3', null, 'Bearbeitungsampel'),
+      dl([['Rot – überfällig oder Nachbearbeitung', j.ampel.rot], ['Gelb – Frist erreicht', j.ampel.gelb], ['Grün – im Rahmen', j.ampel.gruen]]),
+      h('h3', null, 'Produktion'),
+      dl([['Beitrag ' + U.MONATE[new Date().getMonth()], U.fmtEuro(m.brutto)], ['Beitrag Jahr (brutto / netto)', U.fmtEuro0(j.brutto) + ' / ' + U.fmtEuro0(j.netto)], ['Provision Jahr (Ist / Soll)', U.fmtEuro0(j.provIst) + ' / ' + U.fmtEuro0(j.provSoll)],
+        ['Letzte Abrechnung eingelesen', imp ? new Date(imp.datum).toLocaleDateString('de-DE') : 'noch keine']]),
+      kz.erinnerung ? h('div.meldung.warn', { style: { marginTop: '10px' } }, kz.erinnerung.text) : null,
+      h('div.leiste', { style: { marginTop: '12px' } }, D.btn('Rote und gelbe anzeigen', function () { App.zeige('antraege', { ampel: 'gelbrot', status: '', monat: '', spezial: '', suche: '' }); }, { klasse: 'klein-btn haupt-btn' }),
+        D.btn('Zur Übersicht', function () { App.zeige('uebersicht'); }, { klasse: 'klein-btn' }))]);
+    feld.addEventListener('click', function (ev) { ev.stopPropagation(); });
+    box.appendChild(knopf); box.appendChild(feld);
+    return box;
+  }
+  document.addEventListener('click', function () { var k = document.querySelector('.kurz.auf'); if (k) k.classList.remove('auf'); });
 
   // ---------- Import-Weiche: jede Datei wird am Inhalt erkannt ----------
   App.importiere = async function (dateien, opt) {
@@ -210,6 +242,12 @@
     });
     window.addEventListener('focus', function () { App.pruefeOrdner(false); });
     document.addEventListener('keydown', function (e) {
+      if (App.p && (e.key === 'F3' || e.key === 'F4') && !e.altKey && !e.ctrlKey) {
+        e.preventDefault();
+        if (!document.querySelector('dialog[open]')) AB.kundensuche(e.key === 'F3' ? 'nummer' : 'name');
+        return;
+      }
+      if (e.key === 'Escape') { var k = document.querySelector('.kurz.auf'); if (k) k.classList.remove('auf'); }
       if (!App.p || document.querySelector('dialog[open]')) return;
       var imFeld = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
       if (e.key === 'n' && !imFeld && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); AB.maske.oeffne(null); }

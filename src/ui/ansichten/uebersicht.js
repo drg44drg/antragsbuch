@@ -18,7 +18,8 @@
   AB.ansichten.uebersicht = { titel: 'Übersicht', icon: 'start',
     unter: function () { var e = App.p.einstellungen; return 'Jahr ' + App.p.jahr + (e.name ? ' · ' + e.name : '') + (e.vermittlernummer ? ' · Vermittler ' + e.vermittlernummer : ''); },
     zeige: function (el, aktionen, z) {
-      var p = App.p, kz = App.kz, mon = z.monat == null ? null : z.monat, k = mon == null ? kz.jahr : kz.monate[mon];
+      var p = App.p, filter = z.bereich || z.tarif ? { bereich: z.bereich || '', tarif: z.tarif || '' } : null;
+      var kz = filter ? AB.kennzahlen.rechne(p, App.erg, App.zeilen, null, filter) : App.kz, mon = z.monat == null ? null : z.monat, k = mon == null ? kz.jahr : kz.monate[mon];
       aktionen.appendChild(D.btn('Neuer Antrag', function () { AB.maske.oeffne(null); }, { klasse: 'haupt-btn', icon: 'plus', taste: 'N' }));
       if (!p.antraege.length && !App.zeilen.length) {
         el.appendChild(h('div.karte.rein', { style: { textAlign: 'center', padding: '50px 20px' } }, h('h2', null, 'Noch keine Anträge'),
@@ -28,16 +29,21 @@
       }
       // Zeitraum
       var wahl = [['j', 'Jahr']].concat(U.MONATE_KURZ.map(function (m, i) { return [String(i), m]; }));
+      var tarife = {}; p.antraege.forEach(function (a) { if (!z.bereich || a.bereich === z.bereich) a.positionen.forEach(function (ps) { if (ps.tarif) tarife[ps.tarif] = 1; }); });
+      if (kz.erinnerung) el.appendChild(h('div.meldung.warn.rein', { role: 'status' }, h('b', null, 'Erinnerung: '), kz.erinnerung.text + ' Einfach die CSV-Datei ins Fenster ziehen.'));
       el.appendChild(h('div.leiste', null, D.seg(wahl, mon == null ? 'j' : String(mon), function (v) { z.monat = v === 'j' ? null : +v; App.zeige('uebersicht'); }),
-        h('span.frei'), h('div.hinweise', null, kz.hinweise.map(function (hw) {
+        D.auswahl([['', 'Alle Bereiche']].concat(M.BEREICHE.map(function (b) { return [b.id, b.name]; })), z.bereich || '', function (v) { z.bereich = v; z.tarif = ''; App.zeige('uebersicht'); }, { style: { width: '176px' }, title: 'Nach Bereich filtern' }),
+        D.auswahl([['', 'Alle Tarife']].concat(Object.keys(tarife).sort(function (a, b) { return a.localeCompare(b, 'de', { numeric: true }); }).map(function (t) { return [t, t]; })), z.tarif || '', function (v) { z.tarif = v; App.zeige('uebersicht'); }, { style: { width: '150px' }, title: 'Nach Tarif filtern' }),
+        filter ? D.btn('Filter aufheben', function () { z.bereich = z.tarif = ''; App.zeige('uebersicht'); }, { klasse: 'klein-btn leise', icon: 'x' }) : null));
+      el.appendChild(h('div.leiste', null, h('div.hinweise', null, App.kz.hinweise.map(function (hw) {
           return h('button.hinweis.' + hw.art, { type: 'button', onclick: function () { App.zeige(hw.ziel, hw.ziel === 'abgleich' ? { reiter: hw.filter } : { spezial: hw.filter }); } }, hw.text);
         }))));
-      var titel = mon == null ? 'im Jahr ' + p.jahr : 'im ' + U.MONATE[mon];
+      var titel = (mon == null ? 'im Jahr ' + p.jahr : 'im ' + U.MONATE[mon]) + (filter ? ' · ' + [z.bereich ? M.bereich[z.bereich].kurz : '', z.tarif].filter(Boolean).join(' · ') : '');
       var verlauf = function (f) { var w = kz.monate.map(function (m) { return m[f]; }); while (w.length > 2 && !w[w.length - 1]) w.pop(); return w; };
       el.appendChild(h('div.raster.r-6', null,
-        kachel('Anträge ' + titel, k.antraege, ganz, mon == null ? 'Ø ' + U.fmtZahl(kz.schnitt.antraege, 1) + ' je Monat' : 'Jahr: ' + kz.jahr.antraege, { akzent: true, i: 0, funke: mon == null ? verlauf('antraege') : null, klick: function () { App.zeige('antraege', { monat: mon == null ? '' : String(mon), status: '', spezial: '' }); } }),
+        kachel('Anträge ' + titel, k.antraege, ganz, mon == null ? 'Ø ' + U.fmtZahl(kz.schnitt.antraege, 1) + ' je Monat' : 'Jahr: ' + kz.jahr.antraege, { akzent: true, i: 0, funke: mon == null ? verlauf('antraege') : null, klick: function () { App.zeige('antraege', { monat: mon == null ? '' : String(mon), status: '', spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '' }); } }),
         kachel('Beitrag brutto', k.brutto, euro0, 'netto ' + U.fmtEuro(k.netto) + (mon == null ? ' · Ø ' + U.fmtEuro0(kz.schnitt.brutto) : ''), { einheit: '€', i: 1 }),
-        kachel('Offen', k.offenAnz, ganz, U.fmtEuro(k.offen) + ' Beitrag unterwegs', { punkt: 'var(--s6)', i: 2, klick: function () { App.zeige('antraege', { status: 'offen', monat: mon == null ? '' : String(mon), spezial: '' }); } }),
+        kachel('Offen', k.offenAnz, ganz, U.fmtEuro(k.offen) + ' unterwegs · ' + kz.jahr.ampel.rot + ' rot, ' + kz.jahr.ampel.gelb + ' gelb', { punkt: 'var(--s6)', i: 2, klick: function () { App.zeige('antraege', { status: 'offen', monat: mon == null ? '' : String(mon), spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '' }); } }),
         kachel('Abgerechnet', k.abgerechnetAnz, ganz, U.fmtEuro(k.abgerechnet) + ' Beitrag', { punkt: 'var(--good)', i: 3 }),
         kachel('Storno', k.stornoAnz, ganz, U.fmtEuro(k.storno) + ' · Quote ' + U.fmtZahl(k.stornoQuote * 100, 1) + ' %', { punkt: 'var(--crit)', i: 4 }),
         kachel('Provision Ist', k.provIst, euro0, 'Soll ' + U.fmtEuro(k.provSoll), { einheit: '€', i: 5 })));
@@ -47,9 +53,21 @@
       el.appendChild(h('div.raster.r-21', null,
         h('div.karte.rein', null, h('h3', null, 'Anträge je Monat'), h('div.unter', null, 'nach aktuellem Status · Klick auf einen Monat filtert die Übersicht'), dBalken),
         h('div.karte.rein', null, h('h3', null, 'Beitrag nach Bereich'), h('div.unter', null, titel + ', ohne abgelehnte Anträge'), dRing)));
+      // Bearbeitung: was wartet am längsten?
+      var warte = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '1px' } }), wl = kz.jahr.warten.slice(0, 7);
+      wl.forEach(function (w) {
+        var a = w.antrag;
+        warte.appendChild(h('button.wartezeile', { type: 'button', title: w.ampel.grund, onclick: function () { AB.maske.oeffne(a); } }, AB.ampelPunkt(w.ampel),
+          h('span', { style: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, h('b', null, M.vnName(a)), h('small', null, M.bereich[a.bereich].kurz + ' · ' + M.tarife(a) + ' · ' + w.ampel.grund)),
+          AB.geld(M.beitrag(a)), h('span.marke-s' + (w.ampel.stufe === 'rot' ? '.krit' : w.ampel.stufe === 'gelb' ? '.warn' : '.gut'), null, w.ampel.wt + ' WT')));
+      });
+      if (!wl.length) warte.appendChild(h('div.muted.klein', { style: { padding: '14px 4px' } }, 'Nichts wartet – alle Anträge sind policiert oder abgerechnet.'));
       el.appendChild(h('div.raster.r-2', null,
-        h('div.karte.rein', null, h('h3', null, 'Provision: Soll und Ist'), h('div.unter', null, 'aufgelaufen nach Eingangsmonat der Anträge'), dLinie),
+        h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Bearbeitung: wartet am längsten'), h('span.frei'),
+          kz.jahr.warten.length ? D.btn('Alle ' + kz.jahr.warten.length + ' · auswählen & senden', function () { App.zeige('antraege', { ampel: 'gelbrot', status: '', monat: '', spezial: '', suche: '', bereich: z.bereich || '', tarif: z.tarif || '' }); }, { klasse: 'klein-btn' }) : null),
+          h('div.unter', null, 'Ampel nach Werktagen seit Einreichung (WT) · Fristen in den Einstellungen'), warte),
         h('div.karte.rein', null, h('h3', null, 'Stückzahlen je Bereich'), h('div.unter', null, titel), dQuer)));
+      el.appendChild(h('div.karte.rein', null, h('h3', null, 'Provision: Soll und Ist'), h('div.unter', null, 'aufgelaufen nach Eingangsmonat der Anträge'), dLinie));
       requestAnimationFrame(function () {
         var ms = kz.monate;
         G.balken(dBalken, { titel: 'Anträge je Monat nach Status', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: ganz, klick: function (i) { z.monat = z.monat === i ? null : i; App.zeige('uebersicht'); },
@@ -82,7 +100,9 @@
         tb.appendChild(tr);
       });
       el.appendChild(h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Monatsübersicht'), h('span.frei'),
-        D.btn('CSV', function () { D.lade('Monatsuebersicht_' + p.jahr + '.csv', AB.csv.schreibe(kopf, zeilen.concat([summe]))); }, { klasse: 'klein-btn', icon: 'runter' }),
+        D.exportBtn('Monatsuebersicht_' + p.jahr, function () { var t = AB.kennzahlen.alsTabelle(kopf, zeilen); [1, 5, 6].forEach(function (c) { t.spalten[c].typ = 'ganz'; }); t.summe = summe;
+          return Object.assign({ name: 'Monatsübersicht', titel: 'Monatsübersicht ' + p.jahr + (filter ? ' – ' + titel : ''), unter: AB.ansichten.uebersicht.unter() + ' · Stand ' + U.fmtDatum(U.heute()) }, t); },
+          function () { return AB.csv.schreibe(kopf, zeilen.concat([summe])); }, { klasse: 'klein-btn' }),
         D.btn('Drucken', function () { D.drucke('Monatsübersicht ' + p.jahr, AB.ansichten.uebersicht.unter() + ' · Stand ' + U.fmtDatum(U.heute()),
           kopf.map(function (t, i) { return { t: t, r: i > 0 }; }), zeilen.map(function (r) { return r.map(fz); }), summe.map(fz)); }, { klasse: 'klein-btn', icon: 'druck' })),
         h('div', { style: { overflowX: 'auto', marginTop: '8px' } }, h('table.einfach', null, h('thead', null, h('tr', null, kopf.map(function (t, i) { return h('th', { style: i ? { textAlign: 'right' } : null }, t); }))), tb))));

@@ -32,6 +32,10 @@
     var fAnteil = ein('bank.anteil', 'text', zahlText(a.bank.anteil), { inputMode: 'decimal', style: { width: '74px' } });
     var fBem = h('textarea', { rows: 2, value: a.bemerkung || '' });
     var fProv = ein('provisionManuell', 'text', zahlText(a.provisionManuell), { inputMode: 'decimal', placeholder: 'automatisch' });
+    var nb0 = a.nachbearbeitung || { status: '', text: '', datum: '' };
+    var fNb = D.auswahl(M.NACHBEARBEITUNG.map(function (n) { return [n.id, n.name]; }), nb0.status, function () { if (fNb.value && !fNbDatum.value) fNbDatum.value = U.heute(); nbSicht(); });
+    var fNbText = h('input', { type: 'text', value: nb0.text || '', placeholder: 'Was fehlt? Was ging an den Kunden?', autocomplete: 'off' }), fNbDatum = h('input', { type: 'date', value: nb0.datum || '' });
+    function nbSicht() { fNbText.parentNode.hidden = fNbDatum.parentNode.hidden = !fNb.value; }
     var fStatus = D.auswahl(M.STATUS.map(function (s) { return [s.id, s.name]; }), a.status), fStatusDatum = h('input', { type: 'date', value: a.statusDatum || U.heute() });
     fStatus.addEventListener('change', function () { fStatusDatum.value = U.heute(); });
 
@@ -58,6 +62,7 @@
       x.laufzeit = liesZahl(fLaufzeit.value); x.gruppenvertrag = fGv.value.trim(); x.firma = fFirma.value.trim();
       x.eantrag = fEantrag.checked; x.bank = { aktiv: fBank.checked, anteil: liesZahl(fAnteil.value) || 0 };
       x.bemerkung = fBem.value.trim(); x.provisionManuell = liesZahl(fProv.value);
+      x.nachbearbeitung = { status: fNb.value, text: fNb.value ? fNbText.value.trim() : '', datum: fNb.value ? fNbDatum.value : '' };
       x.positionen = Array.from(posBox.children).map(function (z) { return z._lies(); });
       return x;
     }
@@ -131,7 +136,8 @@
         h('div.pos-kopf', null, h('span', null, 'Versicherte Person'), h('span', null, 'Pers.-Nr.'), h('span', null, 'Tarif *'), h('span', { style: { textAlign: 'right' } }, 'Monatsbeitrag € *'), h('span', null, 'Bereich'), h('span')),
         posBox,
         h('div.leiste', { style: { marginTop: '8px' } }, D.btn('Position hinzufügen', neuePos, { klasse: 'klein-btn', icon: 'plus', taste: 'Alt+P' }), sollText)),
-      h('div.formraster', null, D.feld('Bemerkung', fBem, 's8'), D.feld('Provision manuell überschreiben (€)', fProv, 's4')),
+      h('div.formraster', null, D.feld('Bemerkung', fBem, 's8'), D.feld('Provision manuell überschreiben (€)', fProv, 's4'),
+        D.feld('Nachbearbeitung', fNb, 's2'), D.feld('Was ist offen / was ging an den Kunden', fNbText, 's7'), D.feld('seit', fNbDatum, 's3')),
       neu ? null : h('div.formraster', null, D.feld('Status', fStatus, 's3'), D.feld('Status seit', fStatusDatum, 's3'),
         h('div.feld.s6', null, h('span', null, 'Verlauf'), h('div.historie', null, a.historie.slice(-4).map(function (e) {
           return h('div', null, U.fmtDatum(e.datum) + ' – ' + M.name('status', e.status) + (e.quelle === 'abgleich' ? ' (automatisch durch Abgleich)' : e.quelle === 'vdienst' ? ' (Veränderungsdienst)' : ''));
@@ -159,7 +165,7 @@
         e.preventDefault(); speichere(e.ctrlKey || e.metaKey);
       } else if (e.altKey && (e.key === 'p' || e.key === 'P')) { e.preventDefault(); neuePos(); }
     });
-    aktualisiere();
+    aktualisiere(); nbSicht();
     (neu ? fName : fVnr.value ? fName : fVnr).focus();
     if (neu && fName.value) fName.select();
   };

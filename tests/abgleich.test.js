@@ -235,3 +235,68 @@ test('50.000+ Zeilen: Einlesen, Vergleich und Abgleich bleiben schnell', async (
   assert.ok(tImport < 6000, 'Import 2× ' + tImport + ' ms');
   assert.ok(tAbgleich < 3000, 'Abgleich ' + tAbgleich + ' ms');
 });
+
+test('Korrektur im Folgemonat (z. B. nach Reklamation) wird nachgezogen: Abweichung → Gleich', async () => {
+  const { p, zeilen, erg } = await stand('01-03');
+  assert.deepEqual(ids(erg.abweichung), ['a-2', 'a-3']);
+  const kopie = (vnr, mehr) => Object.assign({}, zeilen.find((z) => U.normVnr(z.vnr) === vnr), mehr);
+  // a-3: 20 € Provision fehlten → Nachzahlung im April (Manuell, ohne Beitragsdifferenz)
+  const nach = kopie('250250', { mbd: 0, prov: 20, bdat: '2026-04-09', part: 'Manuell', imp: 4 });
+  // a-2: 2,90 € Beitrag fehlten → Korrekturbuchung im April
+  const korr = kopie('200200', { mbd: 2.9, prov: 13.05, bdat: '2026-04-09', imp: 4 });
+  p.importZaehler = 4;
+  const e2 = A.rechne(p, zeilen.concat([nach, korr]), HEUTE);
+  assert.deepEqual(ids(e2.abweichung), []);
+  assert.equal(e2.proAntrag['a-3'].istP, 120); assert.equal(e2.proAntrag['a-3'].nachbuchung, true);
+  assert.equal(e2.proAntrag['a-2'].istB, 35); assert.equal(e2.proAntrag['a-2'].buendel.length, 2);
+  assert.ok(!e2.neu.some((b) => b.monat === '2026-04'), 'Korrekturen landen nicht unter „Neu ohne Antrag"');
+  // eine nicht passende Buchung bleibt unter „Neu ohne Antrag"
+  const fremd = kopie('250250', { mbd: 0, prov: 7, bdat: '2026-04-09', part: 'Manuell', imp: 4 });
+  const e3 = A.rechne(p, zeilen.concat([fremd]), HEUTE);
+  assert.deepEqual(ids(e3.abweichung), ['a-2', 'a-3']);
+  assert.ok(e3.neu.some((b) => b.vnr === '250250'));
+});
+
+test('Werktage und Bearbeitungsampel', () => {
+  assert.equal(U.werktage('2026-10-02', '2026-10-09'), 5);          // Fr → Fr der Folgewoche
+  assert.equal(U.werktage('2026-12-23', '2026-12-28'), 2);          // 24.12. zählt, 25./26. Feiertag, Wochenende
+  assert.equal(U.werktage('2026-04-02', '2026-04-07'), 1);          // Karfreitag und Ostermontag 2026
+  assert.equal(U.werktage('2026-05-13', '2026-05-15'), 1);          // Christi Himmelfahrt 14.05.2026
+  assert.equal(U.werktage('2026-01-05', '2026-01-05'), 0);
+  const e = M.standardEinstellungen();
+  const a = M.neuerAntrag(); a.eingang = '2026-10-05'; a.vertragsnummer = '1';
+  assert.equal(M.ampel(a, e, '2026-10-08').stufe, 'gruen');
+  assert.equal(M.ampel(a, e, '2026-10-12').stufe, 'gelb');           // 5 Werktage
+  assert.equal(M.ampel(a, e, '2026-10-19').stufe, 'rot');            // 10 Werktage
+  e.sla.voll = { gelb: 2, rot: 3 };
+  assert.equal(M.ampel(a, e, '2026-10-08').stufe, 'rot');
+  a.nachbearbeitung = { status: 'offen', text: 'Gesundheitsfragen', datum: '2026-10-06' };
+  const nb = M.ampel(a, M.standardEinstellungen(), '2026-10-06');
+  assert.equal(nb.stufe, 'rot'); assert.match(nb.grund, /Nachbearbeitung offen: Gesundheitsfragen/);
+  a.nachbearbeitung.status = 'erledigt';
+  // policiert Anfang Oktober → Abrechnung erst um den 6. des Folgemonats erwartet
+  M.setzeStatus(a, 'policiert', '2026-10-07', 'vdienst');
+  assert.equal(M.ampel(a, e, '2026-10-30').stufe, 'gruen');
+  assert.equal(M.ampel(a, e, '2026-11-10').stufe, 'gelb');
+  assert.equal(M.ampel(a, e, '2026-11-10', true).stufe, 'gruen');
+  assert.equal(M.ampel(a, e, '2026-12-20').stufe, 'rot');
+  a.vertragsnummer = '';
+  assert.match(M.ampel(a, e, '2026-10-30').grund, /Vertragsnummer fehlt/);
+  M.setzeStatus(a, 'abgerechnet', '2026-11-06', 'abgleich');
+  assert.equal(M.ampel(a, e, '2026-12-20').stufe, '');
+});
+
+test('Excel-Export: formatierte Arbeitsmappe ist lesbar und enthält Farben und Zahlenformate', async () => {
+  const { p, erg } = await stand('01-03');
+  const t = AB.kennzahlen.tabelleAntraege(p, erg), pr = AB.kennzahlen.tabellePrio(p, erg, p.antraege.slice(0, 5), HEUTE);
+  const bytes = AB.xlsxout.schreibe([Object.assign({ name: 'Anträge', titel: 'Anträge 2026' }, t), Object.assign({ name: 'Prioritätsliste' }, pr)]);
+  assert.deepEqual([...bytes.subarray(0, 2)], [0x50, 0x4B]);
+  const zurueck = await AB.xlsx.lies(bytes);
+  assert.deepEqual(zurueck.map((b) => b.name), ['Anträge', 'Prioritätsliste']);
+  const kopf = zurueck[0].zeilen.findIndex((z) => z[0] === 'Eingang'), z1 = zurueck[0].zeilen[kopf + 1];
+  assert.equal(z1[0], '2026-01-05', 'Datum als echtes Excel-Datum'); assert.equal(z1[1], 'Muster'); assert.equal(typeof z1[9], 'number');
+  assert.equal(zurueck[0].zeilen.length, kopf + 1 + t.zeilen.length);
+  assert.equal(zurueck[1].zeilen[1].length, pr.spalten.length);
+  const roh = Buffer.from(bytes).toString('latin1');
+  assert.match(roh, /FF6250D6/); assert.match(roh, /\[Red\]/); assert.match(roh, /state="frozen"/);
+});

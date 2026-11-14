@@ -8,7 +8,8 @@ const { erzeuge, KOPF, zeile } = require('../tools/testdaten.js');
 test('antragsbuch.html: eine Datei, keine externen Adressen, Netzwerk per CSP gesperrt', () => {
   const html = fs.readFileSync(HTML, 'utf8');
   assert.match(html, /Content-Security-Policy" content="default-src 'none'[^"]*connect-src 'none'/);
-  const ohne = html.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '');
+  // erlaubt: feste Format-Kennungen von SVG und Excel (Namensräume, keine Verbindungen)
+  const ohne = html.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '').replace(/http:\/\/schemas\.openxmlformats\.org\/[\w\/-]+/g, '');
   assert.doesNotMatch(ohne, /https?:\/\//, 'keine URL im Bündel');
   assert.doesNotMatch(ohne, /<script[^>]+src=|<link[^>]+href=|<img[^>]+src=|@import/i, 'keine nachgeladenen Dateien');
   assert.doesNotMatch(ohne, /[^L]url\((?!#)/, 'kein CSS-url() auf fremde Dateien');
@@ -124,14 +125,69 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       const vorher = await page.textContent('.kachel.akzent .neben');
       await page.click('.adp:has-text("900101") input');
       assert.notEqual(await page.textContent('.kachel.akzent .neben'), vorher);
-      await page.click('#schalter button:has-text("Dunkel")');
-      assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
+      await page.click('#themaBtn'); assert.equal(await page.getAttribute('html', 'data-theme'), 'light');
+      await page.click('#themaBtn'); assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
       assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(11, 10, 18)');
-      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.karte:has-text("Vergleichstabelle") button:has-text("CSV")')]);
-      const csv = fs.readFileSync(await dl.path());
-      assert.deepEqual([...csv.subarray(0, 3)], [0xEF, 0xBB, 0xBF], 'UTF-8 mit BOM');
+      const AB = require('./lade.js');
+      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.karte:has-text("Vergleichstabelle") button:has-text("Excel")')]);
+      assert.match(dl.suggestedFilename(), /^ADP-Vergleich_2026\.xlsx$/);
+      const mappe = await AB.xlsx.lies(new Uint8Array(fs.readFileSync(await dl.path())));
+      assert.equal(mappe[0].name, 'ADP-Vergleich');
+      assert.ok(mappe[0].zeilen.some((z) => z[0] === 'ADP' && z[2] === 'Neugeschäft'), 'Kopfzeile vorhanden');
+      const [dl2] = await Promise.all([page.waitForEvent('download'), page.click('.karte:has-text("Vergleichstabelle") button:has-text("Excel")', { modifiers: ['Shift'] })]);
+      const csv = fs.readFileSync(await dl2.path());
+      assert.deepEqual([...csv.subarray(0, 3)], [0xEF, 0xBB, 0xBF], 'CSV weiterhin möglich: UTF-8 mit BOM');
       assert.match(csv.toString('utf8'), /ADP;Nummer;Neugeschäft/);
       await page.click('#schalter button:has-text("ADP")');
+    });
+    await t.test('Ampel, Nachbearbeitung, Auswahl → Prioritätsliste als Excel, Kundensuche, Dashboard-Filter', async () => {
+      const AB = require('./lade.js');
+      await nav('Anträge'); await page.fill('.suche input', '');
+      assert.ok(await zahl('.vt-zeile .ampel.rot') >= 3, 'überfällige Anträge sind rot');
+      // Nachbearbeitung im Antrag eintragen
+      await page.fill('.suche input', 'Platzhalter Anna'); await page.click('.vt-zeile .zwei');
+      await page.selectOption('dialog label.feld:has-text("Nachbearbeitung") select', 'offen');
+      await page.fill('dialog input[placeholder^="Was fehlt"]', 'Gesundheitsfragen nachgefordert');
+      await page.keyboard.press('Enter');
+      await page.waitForSelector('dialog[open]', { state: 'detached' });
+      assert.match(await page.textContent('.vt-zeile'), /Nachbearbeitung: Gesundheitsfragen nachgefordert/);
+      await page.fill('.suche input', '');
+      await page.click('.chip:has-text("Nachbearbeitung")');
+      assert.equal(await zahl('.vt-zeile'), 1);
+      await page.click('.chip:has-text("Nachbearbeitung")');
+      // Auswahl per Checkbox → Prioritätsliste
+      await page.selectOption('select[title="Bearbeitungsampel"]', 'gelbrot');
+      const n = await zahl('.vt-zeile');
+      await page.click('.vt-kopf input[type=checkbox]');
+      assert.match(await page.textContent('.auswahlleiste'), new RegExp('^' + n + ' Anträge'));
+      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.auswahlleiste button:has-text("Excel")')]);
+      assert.match(dl.suggestedFilename(), /^Prioritaetsliste_\d{4}-\d\d-\d\d\.xlsx$/);
+      const blatt = (await AB.xlsx.lies(new Uint8Array(fs.readFileSync(await dl.path()))))[0];
+      const k = blatt.zeilen.findIndex((z) => z[0] === 'Ampel');
+      assert.deepEqual(blatt.zeilen[k].slice(0, 8), ['Ampel', 'Eingang', 'Kunde', 'Vertragsnummer', 'Bereich', 'Vorgangsart', 'Tarif(e)', 'Monatsbeitrag']);
+      assert.equal(blatt.zeilen.length, k + 1 + n + 1, 'eine Zeile je Antrag plus Summe');
+      assert.ok(blatt.zeilen.some((z) => /OFFEN: Gesundheitsfragen/.test(z[11] || '')));
+      await page.click('.auswahlleiste button:has-text("Auswahl aufheben")');
+      await page.selectOption('select[title="Bearbeitungsampel"]', '');
+      // Kundensuche: findet auch Kunden ohne Antrag (nur aus der Abrechnung)
+      await page.keyboard.press('F4'); await page.keyboard.type('Probe Dieter');
+      await page.waitForSelector('dialog .detail h3:has-text("Buchungen")');
+      assert.match(await page.textContent('dialog .detail'), /120120[\s\S]*Kein Antrag erfasst[\s\S]*BE MAX/);
+      await page.keyboard.press('Escape');
+      await page.waitForSelector('dialog[open]', { state: 'detached' });
+      await page.keyboard.press('F3'); await page.keyboard.type('012345');
+      await page.waitForSelector('dialog .detail h3:has-text("Anträge (1)")');
+      await page.click('dialog button:has-text("Schließen")');
+      // Kurzüberblick und Dashboard-Filter nach Bereich
+      await nav('Übersicht');
+      await page.click('.kurz > button');
+      assert.match(await page.textContent('.kurz-feld'), /wartet auf Policierung[\s\S]*Bearbeitungsampel[\s\S]*Produktion/);
+      await page.keyboard.press('Escape');
+      const alle = await page.evaluate(() => AB.app.kz.jahr.antraege);
+      await page.selectOption('select[title="Nach Bereich filtern"]', 'zusatz');
+      await page.waitForFunction((x) => { const w = +document.querySelector('.kachel.akzent .wert').textContent.trim(); return w > 0 && w < x; }, alle);
+      assert.match(await page.textContent('.kachel.akzent .lbl'), /Zusatz/);
+      await page.click('button:has-text("Filter aufheben")');
     });
     await t.test('52.000 Zeilen: Import im Worker, virtuelle Liste bleibt klein', async () => {
       const t0 = Date.now();

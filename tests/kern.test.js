@@ -210,7 +210,7 @@ test('Im Code und in den Testdaten stehen keine externen Adressen', () => {
   const dateien = [];
   (function geh(d) { for (const n of fs.readdirSync(d)) { const p = path.join(d, n); fs.statSync(p).isDirectory() ? geh(p) : dateien.push(p); } })(path.join(__dirname, '..', 'src'));
   for (const d of dateien) {
-    const t = fs.readFileSync(d, 'utf8').replace(/http:\/\/www\.w3\.org\/(2000\/svg|1999\/xhtml)/g, '');
+    const t = fs.readFileSync(d, 'utf8').replace(/http:\/\/www\.w3\.org\/(2000\/svg|1999\/xhtml)/g, '').replace(/http:\/\/schemas\.openxmlformats\.org\/[\w\/-]+/g, '');
     assert.doesNotMatch(t, /https?:\/\/|\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|EventSource|importScripts|<script[^>]+src=|<link[^>]+href=/, d);
   }
   assert.equal(VM, '900999');

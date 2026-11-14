@@ -38,10 +38,23 @@
   }
 
   /** → { jahr, monate[12], schnitt, hinweise[] }. Monat = Eingangsmonat des Antrags. */
-  K.rechne = function (p, erg, zeilen, heute) {
+  K.passt = function (a, f) {
+    if (!f) return true;
+    if (f.bereich && a.bereich !== f.bereich && !a.positionen.some(function (ps) { return ps.bereich === f.bereich; })) return false;
+    if (f.tarif && !a.positionen.some(function (ps) { return String(ps.tarif).toLowerCase() === f.tarif.toLowerCase(); })) return false;
+    return true;
+  };
+  /** filter: { bereich, tarif } – schränkt alle Kennzahlen ein. */
+  K.rechne = function (p, erg, zeilen, heute, filter) {
     var jahr = leer(), monate = [], i;
+    heute = heute || U.heute();
+    jahr.ampel = { rot: 0, gelb: 0, gruen: 0 }; jahr.warten = [];
+    var gruppen = filter && filter.bereich && M.bereich[filter.bereich] ? M.bereich[filter.bereich].gruppen : null;
     for (i = 0; i < 12; i++) monate.push(leer());
     p.antraege.forEach(function (a) {
+      if (!K.passt(a, filter)) return;
+      var am = M.ampel(a, p.einstellungen, heute, !!(erg && erg.proAntrag[a.id] && erg.proAntrag[a.id].buendel.length));
+      if (am.stufe) { jahr.ampel[am.stufe]++; if (am.stufe !== 'gruen' || a.status === 'eingereicht') jahr.warten.push({ antrag: a, ampel: am }); }
       var r = erg ? erg.proAntrag[a.id] : null;
       plus(jahr, a, r);
       if (a.eingang && +a.eingang.slice(0, 4) === +p.jahr) plus(monate[+a.eingang.slice(5, 7) - 1], a, r);
@@ -50,10 +63,14 @@
     var erlaubt = {}; (p.einstellungen.provisionsarten || []).forEach(function (x) { erlaubt[x] = 1; });
     (zeilen || []).forEach(function (z) {
       if (!erlaubt[z.part]) return;
+      if (gruppen && gruppen.indexOf(z.tg) < 0) return;
+      if (filter && filter.tarif && String(z.tarif).toLowerCase() !== filter.tarif.toLowerCase()) return;
       jahr.provBuchung += z.prov;
       if (+z.bdat.slice(0, 4) === +p.jahr) monate[+z.bdat.slice(5, 7) - 1].provBuchung += z.prov;
     });
     fertig(jahr); monate.forEach(fertig);
+    var rang = { rot: 0, gelb: 1, gruen: 2 };
+    jahr.warten.sort(function (x, y) { return rang[x.ampel.stufe] - rang[y.ampel.stufe] || y.ampel.wt - x.ampel.wt; });
     var aktiv = monate.filter(function (m) { return m.antraege > 0; }).length || 1;
     var schnitt = { antraege: jahr.antraege / aktiv, brutto: jahr.brutto / aktiv, netto: jahr.netto / aktiv, provSoll: jahr.provSoll / aktiv, monate: aktiv };
     var h = [];
@@ -67,11 +84,54 @@
       var st = erg.storno.length;
       if (st) h.push({ art: 'krit', text: st + (st === 1 ? ' Rückbuchung' : ' Rückbuchungen') + ' zu abgerechneten Anträgen', ziel: 'abgleich', filter: 'storno' });
     }
-    return { jahr: jahr, monate: monate, schnitt: schnitt, hinweise: h };
+    return { jahr: jahr, monate: monate, schnitt: schnitt, hinweise: h, erinnerung: K.erinnerung(p, heute) };
+  };
+
+  /** Erinnerung, die neue Abrechnung einzulesen (sie kommt um den eingestellten Tag des Monats). */
+  K.erinnerung = function (p, heute) {
+    var tag = Math.min(28, +p.einstellungen.abrechnungTag || 6);
+    if (!p.antraege.length && !p.importe.length) return null;
+    if (+heute.slice(8, 10) < tag) return null;
+    var grenze = heute.slice(0, 8) + (tag < 10 ? '0' : '') + tag;
+    var letzter = p.importe.filter(function (i) { return i.typ === 'Abrechnung'; }).pop();
+    if (letzter && letzter.datum.slice(0, 10) >= grenze) return null;
+    var m = +heute.slice(5, 7) - 2; if (m < 0) m = 11;
+    return { text: 'Die Abrechnung mit den Buchungen aus ' + U.MONATE[m] + ' sollte vorliegen – bitte einlesen.', letzter: letzter ? letzter.datum.slice(0, 10) : '' };
   };
 
   // ---------- Exporte ----------
-  K.exportAntraege = function (p, erg, liste) {
+  var TYP = { 'Eingang': 'datum', 'Status seit': 'datum', 'Beginn': 'datum', 'Stornohaftung bis': 'datum', 'Tage offen': 'ganz', 'Werktage': 'ganz', 'Laufzeit': 'ganz', 'Bank-Teilung %': 'ganz' };
+  var BREIT = { 'Name': 20, 'Vorname': 16, 'Versicherungsnehmer': 26, 'Kunde': 26, 'Versicherte Person': 22, 'Bemerkung': 34, 'Tarife': 22, 'Tarif(e)': 22, 'Tarifgruppe': 26, 'Nachbearbeitung': 34, 'Hinweis': 44, 'Bereich': 20, 'Vorgangsart': 22, 'Stornogrund': 24 };
+  /** kopf + zeilen → Tabellenbeschreibung für den Excel-Schreiber (Typen aus Spaltenname und Werten). */
+  K.alsTabelle = function (kopf, zeilen) {
+    return { zeilen: zeilen, spalten: kopf.map(function (t, c) {
+      var typ = TYP[t] || (zeilen.some(function (z) { return typeof z[c] === 'number'; }) ? 'euro' : 'text');
+      return { t: t, typ: typ, b: BREIT[t] || (typ === 'euro' ? 15 : typ === 'datum' ? 12 : Math.max(11, t.length + 3)) };
+    }) };
+  };
+  K.tabelleAntraege = function (p, erg, liste) { var d = antraegeDaten(p, erg, liste); return K.alsTabelle(d.kopf, d.zeilen); };
+  K.exportAntraege = function (p, erg, liste) { var d = antraegeDaten(p, erg, liste); return AB.csv.schreibe(d.kopf, d.zeilen); };
+  K.tabelleAbgleich = function (erg, liste) { var d = abgleichDaten(erg, liste); return K.alsTabelle(d.kopf, d.zeilen); };
+  K.exportAbgleich = function (erg, liste) { var d = abgleichDaten(erg, liste); return AB.csv.schreibe(d.kopf, d.zeilen); };
+
+  /** Prioritätsliste für den Innendienst: ausgewählte Anträge mit Ampel, Werktagen und Nachbearbeitung. */
+  K.tabellePrio = function (p, erg, antraege, heute) {
+    heute = heute || U.heute();
+    var kopf = ['Ampel', 'Eingang', 'Kunde', 'Vertragsnummer', 'Bereich', 'Vorgangsart', 'Tarif(e)', 'Monatsbeitrag', 'Status', 'Werktage', 'Hinweis', 'Nachbearbeitung', 'Bemerkung'];
+    var name = { rot: 'Rot', gelb: 'Gelb', gruen: 'Grün', '': '' };
+    var zeilen = antraege.map(function (a) {
+      var r = erg ? erg.proAntrag[a.id] : null, am = M.ampel(a, p.einstellungen, heute, !!(r && r.buendel.length)), nb = a.nachbearbeitung || {};
+      return [name[am.stufe], U.fmtDatum(a.eingang), M.vnName(a), a.vertragsnummer, M.name('bereich', a.bereich), M.name('vorgang', a.vorgang), M.tarife(a), M.beitrag(a),
+        M.name('status', a.status), am.wt, am.grund, nb.status ? (nb.status === 'offen' ? 'OFFEN' : 'erledigt') + (nb.text ? ': ' + nb.text : '') + (nb.datum ? ' (' + U.fmtDatum(nb.datum) + ')' : '') : '', a.bemerkung];
+    });
+    var t = K.alsTabelle(kopf, zeilen);
+    t.spalten[7].typ = 'euro';
+    t.farbe = function (w, r, c) { return c === 0 ? (w[0] === 'Rot' ? 'krit' : w[0] === 'Gelb' ? 'warn' : w[0] === 'Grün' ? 'gut' : null) : null; };
+    t.summe = ['', '', zeilen.length + ' Anträge', '', '', '', '', zeilen.reduce(function (s, z) { return s + z[7]; }, 0), '', '', '', '', ''];
+    return t;
+  };
+
+  function antraegeDaten(p, erg, liste) {
     var kopf = ['Eingang', 'Name', 'Vorname', 'Bereich', 'Vorgangsart', 'Vertragsnummer', 'Versicherte Person', 'Personennummer', 'Tarif',
       'Beitrag Position', 'Beitrag Antrag', 'Status', 'Status seit', 'Beginn', 'Provision Soll', 'Provision Ist', 'Buchungsmonat',
       'E-Antrag', 'Bank-Teilung %', 'Gruppenvertrag', 'Firma', 'Laufzeit', 'Bemerkung'];
@@ -86,10 +146,10 @@
           a.eantrag ? 'ja' : 'nein', a.bank.aktiv ? +a.bank.anteil : '', a.gruppenvertrag, a.firma, a.laufzeit || '', a.bemerkung]);
       });
     });
-    return AB.csv.schreibe(kopf, zeilen);
-  };
+    return { kopf: kopf, zeilen: zeilen };
+  }
 
-  K.exportAbgleich = function (erg, liste) {
+  function abgleichDaten(erg, liste) {
     var zeilen = [], kopf;
     if (liste === 'neu') {
       kopf = ['Buchungsmonat', 'Vertragsnummer', 'Personennummer', 'Versicherungsnehmer', 'Versicherte Person', 'Tarifgruppe', 'Tarife',
@@ -110,6 +170,6 @@
           r.stB || '', r.stP || '', r.stGrund || '', U.fmtDatum(r.shEnde)]);
       });
     }
-    return AB.csv.schreibe(kopf, zeilen);
-  };
+    return { kopf: kopf, zeilen: zeilen };
+  }
 })(globalThis.AB = globalThis.AB || {});

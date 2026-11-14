@@ -122,6 +122,24 @@
       wahl.forEach(function (b) { r.buendel.push(b); frei.delete(b.key); });
     });
 
+    // 2b) Korrekturen aus späteren Monaten (z. B. nach Provisionsreklamation) nachziehen
+    sortiert.forEach(function (r) {
+      if (!r.buendel.length || r.soll.laufend) return;
+      for (var runde = 0; runde < 3; runde++) {
+        var dB = summe(r.buendel, 'mbd') - r.sollB, dP = summe(r.buendel, 'prov') - r.sollP;
+        var abwB = Math.abs(dB) > tolB + 1e-9, abwP = !!e.pruefeProvision && Math.abs(dP) > tolP + 1e-9;
+        if (!abwB && !abwP) return;
+        var m0 = r.buendel[0].monat, treffer = null;
+        (B.nachVn.get(U.normVnr(r.antrag.vertragsnummer)) || []).forEach(function (b) {
+          if (treffer || !frei.has(b.key) || b.monat <= m0) return;
+          var okB = Math.abs(dB + b.mbd) <= tolB + 1e-9, okP = !e.pruefeProvision || Math.abs(dP + b.prov) <= tolP + 1e-9;
+          if (okB && okP) treffer = b;
+        });
+        if (!treffer) return;
+        r.buendel.push(treffer); frei.delete(treffer.key); r.nachbuchung = true;
+      }
+    });
+
     // 3) Rückbuchungen (X) einem abgerechneten Antrag zuordnen
     B.liste.forEach(function (b) {
       if (!frei.has(b.key) || !b.hatStorno || b.mbd >= 0) return;

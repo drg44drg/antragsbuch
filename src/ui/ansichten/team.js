@@ -157,7 +157,10 @@
     var tb = h('tbody');
     zl.forEach(function (r) { var tr = h('tr'); r.forEach(function (c, i) { tr.appendChild(h('td' + (i > 1 ? '.num' : ''), { style: i > 1 ? { textAlign: 'right' } : null }, i > 1 && typeof c === 'number' ? (i === 7 ? U.fmtZahl(c, 1) : i === 8 || i === 11 ? U.fmtZahl(c, 0) : U.fmtEuro(c)) : c)); }); tb.appendChild(tr); });
     el.appendChild(h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Vergleichstabelle'), h('span.muted.klein', null, U.MONATE[z.von] + ' bis ' + U.MONATE[z.bis] + ' ' + p.jahr), h('span.frei'),
-      D.btn('CSV', function () { D.lade('ADP-Vergleich_' + p.jahr + '.csv', AB.csv.schreibe(kopf, zl)); }, { klasse: 'klein-btn', icon: 'runter' }),
+      D.exportBtn('ADP-Vergleich_' + p.jahr, function () { var t = AB.kennzahlen.alsTabelle(kopf, zl); t.spalten[7].typ = 'prozent'; t.spalten[8].typ = t.spalten[11].typ = 'ganz'; t.spalten[0].b = 26;
+        t.farbe = function (w, r, c) { return c === 7 ? (w[7] >= 30 ? 'krit' : w[7] >= 15 ? 'warn' : null) : c === 6 && w[6] < 0 ? 'krit' : null; };
+        return Object.assign({ name: 'ADP-Vergleich', titel: 'ADP-Vergleich ' + p.jahr, unter: U.MONATE[z.von] + ' bis ' + U.MONATE[z.bis] + ' · ' + Array.from(z.arten).join(', ') + ' · Stand ' + U.fmtDatum(U.heute()) }, t); },
+        function () { return AB.csv.schreibe(kopf, zl); }, { klasse: 'klein-btn' }),
       D.btn('Drucken', function () { D.drucke('ADP-Vergleich ' + p.jahr, U.MONATE[z.von] + ' bis ' + U.MONATE[z.bis] + ' · ' + Array.from(z.arten).join(', ') + ' · Stand ' + U.fmtDatum(U.heute()), kopf.map(function (t, i) { return { t: t, r: i > 1 }; }),
         zl.map(function (r) { return r.map(function (c, i) { return i > 1 && typeof c === 'number' ? U.fmtZahl(c, i === 8 || i === 11 ? 0 : 2) : c; }); })); }, { klasse: 'klein-btn', icon: 'druck' })),
       h('div', { style: { overflowX: 'auto', marginTop: '8px' } }, h('table.einfach', null, h('thead', null, h('tr', null, kopf.map(function (t, i) { return h('th', { style: i > 1 ? { textAlign: 'right' } : null }, t); }))), tb)),

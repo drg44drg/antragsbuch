@@ -123,6 +123,18 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
   };
 
+  /** Formatierte Excel-Datei herunterladen. blaetter: ein Blatt oder eine Liste (siehe AB.xlsxout.schreibe). */
+  D.excel = function (dateiname, blaetter) {
+    D.lade(dateiname, new Blob([AB.xlsxout.schreibe(Array.isArray(blaetter) ? blaetter : [blaetter])], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  };
+  /** Export-Knöpfe: Excel (formatiert) und – mit Umschalt-Taste – CSV. */
+  D.exportBtn = function (name, tabelle, csv, opt) {
+    return D.btn('Excel', function (e) {
+      if (e.shiftKey && csv) { D.lade(name + '.csv', csv()); return; }
+      var t = tabelle(); D.excel(name + '.xlsx', t);
+    }, Object.assign({ icon: 'runter', titel: 'Als formatierte Excel-Datei speichern' + (csv ? ' (mit Umschalt-Taste: CSV)' : '') }, opt || {}));
+  };
+
   /** Druckansicht: vollständige Tabelle (unabhängig von der virtuellen Liste). */
   D.drucke = function (titel, unter, kopf, zeilen, fuss) {
     var box = D.leere(document.getElementById('druck'));

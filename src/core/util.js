@@ -106,6 +106,36 @@
     return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
   };
 
+  function ostern(j) { // Gauß/Butcher
+    var a = j % 19, b = Math.floor(j / 100), c = j % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+    var h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var mo = Math.floor((h + l - 7 * m + 114) / 31), t = ((h + l - 7 * m + 114) % 31) + 1;
+    return Date.UTC(j, mo - 1, t);
+  }
+  var feiertagCache = {};
+  /** Bundesweite gesetzliche Feiertage eines Jahres als Menge von ISO-Daten. */
+  U.feiertage = function (j) {
+    if (feiertagCache[j]) return feiertagCache[j];
+    var o = ostern(j), s = {}, tag = 86400000;
+    [j + '-01-01', j + '-05-01', j + '-10-03', j + '-12-25', j + '-12-26'].forEach(function (d) { s[d] = 1; });
+    [-2, 1, 39, 50].forEach(function (n) { s[new Date(o + n * tag).toISOString().slice(0, 10)] = 1; });
+    return (feiertagCache[j] = s);
+  };
+  /** Werktage (Mo–Fr ohne bundesweite Feiertage) nach `von` bis einschließlich `bis`. */
+  U.werktage = function (von, bis) {
+    if (!von || !bis || bis <= von) return 0;
+    var t = Date.parse(von + 'T00:00:00Z'), ende = Date.parse(bis + 'T00:00:00Z'), n = 0;
+    var tage = Math.round((ende - t) / 86400000);
+    if (tage > 800) return Math.round(tage * 5 / 7);
+    for (var i = 1; i <= tage; i++) {
+      var d = new Date(t + i * 86400000), w = d.getUTCDay();
+      if (w === 0 || w === 6) continue;
+      if (U.feiertage(d.getUTCFullYear())[d.toISOString().slice(0, 10)]) continue;
+      n++;
+    }
+    return n;
+  };
+
   U.fmtDatum = function (isoStr) {
     if (!isoStr) return '';
     var p = String(isoStr).slice(0, 10).split('-');
