@@ -2,7 +2,7 @@
 /* Bündelt alle Quellen zu EINER Datei: antragsbuch.html (HTML + CSS + JS inline, keine Abhängigkeiten). */
 const fs = require('fs'), path = require('path');
 const r = (...p) => fs.readFileSync(path.join(__dirname, ...p), 'utf8');
-const KERN = ['util', 'csv', 'xlsx', 'statement', 'provision', 'model', 'abgleich', 'kennzahlen', 'team', 'vdienst', 'xlsxout', 'tarifdaten', 'tarif', 'krypto', 'altbuch', 'bonus', 'import'];
+const KERN = ['util', 'csv', 'xlsx', 'statement', 'provision', 'model', 'abgleich', 'kennzahlen', 'team', 'vdienst', 'xlsxout', 'tarifdaten', 'tarif', 'krypto', 'altbuch', 'bonus', 'lizenz', 'import'];
 const UI = ['dom', 'diagramme', 'tabelle', 'speicher', 'app', 'maske', 'kunde', 'reklamation', 'tour',
   'ansichten/start', 'ansichten/uebersicht', 'ansichten/antraege', 'ansichten/abgleich', 'ansichten/vdienst', 'ansichten/team', 'ansichten/bonus', 'ansichten/einstellungen', 'ansichten/hilfe'];
 
@@ -26,4 +26,8 @@ let html = r('src', 'index.html');
 const setze = (marke, inhalt) => { if (!html.includes(marke)) throw new Error('Marke fehlt: ' + marke); html = html.split(marke).join(inhalt); };
 setze('/*__CSS__*/', css); setze('/*__KERN__*/', kern); setze('/*__WORKER__*/', worker); setze('/*__BEISPIEL__*/', beispiel); setze('/*__UI__*/', ui);
 fs.writeFileSync(path.join(__dirname, 'antragsbuch.html'), html);
+// Lizenz-Werkzeug (nur für den Herausgeber): eigene, kleine Datei
+const wz = r('src', 'werkzeug', 'lizenz.html').split('/*__KERN__*/').join(['util', 'csv', 'krypto', 'lizenz'].map((k) => r('src', 'core', k + '.js')).join('\n'));
+fs.writeFileSync(path.join(__dirname, 'lizenz-werkzeug.html'), wz);
+console.log('lizenz-werkzeug.html geschrieben:', Math.round(wz.length / 1024), 'kB');
 console.log('antragsbuch.html geschrieben:', Math.round(html.length / 1024), 'kB');

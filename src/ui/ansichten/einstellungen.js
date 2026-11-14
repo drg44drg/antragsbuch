@@ -103,6 +103,28 @@
         h('div.karte', null, h('h3', null, 'Projektdatei'), h('div.muted.klein', { style: { margin: '6px 0 10px' } }, Sp.handle ? 'Automatisches Speichern in „' + Sp.dateiname + '". Zusätzlich liegt ein Spiegel im Browser.' : 'Das Projekt ist nur im Browser gesichert. Verbinden Sie es mit einer Datei oder laden Sie regelmäßig eine Kopie herunter.'),
           h('div.leiste', null, !Sp.handle && Sp.fsa ? D.btn('In Datei speichern …', function () { Sp.neuDatei(p).then(function (ok) { if (ok) { Sp.uebernimm(p, Sp.handle, Sp.dateiname); Sp.plane(p); App.zeige('einstellungen'); } }).catch(function (err) { if (err.name !== 'AbortError') D.toast(err.message, { krit: true }); }); }, { klasse: 'haupt-btn' }) : null,
             D.btn('Kopie herunterladen', function () { Sp.ladeHerunter(p); }, { icon: 'runter' }), D.btn('Projekt schließen', function () { Sp.jetzt().then(App.schliesse); }, { klasse: 'leise', titel: 'Speichert und schließt – bei Passwortschutz ist danach wieder das Passwort nötig' })))));
+      var lcfg = App.lizenzConfig();
+      if (lcfg.pub) {
+        var l = App.lizenz, lFeld = h('textarea', { rows: 3, placeholder: 'AB1-…', value: l.schluessel || '', spellcheck: false, style: { fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '12.5px' } });
+        var uebernimm = function () {
+          var key = lFeld.value.replace(/\s+/g, '');
+          try { localStorage.setItem('antragsbuch-lizenz', key); } catch (err) { /* privat */ }
+          App.nurLesen = false; p.einstellungen.lizenz = key;
+          App.pruefeLizenz().then(function () {
+            if (!App.nurLesen) Sp.plane(p);
+            D.toast(App.lizenz.text || 'Lizenz geprüft.', { krit: App.lizenz.modus === 'ungueltig' || App.lizenz.nurLesen });
+            App.zeige('einstellungen');
+          });
+        };
+        var lk = h('div.karte', null, h('div.leiste', null, h('h3', null, 'Lizenz'), h('span.marke-s' + (l.modus === 'gueltig' ? '.gut' : l.nurLesen || l.modus === 'ungueltig' ? '.krit' : '.warn'), null,
+            { gueltig: 'gültig', warnung: 'läuft bald ab', kulanz: 'abgelaufen – Kulanz', test: 'Testzeitraum', abgelaufen: 'abgelaufen', ungueltig: 'ungültig', fehlt: 'fehlt' }[l.modus] || l.modus),
+            l.name ? h('span.muted.klein', null, 'ausgestellt für ' + l.name + (l.nr ? ' (' + l.nr + ')' : '')) : null),
+          h('div.muted.klein', { style: { margin: '6px 0 10px' } }, l.text + (lcfg.inhaber ? ' Neue Schlüssel erhalten Sie von ' + lcfg.inhaber + '.' : '')),
+          D.feld('Lizenzschlüssel', lFeld), h('div.leiste', { style: { marginTop: '8px' } }, D.btn('Schlüssel übernehmen', uebernimm, { klasse: 'haupt-btn' }),
+            h('span.mini', null, 'Der Schlüssel gilt für die Vermittlernummer, auf die er ausgestellt wurde. Ihre Daten bleiben auch ohne gültigen Schlüssel erhalten und exportierbar.')));
+        el.appendChild(lk);
+        if (z.zuLizenz) { z.zuLizenz = false; setTimeout(function () { lk.scrollIntoView({ block: 'center' }); lFeld.focus(); }, 50); }
+      }
       var geschuetzt = !!Sp.schluessel;
       function setzePasswort() {
         D.passwort(geschuetzt ? 'Passwort ändern' : 'Passwortschutz einschalten',

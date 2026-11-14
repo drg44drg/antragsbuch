@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antragsbuch – Lizenz-Werkzeug</title>
+<style>
+:root { color-scheme: light dark; --bg: #f1f2f7; --fl: #fff; --li: #d2d3e0; --tx: #15141c; --t2: #55546a; --ak: #6250d6; --ai: #fff; --gut: #006300; --krit: #b02a2a; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0b0a12; --fl: #15141f; --li: #37364a; --tx: #f2f1f7; --t2: #b8b6ca; --ak: #9085e9; --ai: #120f22; --gut: #3fc63f; --krit: #f08a8a; } }
+* { box-sizing: border-box; } body { margin: 0; background: var(--bg); color: var(--tx); font: 15px/1.5 "Segoe UI", system-ui, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-size: 26px; margin: 0; } h2 { font-size: 17px; margin: 0 0 4px; } p { margin: 4px 0; color: var(--t2); }
+section { background: var(--fl); border: 1px solid var(--li); border-radius: 16px; padding: 18px 20px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--t2); font-weight: 600; }
+input, textarea, button { font: inherit; color: inherit; } input, textarea { background: var(--fl); border: 1px solid var(--li); border-radius: 9px; padding: 8px 10px; width: 100%; }
+textarea { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+button { border: 1px solid var(--li); background: var(--fl); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600; } button.h { background: var(--ak); border-color: var(--ak); color: var(--ai); } button:disabled { opacity: .45; cursor: default; }
+.z { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-top: 10px; } .z > label { flex: 1; min-width: 150px; }
+.st { font-weight: 600; } .gut { color: var(--gut); } .krit { color: var(--krit); } .warn { border: 1px solid var(--krit); border-radius: 10px; padding: 9px 12px; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin-top: 10px; } th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--li); }
+</style>
+</head>
+<body>
+<main>
+  <div><h1>Lizenz-Werkzeug</h1><p>Nur für den Herausgeber des Antragsbuchs. Diese Datei und Ihre Schlüsseldatei nicht weitergeben. Alles läuft offline auf diesem Rechner.</p></div>
+
+  <section>
+    <h2>1 · Schlüsselpaar</h2>
+    <p>Einmalig erzeugen und sicher aufbewahren. Der geheime Schlüssel wird mit Ihrem Passwort verschlüsselt in eine Datei geschrieben. Wer diese Datei <em>und</em> das Passwort hat, kann Lizenzen ausstellen.</p>
+    <div class="z"><label>Passwort der Schlüsseldatei (mind. 8 Zeichen)<input id="pw" type="password" autocomplete="off"></label>
+      <button id="neu" class="h">Neues Schlüsselpaar erzeugen</button><button id="laden">Schlüsseldatei laden …</button><input id="ladenDatei" type="file" accept=".json" hidden></div>
+    <p id="keyStatus" class="st krit">Kein Schlüssel geladen.</p>
+    <div class="warn">Geht die Schlüsseldatei oder ihr Passwort verloren, können Sie keine Lizenzen mehr für bereits verteilte App-Dateien ausstellen. Dann müssten Sie ein neues Paar erzeugen und die App neu verteilen.</div>
+  </section>
+
+  <section>
+    <h2>2 · App-Datei prägen</h2>
+    <p>Trägt den öffentlichen Schlüssel in eine <code>antragsbuch.html</code> ein. Erst eine geprägte Datei prüft Lizenzen; ungeprägte laufen ohne Einschränkung. Nach jedem App-Update die neue Datei wieder prägen.</p>
+    <div class="z"><label>Testzeitraum ohne Schlüssel (Tage)<input id="test" type="number" min="0" value="30"></label><label>Kulanz nach Ablauf (Tage)<input id="kulanz" type="number" min="0" value="14"></label>
+      <label>Vorwarnung vor Ablauf (Tage)<input id="warn" type="number" min="0" value="30"></label></div>
+    <div class="z"><label>Ansprechpartner für neue Schlüssel (erscheint in der App)<input id="inhaber" type="text" placeholder="z. B. Ihr Name"></label>
+      <button id="praegen" class="h" disabled>antragsbuch.html auswählen und prägen …</button><input id="appDatei" type="file" accept=".html" hidden></div>
+    <p id="praegeStatus"></p>
+  </section>
+
+  <section>
+    <h2>3 · Lizenz ausstellen</h2>
+    <p>Der Schlüssel gilt für genau eine Vermittlernummer bis zum Ablaufdatum. Mit <code>*</code> als Nummer gilt er für jede Nummer.</p>
+    <div class="z"><label>Vermittlernummer<input id="nr" type="text" inputmode="numeric" placeholder="900401"></label><label>Name (zur Anzeige)<input id="name" type="text"></label><label>Gültig bis<input id="bis" type="date"></label></div>
+    <div class="z"><button id="jahresende">Jahresende</button><button id="plusJahr">+ 1 Jahr</button><button id="plusMonat">+ 1 Monat</button><span style="flex:1"></span><button id="ausstellen" class="h" disabled>Lizenz ausstellen</button></div>
+    <div class="z"><label>Lizenzschlüssel (so an den ADP geben)<textarea id="ausgabe" rows="3" readonly></textarea></label><button id="kopieren" disabled>Kopieren</button></div>
+    <table id="liste"><thead><tr><th>Ausgestellt</th><th>Nummer</th><th>Name</th><th>Gültig bis</th></tr></thead><tbody></tbody></table>
+    <div class="z"><button id="listeExport">Liste als CSV</button><button id="listeLeeren">Liste leeren</button></div>
+  </section>
+</main>
+<script>/*__KERN__*/</script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); }, paar = null, U = AB.util;
+  function lade(name, text, typ) { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: typ || 'application/json' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+  function status(el, text, gut) { el.textContent = text; el.className = 'st ' + (gut ? 'gut' : 'krit'); }
+  function fingerabdruck(pub) { return U.hash(pub.x + pub.y).toUpperCase().slice(0, 8); }
+  function bereit() {
+    $('praegen').disabled = $('ausstellen').disabled = !paar;
+    if (paar) status($('keyStatus'), 'Schlüssel geladen · Kennung ' + fingerabdruck(paar.oeffentlich), true);
+  }
+  $('neu').onclick = async function () {
+    var pw = $('pw').value;
+    if (pw.length < 8) { status($('keyStatus'), 'Bitte ein Passwort mit mindestens 8 Zeichen eingeben.', false); return; }
+    if (paar && !confirm('Es ist bereits ein Schlüssel geladen. Wirklich ein neues Paar erzeugen? Lizenzen des alten Paars gelten in neu geprägten Dateien nicht mehr.')) return;
+    paar = await AB.lizenz.erzeugePaar();
+    var s = await AB.krypto.schluessel(pw), u = await AB.krypto.verschluessele(JSON.stringify(paar.geheim), s, { format: 'antragsbuch-lizenzschluessel', oeffentlich: paar.oeffentlich, erzeugt: new Date().toISOString() });
+    lade('antragsbuch-lizenzschluessel-GEHEIM.json', JSON.stringify(u, null, 1));
+    bereit();
+  };
+  $('laden').onclick = function () { $('ladenDatei').click(); };
+  $('ladenDatei').onchange = async function () {
+    try {
+      var u = JSON.parse(await this.files[0].text());
+      if (u.format !== 'antragsbuch-lizenzschluessel') throw new Error('Das ist keine Schlüsseldatei des Lizenz-Werkzeugs.');
+      var e = await AB.krypto.entschluessele(u, $('pw').value);
+      paar = { oeffentlich: u.oeffentlich, geheim: JSON.parse(e.text) }; bereit();
+    } catch (err) { paar = null; bereit(); status($('keyStatus'), err.message || String(err), false); }
+    this.value = '';
+  };
+  $('praegen').onclick = function () { $('appDatei').click(); };
+  $('appDatei').onchange = async function () {
+    try {
+      var html = await this.files[0].text();
+      var neu = AB.lizenz.praege(html, { pub: paar.oeffentlich, test: +$('test').value || 0, kulanz: +$('kulanz').value || 0, warn: +$('warn').value || 0, inhaber: $('inhaber').value.trim(), kennung: fingerabdruck(paar.oeffentlich) });
+      lade('antragsbuch.html', neu, 'text/html');
+      status($('praegeStatus'), 'Geprägte Datei erzeugt (Kennung ' + fingerabdruck(paar.oeffentlich) + '). Diese Datei verteilen.', true);
+    } catch (err) { status($('praegeStatus'), err.message || String(err), false); }
+    this.value = '';
+  };
+  function setzeBis(d) { $('bis').value = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  $('jahresende').onclick = function () { setzeBis(new Date(new Date().getFullYear(), 11, 31)); };
+  $('plusJahr').onclick = function () { var d = new Date(); d.setFullYear(d.getFullYear() + 1); setzeBis(d); };
+  $('plusMonat').onclick = function () { var d = new Date(); d.setMonth(d.getMonth() + 1); setzeBis(d); };
+  function liste() { try { return JSON.parse(localStorage.getItem('antragsbuch-lizenzliste') || '[]'); } catch (e) { return []; } }
+  function zeigeListe() {
+    var tb = $('liste').querySelector('tbody'); tb.textContent = '';
+    liste().slice().reverse().forEach(function (l) { var tr = document.createElement('tr'); [U.fmtDatum(l.aus), l.nr, l.name, U.fmtDatum(l.bis)].forEach(function (t) { var td = document.createElement('td'); td.textContent = t; tr.appendChild(td); }); tb.appendChild(tr); });
+  }
+  $('ausstellen').onclick = async function () {
+    var nr = $('nr').value.trim(), bis = $('bis').value;
+    if (!/^(\d{6}|\*)$/.test(nr)) { $('ausgabe').value = 'Bitte eine sechsstellige Vermittlernummer eingeben (oder * für alle).'; return; }
+    if (!bis) { $('ausgabe').value = 'Bitte das Ablaufdatum wählen.'; return; }
+    var key = await AB.lizenz.stelleAus(paar.geheim, { nr: nr, name: $('name').value.trim(), bis: bis });
+    $('ausgabe').value = key; $('kopieren').disabled = false;
+    var l = liste(); l.push({ aus: U.heute(), nr: nr, name: $('name').value.trim(), bis: bis }); try { localStorage.setItem('antragsbuch-lizenzliste', JSON.stringify(l)); } catch (e) { /* privat */ }
+    zeigeListe();
+  };
+  $('kopieren').onclick = function () { $('ausgabe').select(); try { navigator.clipboard.writeText($('ausgabe').value); } catch (e) { document.execCommand('copy'); } };
+  $('listeExport').onclick = function () { lade('Lizenzen.csv', AB.csv.schreibe(['Ausgestellt', 'Vermittlernummer', 'Name', 'Gültig bis'], liste().map(function (l) { return [U.fmtDatum(l.aus), l.nr, l.name, U.fmtDatum(l.bis)]; })), 'text/csv;charset=utf-8'); };
+  $('listeLeeren').onclick = function () { if (confirm('Liste der ausgestellten Lizenzen auf diesem Rechner leeren? Die Lizenzen selbst bleiben gültig.')) { localStorage.removeItem('antragsbuch-lizenzliste'); zeigeListe(); } };
+  setzeBis(new Date(new Date().getFullYear(), 11, 31)); zeigeListe();
+})();
+</script>
+</body>
+</html>

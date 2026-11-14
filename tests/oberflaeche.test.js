@@ -377,3 +377,77 @@ test('Speichern in die Projektdatei (File System Access API, nachgestellt) und W
     assert.deepEqual(fehler, []);
   } finally { await browser.close(); }
 });
+
+test('Lizenz: Werkzeug erzeugt Schlüssel und prägt die App; App prüft Testzeitraum, Schlüssel und Lesemodus', { skip: !chromium && 'Playwright nicht installiert', timeout: 90000 }, async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'antragsbuch-liz-'));
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 800 }, locale: 'de-DE', acceptDownloads: true });
+  const fehler = [];
+  try {
+    // --- Werkzeug ---
+    const wz = await ctx.newPage(); wz.on('pageerror', (e) => fehler.push('Werkzeug: ' + e.message));
+    const anfragen = []; wz.on('request', (q) => anfragen.push(q.url()));
+    await wz.goto('file://' + path.join(__dirname, '..', 'lizenz-werkzeug.html'));
+    assert.equal(await wz.isDisabled('#ausstellen'), true);
+    await wz.fill('#pw', 'Werkzeug-Passwort-1');
+    const [d1] = await Promise.all([wz.waitForEvent('download'), wz.click('#neu')]);
+    const keyDatei = path.join(tmp, 'schluessel.json'); await d1.saveAs(keyDatei);
+    const kd = JSON.parse(fs.readFileSync(keyDatei, 'utf8'));
+    assert.equal(kd.format, 'antragsbuch-lizenzschluessel'); assert.equal(kd.verschluesselt, 1); assert.ok(!('d' in kd) && !JSON.stringify(kd).includes('"d"'), 'geheimer Schlüssel liegt nur verschlüsselt in der Datei');
+    await wz.fill('#test', '20'); await wz.fill('#inhaber', 'Herausgeber Test');
+    const [d2] = await Promise.all([wz.waitForEvent('download'), wz.setInputFiles('#appDatei', HTML)]);
+    const app = path.join(tmp, 'antragsbuch.html'); await d2.saveAs(app);
+    assert.match(fs.readFileSync(app, 'utf8'), /<script id="lizenz" type="application\/json">\{"pub":\{/);
+    const stelle = async (nr, bis) => { await wz.fill('#nr', nr); await wz.fill('#name', 'Test, ADP'); await wz.fill('#bis', bis); await wz.click('#ausstellen'); return wz.inputValue('#ausgabe'); };
+    const jahr = new Date().getFullYear();
+    const gut = await stelle('900999', (jahr + 1) + '-12-31'), abgelaufen = await stelle('900999', (jahr - 1) + '-12-31'), fremd = await stelle('900123', (jahr + 1) + '-12-31');
+    assert.match(gut, /^AB1-/); assert.equal(await wz.locator('#liste tbody tr').count(), 3);
+    // Schlüsseldatei wieder laden: falsches Passwort wird abgewiesen
+    await wz.reload(); await wz.fill('#pw', 'falsch-falsch');
+    await wz.setInputFiles('#ladenDatei', keyDatei); await wz.waitForSelector('#keyStatus.krit:has-text("stimmt nicht")');
+    await wz.fill('#pw', 'Werkzeug-Passwort-1'); await wz.setInputFiles('#ladenDatei', keyDatei); await wz.waitForSelector('#keyStatus.gut');
+    assert.deepEqual(anfragen.filter((u) => !/^(file|blob|data):/.test(u)), []);
+    // --- geprägte App ---
+    const page = await ctx.newPage(); page.on('pageerror', (e) => fehler.push('App: ' + e.message));
+    await page.addInitScript(() => { delete window.showSaveFilePicker; delete window.showOpenFilePicker; delete window.showDirectoryPicker; });
+    await page.goto('file://' + app);
+    await page.click('text=Mit Beispieldaten ausprobieren');
+    await page.waitForSelector('#lizenzleiste:has-text("Testzeitraum: noch 20 Tage")');
+    assert.equal(await page.evaluate(() => AB.app.nurLesen), false);
+    const trage = async (key) => { await page.click('#nav button:has-text("Einstellungen")'); await page.fill('.karte:has(h3:has-text("Lizenz")) textarea', key); await page.click('button:has-text("Schlüssel übernehmen")'); await page.waitForTimeout(400); };
+    await trage(gut);
+    assert.equal(await page.evaluate(() => AB.app.lizenz.modus), 'gueltig'); assert.equal(await page.isHidden('#lizenzleiste'), true);
+    assert.match(await page.textContent('.karte:has(h3:has-text("Lizenz"))'), /gültig[\s\S]*Test, ADP[\s\S]*Herausgeber Test/);
+    await trage(fremd);
+    assert.equal(await page.evaluate(() => AB.app.lizenz.modus), 'test', 'fremde Nummer: im Testzeitraum weiter nutzbar, aber als ungültig gemeldet');
+    assert.match(await page.textContent('#lizenzleiste'), /gehört zur Vermittlernummer 900123/);
+    // Testzeitraum vorbei + abgelaufener Schlüssel → Lesemodus
+    await page.evaluate(() => { localStorage.setItem('antragsbuch-erststart', '2020-01-01'); });
+    await trage(abgelaufen);
+    assert.equal(await page.evaluate(() => AB.app.nurLesen), true);
+    await page.waitForSelector('#lizenzleiste.krit:has-text("Lesemodus")');
+    const anzahl = await page.evaluate(() => AB.app.p.antraege.length);
+    await page.click('#nav button:has-text("Anträge")'); await page.keyboard.press('n');
+    await page.fill('dialog input[data-feld="vn.name"]', 'Gesperrt'); await page.fill('dialog input[data-feld="vn.vorname"]', 'Test');
+    await page.fill('dialog .pos-zeile input[placeholder="Tarif"]', 'A107'); await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '10');
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('.toast.krit:has-text("Lesemodus")');
+    assert.equal(await page.evaluate(() => AB.app.p.antraege.length), anzahl, 'im Lesemodus wird nichts gespeichert');
+    await page.keyboard.press('Escape'); page.once('dialog', (dl) => dl.accept());
+    await page.evaluate(() => { document.querySelectorAll('dialog[open]').forEach((d) => { d.close(); d.remove(); }); });
+    // Änderung an der Oberfläche vorbei wird zurückgenommen; Export geht weiter
+    await page.evaluate(() => { AB.app.p.antraege.pop(); AB.app.geaendert(); });
+    assert.equal(await page.evaluate(() => AB.app.p.antraege.length), anzahl);
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('button:has-text("Excel")')]);
+    assert.match(dl.suggestedFilename(), /\.xlsx$/);
+    // gültiger Schlüssel hebt den Lesemodus wieder auf
+    await trage(gut);
+    assert.equal(await page.evaluate(() => AB.app.nurLesen), false);
+    // ungeprägte Datei: keine Lizenzprüfung
+    const frei = await ctx.newPage(); await frei.goto('file://' + HTML); await frei.click('text=Mit Beispieldaten ausprobieren'); await frei.waitForSelector('h1:has-text("Übersicht")');
+    assert.equal(await frei.evaluate(() => AB.app.lizenz.modus), 'frei'); assert.equal(await frei.isHidden('#lizenzleiste'), true);
+    await frei.click('#nav button:has-text("Einstellungen")');
+    assert.equal(await frei.locator('h3:has-text("Lizenz")').count(), 0);
+    assert.deepEqual(fehler, []);
+  } finally { await browser.close(); fs.rmSync(tmp, { recursive: true, force: true }); }
+});

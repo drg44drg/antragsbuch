@@ -268,3 +268,38 @@ test('Bonus-Rechner: Werte des Bonus-Reportings, Stufen, Sonderregelung, Zusatzb
   assert.equal(B.rechne(B.leer()).summe, 0);
   assert.equal(B.rechne({ stufe: '3', bestandKv: 80000 }).ziel1.soll, 3, 'mindestens drei neue Personen');
 });
+
+test('Lizenz: ausstellen, prüfen, Testzeitraum, Warnung, Kulanz, Ablauf, Fälschung, falsche Nummer', async () => {
+  const L = AB.lizenz, paar = await L.erzeugePaar(), fremd = await L.erzeugePaar();
+  const cfg = { pub: paar.oeffentlich, test: 30, kulanz: 14, warn: 30 };
+  const key = await L.stelleAus(paar.geheim, { nr: '900401', name: 'Beispiel, ADP', bis: '2026-12-31', aus: '2026-01-02' });
+  assert.match(key, /^AB1-[\w-]+\.[\w-]+$/);
+  assert.deepEqual(await L.lies(paar.oeffentlich, key), { v: 1, nr: '900401', name: 'Beispiel, ADP', bis: '2026-12-31', aus: '2026-01-02' });
+  assert.equal(await L.lies(fremd.oeffentlich, key), null, 'fremder Aussteller');
+  // ohne eingeprägten Schlüssel: alles frei
+  assert.deepEqual(await L.pruefe({}, '', '900401', '2026-06-01'), { modus: 'frei', nurLesen: false, text: '' });
+  const p = (k, nr, heute, start) => L.pruefe(cfg, k, nr, heute, start || '2026-01-01');
+  let r = await p(key, '900401', '2026-06-01');  assert.deepEqual([r.modus, r.nurLesen, r.name], ['gueltig', false, 'Beispiel, ADP']);
+  r = await p(key, '900401', '2026-12-10');      assert.deepEqual([r.modus, r.nurLesen, r.tage], ['warnung', false, 21]);
+  r = await p(key, '900401', '2027-01-10');      assert.deepEqual([r.modus, r.nurLesen], ['kulanz', false]); assert.match(r.text, /noch 4 Tage/);
+  r = await p(key, '900401', '2027-01-20');      assert.deepEqual([r.modus, r.nurLesen], ['abgelaufen', true]);
+  r = await p(key, '900402', '2026-06-01');      assert.deepEqual([r.modus, r.nurLesen], ['ungueltig', true]); assert.match(r.text, /gehört zur Vermittlernummer 900401/);
+  r = await p('', '900401', '2026-01-10');       assert.deepEqual([r.modus, r.nurLesen, r.tage], ['test', false, 21]);
+  r = await p('', '900401', '2026-02-15');       assert.deepEqual([r.modus, r.nurLesen], ['fehlt', true]);
+  // Fälschungen: Ablaufdatum verlängert, Zeichen verändert
+  const teile = key.slice(4).split('.'), inhalt = JSON.parse(Buffer.from(teile[0], 'base64url').toString());
+  inhalt.bis = '2099-12-31';
+  const gefaelscht = 'AB1-' + Buffer.from(JSON.stringify(inhalt)).toString('base64url') + '.' + teile[1];
+  assert.equal(await L.lies(paar.oeffentlich, gefaelscht), null);
+  assert.equal((await p(gefaelscht, '900401', '2026-06-01')).modus, 'ungueltig');
+  assert.equal(await L.lies(paar.oeffentlich, 'Unsinn'), null);
+  assert.equal((await p(key.replace(/\./, '\n .'), '900401', '2026-06-01')).modus, 'gueltig', 'Zeilenumbrüche und Leerzeichen stören nicht');
+  // Lizenz für alle Nummern (z. B. Führungskraft)
+  assert.equal((await p(await L.stelleAus(paar.geheim, { nr: '*', bis: '2026-12-31' }), '900999', '2026-06-01')).modus, 'gueltig');
+  // Prägen der App-Datei
+  const html = '<html><script id="lizenz" type="application/json">{}</script></html>';
+  const gepraegt = L.praege(html, { pub: paar.oeffentlich, test: 14, inhaber: 'Test </script>' });
+  assert.equal(JSON.parse(/<script id="lizenz" type="application\/json">([\s\S]*?)<\/script>/.exec(gepraegt)[1]).test, 14);
+  assert.equal(gepraegt.split('</script>').length, 2, 'kein vorzeitiges Skript-Ende');
+  assert.throws(() => L.praege('<html></html>', {}), /keine antragsbuch\.html/);
+});

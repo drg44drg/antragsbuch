@@ -79,6 +79,7 @@
   var timer = null, laeuft = false, nochmal = false, aktuell = null;
   /** Nach jeder Änderung aufrufen: speichert entprellt in Datei und IndexedDB. */
   Sp.plane = function (p) {
+    if (AB.app && AB.app.nurLesen) return;
     aktuell = p; p.geaendert = new Date().toISOString();
     if (!Sp.handle) Sp.ungesichert = true;
     melde('lauf', 'Speichert …');

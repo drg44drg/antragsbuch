@@ -36,10 +36,46 @@
     App.rechne();
     document.body.classList.add('offen');
     App.zeige('uebersicht');
+    App.pruefeLizenz();
     App.pruefeOrdner(false);
     if (AB.tour) AB.tour.biete();
   };
-  App.schliesse = function () { App.p = null; App.zeilen = []; App.erg = null; Sp.schliesse(); document.body.classList.remove('offen'); App.zeige('start'); };
+  // ---------- Lizenz ----------
+  App.lizenzConfig = function () { try { return JSON.parse(document.getElementById('lizenz').textContent || '{}'); } catch (e) { return {}; } };
+  function ersterStart(p) {
+    var lokal = ''; try { lokal = localStorage.getItem('antragsbuch-erststart') || ''; if (!lokal) { lokal = U.heute(); localStorage.setItem('antragsbuch-erststart', lokal); } } catch (e) { /* privat */ }
+    var proj = (p.erstellt || '').slice(0, 10);
+    return lokal && proj ? (lokal < proj ? lokal : proj) : (lokal || proj || U.heute());
+  }
+  App.lizenz = { modus: 'frei', nurLesen: false, text: '' }; App.nurLesen = false;
+  App.pruefeLizenz = async function () {
+    var p = App.p, cfg = App.lizenzConfig();
+    if (!p) return;
+    var key = p.einstellungen.lizenz || '';
+    if (!key) { try { key = localStorage.getItem('antragsbuch-lizenz') || ''; } catch (e) { /* privat */ } }
+    App.lizenz = await AB.lizenz.pruefe(cfg, key, p.einstellungen.vermittlernummer, U.heute(), ersterStart(p));
+    App.lizenz.schluessel = key;
+    var vorher = App.nurLesen; App.nurLesen = !!App.lizenz.nurLesen;
+    if (App.nurLesen) App.letzterStand = Sp.serialisiere(p); else App.letzterStand = null;
+    zeigeLizenz();
+    if (vorher !== App.nurLesen && App.ansicht) App.zeige(App.ansicht);
+  };
+  function zeigeLizenz() {
+    var el = document.getElementById('lizenzleiste'), l = App.lizenz;
+    var zeigen = App.p && (l.modus === 'test' || l.modus === 'warnung' || l.modus === 'kulanz' || l.nurLesen);
+    el.hidden = !zeigen; if (!zeigen) return;
+    el.className = l.nurLesen ? 'krit' : '';
+    D.leere(el); D.anhaengen(el, [h('b', null, l.nurLesen ? 'Lesemodus' : l.modus === 'test' ? 'Testversion' : 'Lizenz'), h('span', { style: { flex: 1 } }, l.text),
+      D.btn(l.modus === 'test' || l.nurLesen ? 'Schlüssel eintragen' : 'Verlängern', function () { App.zeige('einstellungen', { zuLizenz: true }); }, { klasse: 'klein-btn' })]);
+  }
+  /** true, wenn im Lesemodus – zeigt dann einen Hinweis. Vor jeder Änderung aufrufen. */
+  App.gesperrt = function () {
+    if (!App.nurLesen) return false;
+    D.toast('Lesemodus: ' + (App.lizenz.modus === 'abgelaufen' ? 'Die Lizenz ist abgelaufen.' : 'Es fehlt ein gültiger Lizenzschlüssel.') + ' Ansehen und Exportieren geht weiter.', { krit: true, aktion: ['Schlüssel eintragen', function () { App.zeige('einstellungen', { zuLizenz: true }); }] });
+    return true;
+  };
+
+  App.schliesse = function () { App.nurLesen = false; App.letzterStand = null; document.getElementById('lizenzleiste').hidden = true; App.p = null; App.zeilen = []; App.erg = null; Sp.schliesse(); document.body.classList.remove('offen'); App.zeige('start'); };
   App.rechne = function () {
     var p = App.p; if (!p) return;
     App.erg = AB.abgleich.rechne(p, App.zeilen);
@@ -51,6 +87,10 @@
   /** Nach jeder Änderung: neu rechnen, speichern, Ansicht auffrischen. */
   App.geaendert = function (opt) {
     opt = opt || {};
+    if (App.nurLesen && App.letzterStand) { // Lesemodus: Änderung verwerfen und den gespeicherten Stand wiederherstellen
+      App.p = M.migriere(JSON.parse(App.letzterStand)); App.zeilen = AB.abrechnung.entpacke(App.p.abrechnung); App.wuerfel = null;
+      App.rechne(); App.gesperrt(); App.zeige(App.ansicht); return;
+    }
     if (!opt.ohneRechnen) App.rechne();
     Sp.plane(App.p);
     if (!opt.still) App.zeige(App.ansicht);
@@ -143,6 +183,7 @@
   App.importiereBytes = async function (bytes, name, opt) {
     opt = opt || {};
     var p = App.p;
+    if (p && App.nurLesen && !/\.json$/i.test(name)) { App.gesperrt(); return; }
     Sp.onstatus && Sp.onstatus({ art: 'lauf', text: 'Liest „' + name + '" …' });
     var r;
     try {

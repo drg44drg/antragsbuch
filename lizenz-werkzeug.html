@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antragsbuch – Lizenz-Werkzeug</title>
+<style>
+:root { color-scheme: light dark; --bg: #f1f2f7; --fl: #fff; --li: #d2d3e0; --tx: #15141c; --t2: #55546a; --ak: #6250d6; --ai: #fff; --gut: #006300; --krit: #b02a2a; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0b0a12; --fl: #15141f; --li: #37364a; --tx: #f2f1f7; --t2: #b8b6ca; --ak: #9085e9; --ai: #120f22; --gut: #3fc63f; --krit: #f08a8a; } }
+* { box-sizing: border-box; } body { margin: 0; background: var(--bg); color: var(--tx); font: 15px/1.5 "Segoe UI", system-ui, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-size: 26px; margin: 0; } h2 { font-size: 17px; margin: 0 0 4px; } p { margin: 4px 0; color: var(--t2); }
+section { background: var(--fl); border: 1px solid var(--li); border-radius: 16px; padding: 18px 20px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--t2); font-weight: 600; }
+input, textarea, button { font: inherit; color: inherit; } input, textarea { background: var(--fl); border: 1px solid var(--li); border-radius: 9px; padding: 8px 10px; width: 100%; }
+textarea { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+button { border: 1px solid var(--li); background: var(--fl); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600; } button.h { background: var(--ak); border-color: var(--ak); color: var(--ai); } button:disabled { opacity: .45; cursor: default; }
+.z { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-top: 10px; } .z > label { flex: 1; min-width: 150px; }
+.st { font-weight: 600; } .gut { color: var(--gut); } .krit { color: var(--krit); } .warn { border: 1px solid var(--krit); border-radius: 10px; padding: 9px 12px; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin-top: 10px; } th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--li); }
+</style>
+</head>
+<body>
+<main>
+  <div><h1>Lizenz-Werkzeug</h1><p>Nur für den Herausgeber des Antragsbuchs. Diese Datei und Ihre Schlüsseldatei nicht weitergeben. Alles läuft offline auf diesem Rechner.</p></div>
+
+  <section>
+    <h2>1 · Schlüsselpaar</h2>
+    <p>Einmalig erzeugen und sicher aufbewahren. Der geheime Schlüssel wird mit Ihrem Passwort verschlüsselt in eine Datei geschrieben. Wer diese Datei <em>und</em> das Passwort hat, kann Lizenzen ausstellen.</p>
+    <div class="z"><label>Passwort der Schlüsseldatei (mind. 8 Zeichen)<input id="pw" type="password" autocomplete="off"></label>
+      <button id="neu" class="h">Neues Schlüsselpaar erzeugen</button><button id="laden">Schlüsseldatei laden …</button><input id="ladenDatei" type="file" accept=".json" hidden></div>
+    <p id="keyStatus" class="st krit">Kein Schlüssel geladen.</p>
+    <div class="warn">Geht die Schlüsseldatei oder ihr Passwort verloren, können Sie keine Lizenzen mehr für bereits verteilte App-Dateien ausstellen. Dann müssten Sie ein neues Paar erzeugen und die App neu verteilen.</div>
+  </section>
+
+  <section>
+    <h2>2 · App-Datei prägen</h2>
+    <p>Trägt den öffentlichen Schlüssel in eine <code>antragsbuch.html</code> ein. Erst eine geprägte Datei prüft Lizenzen; ungeprägte laufen ohne Einschränkung. Nach jedem App-Update die neue Datei wieder prägen.</p>
+    <div class="z"><label>Testzeitraum ohne Schlüssel (Tage)<input id="test" type="number" min="0" value="30"></label><label>Kulanz nach Ablauf (Tage)<input id="kulanz" type="number" min="0" value="14"></label>
+      <label>Vorwarnung vor Ablauf (Tage)<input id="warn" type="number" min="0" value="30"></label></div>
+    <div class="z"><label>Ansprechpartner für neue Schlüssel (erscheint in der App)<input id="inhaber" type="text" placeholder="z. B. Ihr Name"></label>
+      <button id="praegen" class="h" disabled>antragsbuch.html auswählen und prägen …</button><input id="appDatei" type="file" accept=".html" hidden></div>
+    <p id="praegeStatus"></p>
+  </section>
+
+  <section>
+    <h2>3 · Lizenz ausstellen</h2>
+    <p>Der Schlüssel gilt für genau eine Vermittlernummer bis zum Ablaufdatum. Mit <code>*</code> als Nummer gilt er für jede Nummer.</p>
+    <div class="z"><label>Vermittlernummer<input id="nr" type="text" inputmode="numeric" placeholder="900401"></label><label>Name (zur Anzeige)<input id="name" type="text"></label><label>Gültig bis<input id="bis" type="date"></label></div>
+    <div class="z"><button id="jahresende">Jahresende</button><button id="plusJahr">+ 1 Jahr</button><button id="plusMonat">+ 1 Monat</button><span style="flex:1"></span><button id="ausstellen" class="h" disabled>Lizenz ausstellen</button></div>
+    <div class="z"><label>Lizenzschlüssel (so an den ADP geben)<textarea id="ausgabe" rows="3" readonly></textarea></label><button id="kopieren" disabled>Kopieren</button></div>
+    <table id="liste"><thead><tr><th>Ausgestellt</th><th>Nummer</th><th>Name</th><th>Gültig bis</th></tr></thead><tbody></tbody></table>
+    <div class="z"><button id="listeExport">Liste als CSV</button><button id="listeLeeren">Liste leeren</button></div>
+  </section>
+</main>
+<script>/* Antragsbuch – Hilfsfunktionen (Zahlen, Datum, Namen). Läuft in Browser, Worker und Node. */
+(function (AB) {
+  'use strict';
+  var U = AB.util = {};
+
+  U.uid = function () {
+    return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  };
+
+  U.runde = function (x) { return Math.round((x + Number.EPSILON) * 100) / 100; };
+
+  /** Vertragsnummer für den Vergleich: Leerzeichen und führende Nullen entfernen. */
+  U.normVnr = function (v) {
+    if (v == null) return '';
+    var s = String(v).replace(/[\s ]+/g, '').toUpperCase();
+    if (/^\d+\.0+$/.test(s)) s = s.replace(/\.0+$/, '');
+    s = s.replace(/^0+(?=.)/, '');
+    return s === '0' ? '' : s;
+  };
+
+  /** Vertragsnummer als Text übernehmen (nichts abschneiden außer Rand-Leerzeichen). */
+  U.textNr = function (v) {
+    if (v == null) return '';
+    var s = String(v).trim();
+    if (/^\d+\.0+$/.test(s)) s = s.replace(/\.0+$/, '');
+    return s;
+  };
+
+  /** Erkennt aus Stichproben, ob das Dezimalzeichen Komma oder Punkt ist. */
+  U.erkenneDezimal = function (proben) {
+    var komma = 0, punkt = 0;
+    for (var i = 0; i < proben.length; i++) {
+      var s = String(proben[i] == null ? '' : proben[i]).trim();
+      if (!s) continue;
+      if (/,\d{1,2}$/.test(s) || /\.\d{3},/.test(s)) komma++;
+      else if (/\.\d{1,2}$/.test(s) || /,\d{3}\./.test(s)) punkt++;
+    }
+    return punkt > komma ? '.' : ',';
+  };
+
+  /**
+   * Zahl robust lesen: "1.239,27", "1239,27", "1,239.27", "-5,81", "5,34 €", "(5,34)", "5,34-".
+   * dez: ',' | '.' | undefined (automatisch). Ergebnis: Zahl oder NaN; leer → 0.
+   */
+  U.parseZahl = function (v, dez) {
+    if (typeof v === 'number') return v;
+    if (v == null) return 0;
+    var s = String(v).replace(/[\s €%]|EUR/g, '');
+    if (!s || s === '-') return 0;
+    var neg = false;
+    if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+    if (/-$/.test(s)) { neg = !neg; s = s.slice(0, -1); }
+    if (/^[-−]/.test(s)) { neg = !neg; s = s.slice(1); }
+    if (/^\+/.test(s)) s = s.slice(1);
+    var hatK = s.indexOf(',') >= 0, hatP = s.indexOf('.') >= 0;
+    if (hatK && hatP) {
+      if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+      else s = s.replace(/,/g, '');
+    } else if (hatK) {
+      if (dez === '.' && /^\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+      else s = s.replace(',', '.');
+    } else if (hatP) {
+      if (dez !== '.' && /^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    }
+    if (!/^\d*\.?\d+(e[-+]?\d+)?$/i.test(s) && !/^\d+\.$/.test(s)) return NaN;
+    var n = parseFloat(s);
+    return neg ? -n : n;
+  };
+
+  function iso(j, m, t) {
+    if (j < 100) j += j < 70 ? 2000 : 1900;
+    if (m < 1 || m > 12 || t < 1 || t > 31) return '';
+    var d = new Date(Date.UTC(j, m - 1, t));
+    if (d.getUTCMonth() !== m - 1) return '';
+    return j + '-' + (m < 10 ? '0' : '') + m + '-' + (t < 10 ? '0' : '') + t;
+  }
+
+  /** Excel-Seriennummer → ISO-Datum. */
+  U.excelDatum = function (n) {
+    var d = new Date(Math.round((n - 25569) * 86400000));
+    return isNaN(d) ? '' : d.toISOString().slice(0, 10);
+  };
+
+  /** Datum robust lesen → "JJJJ-MM-TT" oder ''. */
+  U.parseDatum = function (v) {
+    if (v == null || v === '') return '';
+    if (v instanceof Date) return isNaN(v) ? '' : iso(v.getFullYear(), v.getMonth() + 1, v.getDate());
+    if (typeof v === 'number') return v > 20000 && v < 90000 ? U.excelDatum(v) : '';
+    var s = String(v).trim(), m;
+    if ((m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s))) return iso(+m[1], +m[2], +m[3]);
+    if ((m = /^(\d{1,2})\.\s?(\d{1,2})\.\s?(\d{2,4})/.exec(s))) return iso(+m[3], +m[2], +m[1]);
+    if ((m = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(s))) return iso(+m[3], +m[2], +m[1]);
+    if ((m = /^(\d{4})(\d{2})(\d{2})$/.exec(s))) return iso(+m[1], +m[2], +m[3]);
+    if ((m = /^(\d{2})(\d{2})(\d{4})$/.exec(s))) return iso(+m[3], +m[2], +m[1]);
+    if (/^\d{5}(\.\d+)?$/.test(s)) return U.excelDatum(parseFloat(s));
+    return '';
+  };
+
+  U.heute = function () {
+    var d = new Date();
+    return iso(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  };
+
+  U.tageZwischen = function (a, b) {
+    if (!a || !b) return 0;
+    return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
+  };
+
+  function ostern(j) { // Gauß/Butcher
+    var a = j % 19, b = Math.floor(j / 100), c = j % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+    var h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var mo = Math.floor((h + l - 7 * m + 114) / 31), t = ((h + l - 7 * m + 114) % 31) + 1;
+    return Date.UTC(j, mo - 1, t);
+  }
+  var feiertagCache = {};
+  /** Bundesweite gesetzliche Feiertage eines Jahres als Menge von ISO-Daten. */
+  U.feiertage = function (j) {
+    if (feiertagCache[j]) return feiertagCache[j];
+    var o = ostern(j), s = {}, tag = 86400000;
+    [j + '-01-01', j + '-05-01', j + '-10-03', j + '-12-25', j + '-12-26'].forEach(function (d) { s[d] = 1; });
+    [-2, 1, 39, 50].forEach(function (n) { s[new Date(o + n * tag).toISOString().slice(0, 10)] = 1; });
+    return (feiertagCache[j] = s);
+  };
+  /** Werktage (Mo–Fr ohne bundesweite Feiertage) nach `von` bis einschließlich `bis`. */
+  U.werktage = function (von, bis) {
+    if (!von || !bis || bis <= von) return 0;
+    var t = Date.parse(von + 'T00:00:00Z'), ende = Date.parse(bis + 'T00:00:00Z'), n = 0;
+    var tage = Math.round((ende - t) / 86400000);
+    if (tage > 800) return Math.round(tage * 5 / 7);
+    for (var i = 1; i <= tage; i++) {
+      var d = new Date(t + i * 86400000), w = d.getUTCDay();
+      if (w === 0 || w === 6) continue;
+      if (U.feiertage(d.getUTCFullYear())[d.toISOString().slice(0, 10)]) continue;
+      n++;
+    }
+    return n;
+  };
+
+  U.fmtDatum = function (isoStr) {
+    if (!isoStr) return '';
+    var p = String(isoStr).slice(0, 10).split('-');
+    return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : String(isoStr);
+  };
+
+  U.fmtZahl = function (n, stellen) {
+    if (n == null || isNaN(n)) return '';
+    if (stellen == null) stellen = 2;
+    var neg = n < 0 || (Object.is(n, -0) && false);
+    var s = Math.abs(n).toFixed(stellen);
+    if (parseFloat(s) === 0) neg = false;
+    var p = s.split('.');
+    p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return (neg ? '−' : '') + p[0] + (p[1] ? ',' + p[1] : '');
+  };
+  U.fmtEuro = function (n) { return n == null || isNaN(n) ? '' : U.fmtZahl(n, 2) + ' €'; };
+  U.fmtEuro0 = function (n) { return n == null || isNaN(n) ? '' : U.fmtZahl(n, 0) + ' €'; };
+
+  U.MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  U.MONATE_KURZ = ['Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  U.monatName = function (ym) {
+    if (!ym) return '';
+    var p = ym.split('-');
+    return U.MONATE[+p[1] - 1] + ' ' + p[0];
+  };
+
+  /** Nur a–z/0–9: macht Spaltennamen unabhängig von Umlauten und kaputter Kodierung. */
+  U.asciiKey = function (s) {
+    return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, '');
+  };
+
+  /** Text für Suche/Vergleich: klein, Umlaute aufgelöst, ohne Sonderzeichen. */
+  U.falte = function (s) {
+    return String(s == null ? '' : s).toLowerCase()
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '');
+  };
+
+  var TITEL = { dr: 1, prof: 1, med: 1, ing: 1, dipl: 1, herr: 1, frau: 1, von: 0, de: 0 };
+  U.namensTeile = function (s) {
+    return U.falte(s).split(/[^a-z0-9]+/).filter(function (t) { return t && !TITEL[t]; });
+  };
+
+  U.levenshtein = function (a, b) {
+    if (a === b) return 0;
+    var m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    var v = new Array(n + 1), i, j;
+    for (j = 0; j <= n; j++) v[j] = j;
+    for (i = 1; i <= m; i++) {
+      var vor = v[0]; v[0] = i;
+      for (j = 1; j <= n; j++) {
+        var t = v[j];
+        v[j] = Math.min(v[j] + 1, v[j - 1] + 1, vor + (a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1));
+        vor = t;
+      }
+    }
+    return v[n];
+  };
+
+  function tokSim(a, b) {
+    if (a === b) return 1;
+    if (a.length === 1 || b.length === 1) return a[0] === b[0] ? 0.6 : 0; // Initiale
+    var d = U.levenshtein(a, b), l = Math.max(a.length, b.length);
+    var s = 1 - d / l;
+    return s < 0.6 ? 0 : s;
+  }
+
+  /**
+   * Namensähnlichkeit 0..1, unabhängig von Reihenfolge und Schreibweise
+   * ("MUSTER, ANNA" = "Anna Muster" = "Muster Anna-Lena" teilweise).
+   */
+  U.namensAehnlichkeit = function (a, b) {
+    var ta = U.namensTeile(a), tb = U.namensTeile(b);
+    if (!ta.length || !tb.length) return 0;
+    if (ta.length > tb.length) { var x = ta; ta = tb; tb = x; }
+    var frei = tb.slice(), summe = 0;
+    for (var i = 0; i < ta.length; i++) {
+      var best = 0, bi = -1;
+      for (var j = 0; j < frei.length; j++) {
+        var s = tokSim(ta[i], frei[j]);
+        if (s > best) { best = s; bi = j; }
+      }
+      if (bi >= 0) frei.splice(bi, 1);
+      summe += best;
+    }
+    // fehlende Zusatzteile (zweiter Vorname) nur leicht abwerten
+    return summe / (ta.length + 0.25 * (tb.length - ta.length));
+  };
+
+  U.median = function (arr) {
+    var a = arr.slice().sort(function (x, y) { return x - y; });
+    if (!a.length) return 0;
+    var m = a.length >> 1;
+    return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+  };
+  U.quantil = function (arr, q) {
+    var a = arr.slice().sort(function (x, y) { return x - y; });
+    if (!a.length) return 0;
+    var p = (a.length - 1) * q, lo = Math.floor(p), hi = Math.ceil(p);
+    return a[lo] + (a[hi] - a[lo]) * (p - lo);
+  };
+
+  /** Kleine, schnelle Prüfsumme (für Pseudonyme und Signaturen, keine Kryptografie). */
+  U.hash = function (str) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0; i < str.length; i++) {
+      var ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  };
+})(globalThis.AB = globalThis.AB || {});
+
+/* Antragsbuch – CSV lesen (Kodierung, Trennzeichen, Anführungszeichen) und schreiben. */
+(function (AB) {
+  'use strict';
+  var C = AB.csv = {};
+
+  /** Bytes → Text. UTF-8 (mit/ohne BOM), UTF-16 mit BOM, sonst Windows-1252. */
+  C.dekodiere = function (bytes) {
+    if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
+    if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF)
+      return { text: new TextDecoder('utf-8').decode(bytes.subarray(3)), kodierung: 'UTF-8 (BOM)' };
+    if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE)
+      return { text: new TextDecoder('utf-16le').decode(bytes.subarray(2)), kodierung: 'UTF-16' };
+    if (bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF)
+      return { text: new TextDecoder('utf-16be').decode(bytes.subarray(2)), kodierung: 'UTF-16' };
+    try {
+      return { text: new TextDecoder('utf-8', { fatal: true }).decode(bytes), kodierung: 'UTF-8' };
+    } catch (e) {
+      return { text: new TextDecoder('windows-1252').decode(bytes), kodierung: 'Windows-1252' };
+    }
+  };
+
+  /** Trennzeichen aus den ersten Zeilen bestimmen (; , Tab |). */
+  C.erkenneTrennzeichen = function (text) {
+    var kand = [';', '\t', ',', '|'], zeilen = [], pos = 0;
+    while (zeilen.length < 12 && pos < text.length) {
+      var e = text.indexOf('\n', pos); if (e < 0) e = text.length;
+      var z = text.slice(pos, e); pos = e + 1;
+      if (z.trim()) zeilen.push(z);
+    }
+    var best = ';', bestWert = -1;
+    kand.forEach(function (k) {
+      var anz = zeilen.map(function (z) {
+        var n = 0, q = false;
+        for (var i = 0; i < z.length; i++) {
+          var c = z[i];
+          if (c === '"') q = !q; else if (c === k && !q) n++;
+        }
+        return n;
+      });
+      if (!anz.length || anz[0] === 0) return;
+      var gleich = anz.filter(function (n) { return n === anz[0]; }).length;
+      var wert = anz[0] * (gleich / anz.length) * (gleich === anz.length ? 2 : 1);
+      if (wert > bestWert) { bestWert = wert; best = k; }
+    });
+    return best;
+  };
+
+  /** CSV-Text → Array von Zeilen (Array von Strings). Leere Zeilen werden übersprungen. */
+  C.parse = function (text, trenn) {
+    if (!trenn) trenn = C.erkenneTrennzeichen(text);
+    var rows = [], row = [], i = 0, n = text.length, t = trenn.charCodeAt(0);
+    var feld = '', start = 0;
+    while (i <= n) {
+      var c = i < n ? text.charCodeAt(i) : 10;
+      if (c === 34 && i === start) { // Feld in Anführungszeichen
+        feld = ''; i++;
+        var s = i;
+        for (;;) {
+          var q = text.indexOf('"', i);
+          if (q < 0) { feld += text.slice(s); i = n; break; }
+          if (text.charCodeAt(q + 1) === 34) { feld += text.slice(s, q + 1); i = q + 2; s = i; continue; }
+          feld += text.slice(s, q); i = q + 1; break;
+        }
+        // Rest bis Trenner/Zeilenende anhängen (tolerant)
+        var r = i;
+        while (i < n) { var cc = text.charCodeAt(i); if (cc === t || cc === 10 || cc === 13) break; i++; }
+        if (i > r) feld += text.slice(r, i);
+        row.push(feld);
+        c = i < n ? text.charCodeAt(i) : 10;
+      } else {
+        while (i < n) { c = text.charCodeAt(i); if (c === t || c === 10 || c === 13) break; i++; }
+        if (i >= n) c = 10;
+        row.push(text.slice(start, i));
+      }
+      if (c === t) { i++; start = i; continue; }
+      // Zeilenende
+      if (c === 13 && text.charCodeAt(i + 1) === 10) i++;
+      i++; start = i;
+      if (row.length > 1 || (row.length === 1 && row[0].trim() !== '')) rows.push(row);
+      row = [];
+    }
+    return rows;
+  };
+
+  /** Bytes → { zeilen, kodierung, trennzeichen }. */
+  C.lies = function (bytes) {
+    var d = C.dekodiere(bytes);
+    var trenn = C.erkenneTrennzeichen(d.text);
+    return { zeilen: C.parse(d.text, trenn), kodierung: d.kodierung, trennzeichen: trenn };
+  };
+
+  function zelle(v) {
+    if (v == null) return '';
+    if (typeof v === 'number') return isFinite(v) ? String(Math.round(v * 100) / 100).replace('.', ',') : '';
+    if (typeof v === 'boolean') return v ? 'ja' : 'nein';
+    var s = String(v);
+    // Schutz vor Formel-Injektion in Excel
+    if (/^[=+@\t\r]/.test(s) || (/^-/.test(s) && !/^-?\d+([.,]\d+)?$/.test(s))) s = "'" + s;
+    return /[";\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  /** Für Excel: Semikolon, UTF-8 mit BOM, deutsches Zahlenformat, CRLF. */
+  C.schreibe = function (kopf, zeilen) {
+    var out = [kopf.map(zelle).join(';')];
+    for (var i = 0; i < zeilen.length; i++) out.push(zeilen[i].map(zelle).join(';'));
+    return '﻿' + out.join('\r\n') + '\r\n';
+  };
+})(globalThis.AB = globalThis.AB || {});
+
+/* Antragsbuch – Passwortschutz der Projektdatei: AES-256-GCM, Schlüssel aus dem Passwort per PBKDF2 (Web Crypto, ohne Fremdbibliothek). */
+(function (AB) {
+  'use strict';
+  var K = AB.krypto = {};
+  K.ITERATIONEN = 310000;
+  var enc = new TextEncoder(), dec = new TextDecoder();
+
+  function b64(bytes) {
+    var s = '', n = bytes.length;
+    for (var i = 0; i < n; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+  function ausB64(text) {
+    var bin = atob(text), u = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return u;
+  }
+  K.verfuegbar = function () { return typeof crypto !== 'undefined' && !!crypto.subtle; };
+
+  /** Schlüssel aus Passwort ableiten. salt/iter weglassen → neuer Schlüssel. → { key, salt (Base64), iter } */
+  K.schluessel = async function (passwort, salt, iter) {
+    var saltBytes = salt ? ausB64(salt) : crypto.getRandomValues(new Uint8Array(16));
+    iter = iter || K.ITERATIONEN;
+    var basis = await crypto.subtle.importKey('raw', enc.encode(passwort), 'PBKDF2', false, ['deriveKey']);
+    var key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: saltBytes, iterations: iter, hash: 'SHA-256' }, basis, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    return { key: key, salt: b64(saltBytes), iter: iter };
+  };
+
+  /** Projekt-Text verschlüsseln. kopf: Klartext-Angaben, die zum Öffnen nötig sind (kein Kundenbezug). → Umschlag-Objekt */
+  K.verschluessele = async function (text, s, kopf) {
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    var daten = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, s.key, enc.encode(text)));
+    return Object.assign({}, kopf, { verschluesselt: 1, kdf: { name: 'PBKDF2-SHA256', salt: s.salt, iter: s.iter }, iv: b64(iv), daten: b64(daten) });
+  };
+
+  /** Umschlag entschlüsseln. → { text, schluessel }  Falsches Passwort → Fehler mit .falschesPasswort */
+  K.entschluessele = async function (umschlag, passwort) {
+    var s = await K.schluessel(passwort, umschlag.kdf.salt, umschlag.kdf.iter);
+    try {
+      var klar = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ausB64(umschlag.iv) }, s.key, ausB64(umschlag.daten));
+      return { text: dec.decode(klar), schluessel: s };
+    } catch (e) {
+      var f = new Error('Das Passwort stimmt nicht.'); f.falschesPasswort = true; throw f;
+    }
+  };
+})(globalThis.AB = globalThis.AB || {});
+
+/* Antragsbuch – Lizenzschlüssel: offline prüfbar per Signatur (ECDSA P-256). Ohne eingeprägten öffentlichen Schlüssel ist die Prüfung aus. */
+(function (AB) {
+  'use strict';
+  var U = AB.util, L = AB.lizenz = {};
+  var ALG = { name: 'ECDSA', namedCurve: 'P-256' }, SIG = { name: 'ECDSA', hash: 'SHA-256' }, PRAEFIX = 'AB1-';
+  var enc = new TextEncoder(), dec = new TextDecoder();
+  function b64u(bytes) { var s = ''; for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function ausB64u(t) { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; var bin = atob(t), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+
+  /** Neues Schlüsselpaar (nur im Lizenz-Werkzeug). → { oeffentlich: JWK, geheim: JWK } */
+  L.erzeugePaar = async function () {
+    var k = await crypto.subtle.generateKey(ALG, true, ['sign', 'verify']);
+    return { oeffentlich: await crypto.subtle.exportKey('jwk', k.publicKey), geheim: await crypto.subtle.exportKey('jwk', k.privateKey) };
+  };
+  /** Lizenz ausstellen (nur im Lizenz-Werkzeug). daten: { nr, name, bis: 'JJJJ-MM-TT' } → Schlüsseltext */
+  L.stelleAus = async function (geheimJwk, daten) {
+    var key = await crypto.subtle.importKey('jwk', geheimJwk, ALG, false, ['sign']);
+    var inhalt = enc.encode(JSON.stringify({ v: 1, nr: String(daten.nr).trim(), name: daten.name || '', bis: daten.bis, aus: daten.aus || U.heute() }));
+    var sig = new Uint8Array(await crypto.subtle.sign(SIG, key, inhalt));
+    return PRAEFIX + b64u(inhalt) + '.' + b64u(sig);
+  };
+  /** Schlüsseltext prüfen → Inhalt { nr, name, bis, aus } oder null (gefälscht, beschädigt, fremder Aussteller). */
+  L.lies = async function (oeffentlichJwk, text) {
+    try {
+      var t = String(text || '').replace(/\s+/g, '');
+      if (t.indexOf(PRAEFIX) !== 0) return null;
+      var teile = t.slice(PRAEFIX.length).split('.');
+      if (teile.length !== 2) return null;
+      var inhalt = ausB64u(teile[0]), key = await crypto.subtle.importKey('jwk', oeffentlichJwk, ALG, false, ['verify']);
+      if (!(await crypto.subtle.verify(SIG, key, ausB64u(teile[1]), inhalt))) return null;
+      var d = JSON.parse(dec.decode(inhalt));
+      return d && d.v === 1 && d.nr && /^\d{4}-\d{2}-\d{2}$/.test(d.bis) ? d : null;
+    } catch (e) { return null; }
+  };
+
+  /**
+   * Lizenzstand bestimmen.
+   * config: { pub: JWK, test: Tage Testzeitraum, kulanz: Tage nach Ablauf, warn: Tage Vorwarnung, inhaber } – ohne pub ist alles frei.
+   * → { modus: 'frei'|'gueltig'|'warnung'|'kulanz'|'test'|'abgelaufen'|'ungueltig'|'fehlt', nurLesen, tage, bis, name, text }
+   */
+  L.pruefe = async function (config, schluessel, vermittlernummer, heute, ersterStart) {
+    heute = heute || U.heute();
+    if (!config || !config.pub) return { modus: 'frei', nurLesen: false, text: '' };
+    var test = config.test == null ? 30 : +config.test, kulanz = config.kulanz == null ? 14 : +config.kulanz, warn = config.warn == null ? 30 : +config.warn;
+    var restTest = test - U.tageZwischen((ersterStart || heute).slice(0, 10), heute);
+    function ohne(modus, grund) {
+      if (restTest > 0) return { modus: 'test', nurLesen: false, tage: restTest, text: 'Testzeitraum: noch ' + restTest + (restTest === 1 ? ' Tag' : ' Tage') + '. ' + grund };
+      return { modus: modus, nurLesen: true, text: grund + ' Die App ist im Lesemodus: ansehen, suchen und exportieren geht weiter.' };
+    }
+    if (!String(schluessel || '').trim()) return ohne('fehlt', 'Es ist kein Lizenzschlüssel eingetragen.');
+    var d = await L.lies(config.pub, schluessel);
+    if (!d) return ohne('ungueltig', 'Der Lizenzschlüssel ist ungültig.');
+    var nr = String(vermittlernummer || '').trim();
+    if (d.nr !== '*' && d.nr !== nr) return Object.assign(ohne('ungueltig', 'Der Lizenzschlüssel gehört zur Vermittlernummer ' + d.nr + (nr ? ', im Projekt steht ' + nr + '.' : ' – bitte die Vermittlernummer in den Einstellungen eintragen.')), { bis: d.bis, name: d.name });
+    var rest = U.tageZwischen(heute, d.bis), o = { bis: d.bis, name: d.name, nr: d.nr, tage: rest, nurLesen: false };
+    if (rest >= 0) { o.modus = rest <= warn ? 'warnung' : 'gueltig'; o.text = rest <= warn ? 'Die Lizenz läuft am ' + U.fmtDatum(d.bis) + ' ab (noch ' + rest + (rest === 1 ? ' Tag' : ' Tage') + ').' : 'Lizenz gültig bis ' + U.fmtDatum(d.bis) + '.'; }
+    else if (-rest <= kulanz) { o.modus = 'kulanz'; o.text = 'Die Lizenz ist am ' + U.fmtDatum(d.bis) + ' abgelaufen. Sie können noch ' + (kulanz + rest) + ' Tage normal weiterarbeiten.'; }
+    else { o.modus = 'abgelaufen'; o.nurLesen = true; o.text = 'Die Lizenz ist am ' + U.fmtDatum(d.bis) + ' abgelaufen. Die App ist im Lesemodus: ansehen, suchen und exportieren geht weiter.'; }
+    return o;
+  };
+
+  /** App-Datei mit dem öffentlichen Schlüssel prägen (nur im Lizenz-Werkzeug). → neuer HTML-Text */
+  L.praege = function (html, config) {
+    var re = /(<script id="lizenz" type="application\/json">)([\s\S]*?)(<\/script>)/;
+    if (!re.test(html)) throw new Error('Das ist keine antragsbuch.html (Lizenz-Marke nicht gefunden).');
+    return html.replace(re, function (_, a, b, c) { return a + JSON.stringify(config).replace(/</g, '\\u003c') + c; });
+  };
+})(globalThis.AB = globalThis.AB || {});
+</script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); }, paar = null, U = AB.util;
+  function lade(name, text, typ) { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: typ || 'application/json' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+  function status(el, text, gut) { el.textContent = text; el.className = 'st ' + (gut ? 'gut' : 'krit'); }
+  function fingerabdruck(pub) { return U.hash(pub.x + pub.y).toUpperCase().slice(0, 8); }
+  function bereit() {
+    $('praegen').disabled = $('ausstellen').disabled = !paar;
+    if (paar) status($('keyStatus'), 'Schlüssel geladen · Kennung ' + fingerabdruck(paar.oeffentlich), true);
+  }
+  $('neu').onclick = async function () {
+    var pw = $('pw').value;
+    if (pw.length < 8) { status($('keyStatus'), 'Bitte ein Passwort mit mindestens 8 Zeichen eingeben.', false); return; }
+    if (paar && !confirm('Es ist bereits ein Schlüssel geladen. Wirklich ein neues Paar erzeugen? Lizenzen des alten Paars gelten in neu geprägten Dateien nicht mehr.')) return;
+    paar = await AB.lizenz.erzeugePaar();
+    var s = await AB.krypto.schluessel(pw), u = await AB.krypto.verschluessele(JSON.stringify(paar.geheim), s, { format: 'antragsbuch-lizenzschluessel', oeffentlich: paar.oeffentlich, erzeugt: new Date().toISOString() });
+    lade('antragsbuch-lizenzschluessel-GEHEIM.json', JSON.stringify(u, null, 1));
+    bereit();
+  };
+  $('laden').onclick = function () { $('ladenDatei').click(); };
+  $('ladenDatei').onchange = async function () {
+    try {
+      var u = JSON.parse(await this.files[0].text());
+      if (u.format !== 'antragsbuch-lizenzschluessel') throw new Error('Das ist keine Schlüsseldatei des Lizenz-Werkzeugs.');
+      var e = await AB.krypto.entschluessele(u, $('pw').value);
+      paar = { oeffentlich: u.oeffentlich, geheim: JSON.parse(e.text) }; bereit();
+    } catch (err) { paar = null; bereit(); status($('keyStatus'), err.message || String(err), false); }
+    this.value = '';
+  };
+  $('praegen').onclick = function () { $('appDatei').click(); };
+  $('appDatei').onchange = async function () {
+    try {
+      var html = await this.files[0].text();
+      var neu = AB.lizenz.praege(html, { pub: paar.oeffentlich, test: +$('test').value || 0, kulanz: +$('kulanz').value || 0, warn: +$('warn').value || 0, inhaber: $('inhaber').value.trim(), kennung: fingerabdruck(paar.oeffentlich) });
+      lade('antragsbuch.html', neu, 'text/html');
+      status($('praegeStatus'), 'Geprägte Datei erzeugt (Kennung ' + fingerabdruck(paar.oeffentlich) + '). Diese Datei verteilen.', true);
+    } catch (err) { status($('praegeStatus'), err.message || String(err), false); }
+    this.value = '';
+  };
+  function setzeBis(d) { $('bis').value = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  $('jahresende').onclick = function () { setzeBis(new Date(new Date().getFullYear(), 11, 31)); };
+  $('plusJahr').onclick = function () { var d = new Date(); d.setFullYear(d.getFullYear() + 1); setzeBis(d); };
+  $('plusMonat').onclick = function () { var d = new Date(); d.setMonth(d.getMonth() + 1); setzeBis(d); };
+  function liste() { try { return JSON.parse(localStorage.getItem('antragsbuch-lizenzliste') || '[]'); } catch (e) { return []; } }
+  function zeigeListe() {
+    var tb = $('liste').querySelector('tbody'); tb.textContent = '';
+    liste().slice().reverse().forEach(function (l) { var tr = document.createElement('tr'); [U.fmtDatum(l.aus), l.nr, l.name, U.fmtDatum(l.bis)].forEach(function (t) { var td = document.createElement('td'); td.textContent = t; tr.appendChild(td); }); tb.appendChild(tr); });
+  }
+  $('ausstellen').onclick = async function () {
+    var nr = $('nr').value.trim(), bis = $('bis').value;
+    if (!/^(\d{6}|\*)$/.test(nr)) { $('ausgabe').value = 'Bitte eine sechsstellige Vermittlernummer eingeben (oder * für alle).'; return; }
+    if (!bis) { $('ausgabe').value = 'Bitte das Ablaufdatum wählen.'; return; }
+    var key = await AB.lizenz.stelleAus(paar.geheim, { nr: nr, name: $('name').value.trim(), bis: bis });
+    $('ausgabe').value = key; $('kopieren').disabled = false;
+    var l = liste(); l.push({ aus: U.heute(), nr: nr, name: $('name').value.trim(), bis: bis }); try { localStorage.setItem('antragsbuch-lizenzliste', JSON.stringify(l)); } catch (e) { /* privat */ }
+    zeigeListe();
+  };
+  $('kopieren').onclick = function () { $('ausgabe').select(); try { navigator.clipboard.writeText($('ausgabe').value); } catch (e) { document.execCommand('copy'); } };
+  $('listeExport').onclick = function () { lade('Lizenzen.csv', AB.csv.schreibe(['Ausgestellt', 'Vermittlernummer', 'Name', 'Gültig bis'], liste().map(function (l) { return [U.fmtDatum(l.aus), l.nr, l.name, U.fmtDatum(l.bis)]; })), 'text/csv;charset=utf-8'); };
+  $('listeLeeren').onclick = function () { if (confirm('Liste der ausgestellten Lizenzen auf diesem Rechner leeren? Die Lizenzen selbst bleiben gültig.')) { localStorage.removeItem('antragsbuch-lizenzliste'); zeigeListe(); } };
+  setzeBis(new Date(new Date().getFullYear(), 11, 31)); zeigeListe();
+})();
+</script>
+</body>
+</html>

@@ -86,6 +86,7 @@
     }
 
     function speichere(naechster) {
+      if (App.gesperrt()) return;
       var x = sammle(), fehler = M.pruefeAntrag(x);
       if (isNaN(x.provisionManuell)) fehler.push({ feld: 'provisionManuell', text: 'Provision (manuell) ist keine Zahl.' });
       Object.keys(felder).forEach(function (k) { felder[k].classList.remove('fehler'); });
