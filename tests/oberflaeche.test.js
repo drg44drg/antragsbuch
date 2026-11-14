@@ -140,7 +140,7 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       assert.match(csv.toString('utf8'), /ADP;Nummer;Neugeschäft/);
       await page.click('#schalter button:has-text("ADP")');
     });
-    await t.test('Ampel, Nachbearbeitung, Auswahl → Prioritätsliste als Excel, Kundensuche, Dashboard-Filter', async () => {
+    await t.test('Ampel, Nachbearbeitung, Auswahl → Prioritätenliste als Excel, Kundensuche, Dashboard-Filter', async () => {
       const AB = require('./lade.js');
       await nav('Anträge'); await page.fill('.suche input', '');
       assert.ok(await zahl('.vt-zeile .ampel.rot') >= 3, 'überfällige Anträge sind rot');
@@ -155,13 +155,13 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       await page.click('.chip:has-text("Nachbearbeitung")');
       assert.equal(await zahl('.vt-zeile'), 1);
       await page.click('.chip:has-text("Nachbearbeitung")');
-      // Auswahl per Checkbox → Prioritätsliste
+      // Auswahl per Checkbox → Prioritätenliste
       await page.selectOption('select[title="Bearbeitungsampel"]', 'gelbrot');
       const n = await zahl('.vt-zeile');
       await page.click('.vt-kopf input[type=checkbox]');
       assert.match(await page.textContent('.auswahlleiste'), new RegExp('^' + n + ' Anträge'));
       const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.auswahlleiste button:has-text("Excel")')]);
-      assert.match(dl.suggestedFilename(), /^Prioritaetsliste_\d{4}-\d\d-\d\d\.xlsx$/);
+      assert.match(dl.suggestedFilename(), /^Prioritaetenliste_\d{4}-\d\d-\d\d\.xlsx$/);
       const blatt = (await AB.xlsx.lies(new Uint8Array(fs.readFileSync(await dl.path()))))[0];
       const k = blatt.zeilen.findIndex((z) => z[0] === 'Ampel');
       assert.deepEqual(blatt.zeilen[k].slice(0, 8), ['Ampel', 'Eingang', 'Kunde', 'Vertragsnummer', 'Bereich', 'Vorgangsart', 'Tarif(e)', 'Monatsbeitrag']);
@@ -188,6 +188,36 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       await page.waitForFunction((x) => { const w = +document.querySelector('.kachel.akzent .wert').textContent.trim(); return w > 0 && w < x; }, alle);
       assert.match(await page.textContent('.kachel.akzent .lbl'), /Zusatz/);
       await page.click('button:has-text("Filter aufheben")');
+    });
+    await t.test('Hilfe: Ablauf-Schaubild, FAQ-Suche und geführte Tour', async () => {
+      await nav('Hilfe');
+      assert.equal(await zahl('.prozess-schritt'), 5); assert.equal(await zahl('.prozess-pfeil'), 4);
+      await page.click('.prozess-schritt:has-text("Abrechnung einlesen")');
+      assert.match(await page.textContent('.prozess-detail'), /kumuliert seit Januar[\s\S]*Wann[\s\S]*Datei/);
+      assert.equal(await zahl('.prozess-schritt.aktiv'), 1); assert.equal(await zahl('.prozess-schritt.fertig'), 2);
+      await page.fill('.karte:has-text("Häufige Fragen") input', 'kumuliert');
+      assert.ok(await zahl('.faq details') >= 1 && await zahl('.faq details') < 5);
+      assert.match(await page.textContent('.faq'), /lese ich etwas doppelt ein/);
+      await page.fill('.karte:has-text("Häufige Fragen") input', '');
+      assert.ok(await zahl('.faq details') >= 12);
+      // Tour: läuft durch alle Schritte, wechselt die Ansichten und endet sauber
+      await page.click('button:has-text("Tour starten")');
+      const schritte = await page.evaluate(() => AB.tour.SCHRITTE.length);
+      const ansichten = new Set();
+      for (let i = 0; i < schritte; i++) {
+        assert.match(await page.textContent('.tour-karte'), new RegExp('Schritt ' + (i + 1) + ' von ' + schritte));
+        ansichten.add(await page.evaluate(() => AB.app.ansicht));
+        await page.waitForTimeout(420);
+        const sel = await page.evaluate((n) => AB.tour.SCHRITTE[n].sel || '', i);
+        if (sel) { const b = await page.evaluate(() => { const r = document.querySelector('.tour-licht').getBoundingClientRect(); return r.width * r.height; }); assert.ok(b > 400, 'Schritt ' + (i + 1) + ' hebt „' + sel + '" hervor'); }
+        const k = await page.evaluate(() => { const r = document.querySelector('.tour-karte').getBoundingClientRect(); return r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; });
+        assert.ok(k, 'Tour-Karte liegt in Schritt ' + (i + 1) + ' vollständig im Fenster');
+        await page.keyboard.press('ArrowRight');
+      }
+      await page.waitForSelector('#tour', { state: 'detached' });
+      assert.ok(ansichten.size >= 5, 'Tour führt durch mehrere Bereiche');
+      await page.click('button:has-text("Tour starten")'); await page.keyboard.press('Escape');
+      await page.waitForSelector('#tour', { state: 'detached' });
     });
     await t.test('52.000 Zeilen: Import im Worker, virtuelle Liste bleibt klein', async () => {
       const t0 = Date.now();

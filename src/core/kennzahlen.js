@@ -114,7 +114,7 @@
   K.tabelleAbgleich = function (erg, liste) { var d = abgleichDaten(erg, liste); return K.alsTabelle(d.kopf, d.zeilen); };
   K.exportAbgleich = function (erg, liste) { var d = abgleichDaten(erg, liste); return AB.csv.schreibe(d.kopf, d.zeilen); };
 
-  /** Prioritätsliste für den Innendienst: ausgewählte Anträge mit Ampel, Werktagen und Nachbearbeitung. */
+  /** Prioritätenliste: ausgewählte Anträge mit Ampel, Werktagen und Nachbearbeitung. */
   K.tabellePrio = function (p, erg, antraege, heute) {
     heute = heute || U.heute();
     var kopf = ['Ampel', 'Eingang', 'Kunde', 'Vertragsnummer', 'Bereich', 'Vorgangsart', 'Tarif(e)', 'Monatsbeitrag', 'Status', 'Werktage', 'Hinweis', 'Nachbearbeitung', 'Bemerkung'];

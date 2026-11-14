@@ -1,4 +1,4 @@
-/* Antragsbuch – Antragsliste: Sofortsuche, Filter, Bearbeitungsampel, Auswahl für die Prioritätsliste, Export. */
+/* Antragsbuch – Antragsliste: Sofortsuche, Filter, Bearbeitungsampel, Auswahl für die Prioritätenliste, Export. */
 (function (AB) {
   'use strict';
   var D = AB.dom, h = D.h, U = AB.util, M = AB.model, App = AB.app;
@@ -9,12 +9,12 @@
   AB.ampelVon = function (a) { var r = App.erg && App.erg.proAntrag[a.id]; return M.ampel(a, App.p.einstellungen, U.heute(), !!(r && r.buendel.length)); };
   AB.ampelPunkt = function (am) { return am.stufe ? h('span.ampel.' + am.stufe, { title: am.grund, role: 'img', 'aria-label': am.stufe === 'gruen' ? 'grün' : am.stufe }) : null; };
 
-  /** Prioritätsliste für den Innendienst als Excel oder Druck/PDF. */
+  /** Prioritätenliste als Excel oder Druck/PDF. */
   AB.prioListe = function (antraege, art) {
     var p = App.p, e = p.einstellungen, t = AB.kennzahlen.tabellePrio(p, App.erg, antraege);
     var unter = (e.name || 'ADP') + (e.vermittlernummer ? ' · Vermittler ' + e.vermittlernummer : '') + ' · ' + antraege.length + ' Anträge · Stand ' + U.fmtDatum(U.heute());
-    if (art === 'excel') D.excel('Prioritaetsliste_' + U.heute() + '.xlsx', Object.assign({ name: 'Prioritätsliste', titel: 'Bitte priorisieren – Anträge in Bearbeitung', unter: unter }, t));
-    else D.drucke('Bitte priorisieren – Anträge in Bearbeitung', unter, t.spalten.map(function (s) { return { t: s.t, r: s.typ === 'euro' || s.typ === 'ganz' }; }),
+    if (art === 'excel') D.excel('Prioritaetenliste_' + U.heute() + '.xlsx', Object.assign({ name: 'Prioritätenliste', titel: 'Prioritätenliste – Anträge in Bearbeitung', unter: unter }, t));
+    else D.drucke('Prioritätenliste – Anträge in Bearbeitung', unter, t.spalten.map(function (s) { return { t: s.t, r: s.typ === 'euro' || s.typ === 'ganz' }; }),
       t.zeilen.map(function (z) { return z.map(function (v, i) { return t.spalten[i].typ === 'euro' && typeof v === 'number' ? U.fmtEuro(v) : v; }); }),
       t.summe.map(function (v, i) { return t.spalten[i].typ === 'euro' && typeof v === 'number' ? U.fmtEuro(v) : v; }));
   };
@@ -46,7 +46,7 @@
       // Auswahlleiste (erscheint, sobald etwas angehakt ist)
       var leiste = h('div.leiste.auswahlleiste', { hidden: true }), anzahl = h('b');
       var gewaehlt = function () { return p.antraege.filter(function (a) { return z.wahl.has(a.id); }); };
-      D.anhaengen(leiste, [anzahl, h('span.klein', null, 'ausgewählt – als Prioritätsliste für den Innendienst:'),
+      D.anhaengen(leiste, [anzahl, h('span.klein', null, 'ausgewählt · Prioritätenliste exportieren:'),
         D.btn('Excel', function () { AB.prioListe(gewaehlt(), 'excel'); }, { klasse: 'klein-btn haupt-btn', icon: 'runter' }),
         D.btn('Drucken / PDF', function () { AB.prioListe(gewaehlt(), 'druck'); }, { klasse: 'klein-btn', icon: 'druck' }),
         D.btn('Nachbearbeitung offen setzen', function () { gewaehlt().forEach(function (a) { a.nachbearbeitung = { status: 'offen', text: a.nachbearbeitung.text || '', datum: a.nachbearbeitung.datum || U.heute() }; a.geaendert = new Date().toISOString(); }); z.wahl.clear(); App.geaendert(); }, { klasse: 'klein-btn' }),
@@ -60,7 +60,7 @@
       var tab = AB.tabelle(box, { hoehe: 50, sort: z.sort || { i: 2, ab: true }, leer: 'Keine Anträge gefunden. Mit „Neuer Antrag" (Taste N) legen Sie einen an.',
         klick: function (a) { AB.maske.oeffne(a); },
         spalten: [
-          { t: '', kopf: alle, b: '22px', w: function (a) { return h('input', { type: 'checkbox', checked: z.wahl.has(a.id), title: 'Für die Prioritätsliste auswählen', onchange: function () { if (this.checked) z.wahl.add(a.id); else z.wahl.delete(a.id); zeigeLeiste(); } }); } },
+          { t: '', kopf: alle, b: '22px', w: function (a) { return h('input', { type: 'checkbox', checked: z.wahl.has(a.id), title: 'Für die Prioritätenliste auswählen', onchange: function () { if (this.checked) z.wahl.add(a.id); else z.wahl.delete(a.id); zeigeLeiste(); } }); } },
           { t: 'Ampel', b: '74px', titel: 'Bearbeitungsampel: Werktage seit Einreichung', w: function (a) { var am = ampel[a.id]; return am.stufe ? [AB.ampelPunkt(am), h('span.mini', { title: am.grund }, am.wt + ' WT')] : ''; }, s: function (a) { var am = ampel[a.id]; return rangA[am.stufe] * 10000 - am.wt; } },
           { t: 'Eingang', b: '88px', w: function (a) { return U.fmtDatum(a.eingang); }, s: function (a) { return a.eingang; }, absteigend: true },
           { t: 'Versicherungsnehmer', b: 'minmax(140px, 1.5fr)', k: 'zwei', w: function (a) { var nb = a.nachbearbeitung; return [h('span', { style: { fontWeight: 600 } }, M.vnName(a)), h('small', null, nb.status === 'offen' ? 'Nachbearbeitung: ' + (nb.text || 'offen') : a.bemerkung || (a.firma || ''))]; }, s: function (a) { return M.vnName(a); } },

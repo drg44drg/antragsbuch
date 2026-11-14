@@ -19,8 +19,10 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Abrechnung 2025 (für den Test mit dem alten Antragsbuch)
 - [ ] Service-Level je Bereich und Liste der Postkörbe (bisher überall 5/10 Werktage als Platzhalter)
 - [ ] Unternehmensziele je Sparte (für den Vergleich im Team)
-- [ ] Produktunterlagen aus dem Ordner „ADP-Gewinnung" (liegt nicht im verbundenen Google Drive) –
-      daraus leiten wir die Tarif-Kategorien Voll/Zusatz ab
+- [ ] Produktunterlagen aus dem Ordner „ADP-Gewinnung" (zweimal gesucht, liegt nicht im verbundenen Google Drive)
+- [ ] Die vier offenen Fragen in `docs/Tarif-Kategorien-Vorschlag.md` beantworten (Endungen a/u/n, VP, Beihilfe, unklare Kürzel)
+- [ ] Genaue Dateinamen von Veränderungsdienst und Provisionsabrechnung (für Ablauf-Schaubild und Tour)
+- [ ] Rechtliche Einschätzung dem Datenschutzbeauftragten und der IT-Sicherheit vorlegen
 - [ ] Altes Antragsbuch eines ADP **mit** dessen Abrechnung (Test der Zusammenführung bei spärlichen Eingaben)
 
 ## C · Erweiterungen
@@ -44,7 +46,7 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Rückweg ADP → Führungskraft nur im Bedarfsfall: Meldedatei mit ausgewählten Anträgen
 
 ### Paket 5 – Weitergabe, Schutz, Lizenz (erst entscheiden, dann bauen)
-- [ ] Projektdatei mit Passwort verschlüsseln (schützt Kundendaten bei Verlust/Weitergabe)
+- [ ] **Vorrangig:** Projektdatei mit Passwort verschlüsseln (Bedingung aus der rechtlichen Einschätzung)
 - [ ] Lizenzschlüssel je ADP mit Ablaufdatum, offline prüfbar (signiert); Verlängerung per neuem Schlüssel
 - [ ] Ablaufdatum der App-Version („bitte neue Version holen")
 - [ ] Rechtliches klären: Verkauf an Kollegen, Datenschutz-Rolle, Freigabe durch den Versicherer
@@ -53,10 +55,16 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D · Erledigt (Version 1.1 – Paket 1)
+## D · Erledigt (Version 1.2)
+
+Geführte Tour (beim ersten Öffnen angeboten, jederzeit über Hilfe) · Hilfe mit animiertem Ablauf-Schaubild und häufigen Fragen ·
+„Prioritätenliste exportieren" · Hinweis „keine Gesundheitsangaben" an den Freitextfeldern ·
+Rechtliche Einschätzung als eigenes Dokument · Vorschlag für Tarif-Kategorien in `docs/Tarif-Kategorien-Vorschlag.md`
+
+## D2 · Erledigt (Version 1.1 – Paket 1)
 
 Excel-Export mit Farben und Formaten (Umschalt-Taste: CSV) · Bearbeitungsampel nach Werktagen mit einstellbaren Fristen ·
-Nachbearbeitung am Antrag · Auswahl per Checkbox → Prioritätsliste (Excel/PDF) · Dashboard-Filter nach Bereich und Tarif ·
+Nachbearbeitung am Antrag · Auswahl per Checkbox → Prioritätenliste (Excel/PDF) · Dashboard-Filter nach Bereich und Tarif ·
 Kurzüberblick im Kopf · Erinnerung „Abrechnung einlesen" · Kundensuche F3/F4 mit Kundenakte ·
 Korrekturbuchungen späterer Monate werden dem Antrag zugeordnet
 

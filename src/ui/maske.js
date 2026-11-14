@@ -137,7 +137,8 @@
         posBox,
         h('div.leiste', { style: { marginTop: '8px' } }, D.btn('Position hinzufügen', neuePos, { klasse: 'klein-btn', icon: 'plus', taste: 'Alt+P' }), sollText)),
       h('div.formraster', null, D.feld('Bemerkung', fBem, 's8'), D.feld('Provision manuell überschreiben (€)', fProv, 's4'),
-        D.feld('Nachbearbeitung', fNb, 's2'), D.feld('Was ist offen / was ging an den Kunden', fNbText, 's7'), D.feld('seit', fNbDatum, 's3')),
+        D.feld('Nachbearbeitung', fNb, 's2'), D.feld('Was ist offen / was ging an den Kunden', fNbText, 's7'), D.feld('seit', fNbDatum, 's3'),
+        h('div.mini.s12', null, 'Bitte keine Diagnosen oder Gesundheitsangaben in Bemerkung und Nachbearbeitung eintragen.')),
       neu ? null : h('div.formraster', null, D.feld('Status', fStatus, 's3'), D.feld('Status seit', fStatusDatum, 's3'),
         h('div.feld.s6', null, h('span', null, 'Verlauf'), h('div.historie', null, a.historie.slice(-4).map(function (e) {
           return h('div', null, U.fmtDatum(e.datum) + ' – ' + M.name('status', e.status) + (e.quelle === 'abgleich' ? ' (automatisch durch Abgleich)' : e.quelle === 'vdienst' ? ' (Veränderungsdienst)' : ''));

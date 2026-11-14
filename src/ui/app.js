@@ -37,6 +37,7 @@
     document.body.classList.add('offen');
     App.zeige('uebersicht');
     App.pruefeOrdner(false);
+    if (AB.tour) AB.tour.biete();
   };
   App.schliesse = function () { App.p = null; App.zeilen = []; App.erg = null; Sp.schliesse(); document.body.classList.remove('offen'); App.zeige('start'); };
   App.rechne = function () {

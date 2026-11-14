@@ -289,10 +289,10 @@ test('Werktage und Bearbeitungsampel', () => {
 test('Excel-Export: formatierte Arbeitsmappe ist lesbar und enthält Farben und Zahlenformate', async () => {
   const { p, erg } = await stand('01-03');
   const t = AB.kennzahlen.tabelleAntraege(p, erg), pr = AB.kennzahlen.tabellePrio(p, erg, p.antraege.slice(0, 5), HEUTE);
-  const bytes = AB.xlsxout.schreibe([Object.assign({ name: 'Anträge', titel: 'Anträge 2026' }, t), Object.assign({ name: 'Prioritätsliste' }, pr)]);
+  const bytes = AB.xlsxout.schreibe([Object.assign({ name: 'Anträge', titel: 'Anträge 2026' }, t), Object.assign({ name: 'Prioritätenliste' }, pr)]);
   assert.deepEqual([...bytes.subarray(0, 2)], [0x50, 0x4B]);
   const zurueck = await AB.xlsx.lies(bytes);
-  assert.deepEqual(zurueck.map((b) => b.name), ['Anträge', 'Prioritätsliste']);
+  assert.deepEqual(zurueck.map((b) => b.name), ['Anträge', 'Prioritätenliste']);
   const kopf = zurueck[0].zeilen.findIndex((z) => z[0] === 'Eingang'), z1 = zurueck[0].zeilen[kopf + 1];
   assert.equal(z1[0], '2026-01-05', 'Datum als echtes Excel-Datum'); assert.equal(z1[1], 'Muster'); assert.equal(typeof z1[9], 'number');
   assert.equal(zurueck[0].zeilen.length, kopf + 1 + t.zeilen.length);
