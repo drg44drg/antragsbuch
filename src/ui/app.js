@@ -4,7 +4,7 @@
   var D = AB.dom, h = D.h, U = AB.util, M = AB.model, Sp = AB.speicher;
   var App = AB.app = { p: null, zeilen: [], erg: null, kz: null, ansicht: 'uebersicht', zustand: {}, wuerfel: null };
   AB.ansichten = AB.ansichten || {};
-  var REIHENFOLGE = ['uebersicht', 'antraege', 'abgleich', 'vdienst', 'produktion', 'team', 'bonus', 'einstellungen', 'hilfe'];
+  var REIHENFOLGE = ['uebersicht', 'antraege', 'abgleich', 'vdienst', 'aktionen', 'produktion', 'team', 'bonus', 'einstellungen', 'hilfe'];
 
   // ---------- Worker ----------
   var worker = null, offen = {}, zaehler = 0;
@@ -106,7 +106,7 @@
       var a = AB.ansichten[id]; if (!a) return;
       var zahl = id === 'abgleich' && App.erg ? App.erg.abweichung.length + App.erg.vorschlaege.length : 0;
       nav.appendChild(h('button' + (App.ansicht === id ? '.aktiv' : ''), { type: 'button', onclick: function () { App.zeige(id); } },
-        D.icon(a.icon), typeof a.titel === 'function' ? a.titel() : a.titel, zahl ? h('span.zahl', null, zahl) : null));
+        D.icon(a.icon), a.nav || (typeof a.titel === 'function' ? a.titel() : a.titel), zahl ? h('span.zahl', null, zahl) : null));
     });
     document.getElementById('projektname').textContent = Sp.dateiname || ('Antragsbuch ' + App.p.jahr);
   }

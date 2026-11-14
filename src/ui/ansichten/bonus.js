@@ -14,7 +14,7 @@
       h('div.leiste', { style: { marginTop: '8px' } }, h('span.muted.klein', null, max != null ? 'möglich: ' + U.fmtEuro0(max) : ''), h('span.frei'), h('b.num', { style: { fontSize: '18px' } }, U.fmtEuro0(praemie))));
   }
 
-  AB.ansichten.bonus = { titel: 'Bonus', icon: 'funke', unter: 'ADP-Wettbewerb: Wo stehe ich, was fehlt noch?',
+  AB.ansichten.bonus = { titel: 'Bonus', icon: 'pokal', unter: 'ADP-Wettbewerb: Wo stehe ich, was fehlt noch?',
     zeige: function (el, aktionen, z) {
       var p = App.p; if (!p.bonus) p.bonus = B.leer();
       var e = p.bonus, r = B.rechne(e);

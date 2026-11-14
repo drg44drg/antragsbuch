@@ -303,3 +303,34 @@ test('Lizenz: ausstellen, prüfen, Testzeitraum, Warnung, Kulanz, Ablauf, Fälsc
   assert.equal(gepraegt.split('</script>').length, 2, 'kein vorzeitiges Skript-Ende');
   assert.throws(() => L.praege('<html></html>', {}), /keine antragsbuch\.html/);
 });
+
+test('Aktionen: Kundenliste einlesen, Kontakte mit festem Datum, Zustände, Kennzahlen, Excel', async () => {
+  const K = AB.aktionen, a = K.neu('Anschreiben Altersvorsorgedepot'); a.frist = '2026-03-31';
+  const zl = [['Liste vom 01.03.2026'], ['Mitgliedsnummer', 'Name VN', 'Ort VN', 'Tarif', 'Monatsbeitrag'],
+    ['012345', 'MUSTER, ANNA', 'Musterstadt', 'A107a', 250.5], ['200200', 'PROBE, CLARA', 'Probedorf', 'ZP7', 35], ['300300', 'BEISPIEL, BERND', 'Beispielhausen', 'BE560', 55.2],
+    ['400400', 'DEMO, EVA', 'Übungsheim', 'ZP9', 48], ['500500', 'VORLAGE, FRITZ', 'Musterstadt', 'A109a', 300], [null, null, null, null, null]];
+  const k = AB.vdienst.kopfzeile(zl), map = AB.vdienst.rate(zl[k]);
+  const e = K.kundenAusTabelle(zl, k, map);
+  assert.equal(e.kunden.length, 5); assert.deepEqual(e.spalten, ['Ort VN', 'Tarif', 'Monatsbeitrag']);
+  assert.deepEqual([e.kunden[0].vnr, e.kunden[0].name, e.kunden[0].extra], ['012345', 'MUSTER, ANNA', ['Musterstadt', 'A107a', '250,5']]);
+  a.kunden = e.kunden; a.spalten = e.spalten;
+  const [k1, k2, k3, k4] = a.kunden;
+  K.setzeKontakt(k1, 0, 'O', '2026-03-05'); K.setzeKontakt(k1, 1, 'T', '2026-03-09'); k1.ergebnis = 'abschluss'; k1.mb = 85.5;
+  K.setzeKontakt(k2, 0, 'O', '2026-03-05');
+  K.setzeKontakt(k3, 0, 'M', '2026-03-05'); K.setzeKontakt(k3, 0, 'P', '2026-03-20');
+  assert.deepEqual(k3.stufen[0], { code: 'P', datum: '2026-03-05' }, 'das Datum des ersten Eintrags bleibt stehen');
+  K.setzeKontakt(k4, 0, 'X', '2026-03-06');
+  assert.deepEqual(a.kunden.map(K.zustand), ['abschluss', 'nichtErreicht', 'kontaktiert', 'keinInteresse', 'unbearbeitet']);
+  let z = K.kennzahlen(a, '2026-03-20');
+  assert.deepEqual([z.kunden, z.bearbeitet, z.erreicht, z.zustand.unbearbeitet, z.mb, z.ueberfaellig, z.tageBisFrist], [5, 4, 3, 1, 85.5, 0, 11]);
+  assert.deepEqual(z.codes, { T: 1, M: 0, P: 1, O: 2, X: 1 }); assert.deepEqual(z.stufen, [4, 1, 0]);
+  assert.equal(z.quoteBearbeitet, 0.8); assert.equal(z.quoteErreicht, 0.75); assert.ok(Math.abs(z.quoteAbschluss - 1 / 3) < 1e-9);
+  assert.equal(K.kennzahlen(a, '2026-04-02').ueberfaellig, 1);
+  K.setzeKontakt(k2, 0, ''); assert.equal(K.zustand(k2), 'unbearbeitet');
+  const t = K.tabelle(a);
+  assert.equal(t.spalten.length, 2 + 3 + 6 + 4); assert.equal(t.zeilen[0][11], 'Abschluss'); assert.equal(t.farbe(t.zeilen[0], 0, 11), 'gut'); assert.equal(t.farbe(t.zeilen[4], 4, 11), 'krit');
+  const zurueck = await AB.xlsx.lies(AB.xlsxout.schreibe([Object.assign({ name: 'Aktion', titel: a.name }, t)]));
+  assert.ok(zurueck[0].zeilen.some((r) => r[0] === '012345' && r[1] === 'MUSTER, ANNA' && r[13] === 85.5), 'Vertragsnummer bleibt Text mit führender Null');
+  const p = M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: {} });
+  assert.deepEqual(p.aktionen, []);
+});

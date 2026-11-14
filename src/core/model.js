@@ -77,7 +77,7 @@
       importe: [], importZaehler: 0,
       zuordnungen: {}, ignoriert: {},
       vdienst: { zuordnungen: {}, importe: [] },
-      team: null,
+      team: null, aktionen: [], bonus: null,
       sicherungen: []
     };
   };
@@ -92,7 +92,7 @@
     // Schritte für künftige Versionen: if (p.schema === 1) { …; p.schema = 2; }
     if (!p.schema) p.schema = 1;
     var leer = M.neuesProjekt(p.jahr);
-    Object.keys(leer).forEach(function (k) { if (p[k] == null && k !== 'team') p[k] = leer[k]; });
+    Object.keys(leer).forEach(function (k) { if (p[k] == null && k !== 'team' && k !== 'bonus') p[k] = leer[k]; });
     var std = M.standardEinstellungen();
     if (Array.isArray(p.einstellungen.provisionsarten) && !(p.einstellungen.artenStand >= 2)) { if (p.einstellungen.provisionsarten.indexOf('Kündigungsrücknahme') < 0) p.einstellungen.provisionsarten.push('Kündigungsrücknahme'); p.einstellungen.artenStand = 2; }
     Object.keys(std).forEach(function (k) { if (p.einstellungen[k] == null) p.einstellungen[k] = std[k]; });

@@ -224,6 +224,31 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       assert.match(await page.evaluate(() => window.__gedruckt), /Provisionsreklamation[\s\S]*250250[\s\S]*Faktor 3,0 laut Vereinbarung/);
       await page.click('.chip:has-text("Reklamiert")');
     });
+    await t.test('Neue Reiter: Meine Produktion, Bonus, Aktionen mit Kundenliste', async () => {
+      await nav('Meine Produktion');
+      await page.waitForSelector('.kachel.akzent:has-text("Mein Netto-Beitrag")');
+      assert.ok(await zahl('.dia svg') >= 3); assert.match(await page.textContent('#inhalt'), /Meine Produktion nach Kategorie[\s\S]*Summe/);
+      await nav('Bonus');
+      await page.fill('label.feld:has-text("KV-Bestand") input', '373185'); await page.keyboard.press('Tab');
+      await page.fill('label.feld:has-text("KV-Nettoproduktion") input', '4485'); await page.keyboard.press('Tab');
+      await page.fill('label.feld:has-text("Nettoproduktion gesamt") input', '4607'); await page.keyboard.press('Tab');
+      assert.match(await page.textContent('#inhalt'), /Was fehlt noch\?[\s\S]*3\.725 €[\s\S]*1\.393 €/);
+      await nav('Aktionen'); await page.click('button:has-text("Erste Aktion anlegen")');
+      await page.fill('dialog input[placeholder^="z. B. Anschreiben"]', 'Mailing Test'); await page.keyboard.press('Enter');
+      await page.waitForSelector('h1:has-text("Mailing Test")');
+      const liste = path.join(tmp, 'kunden.csv');
+      fs.writeFileSync(liste, '\ufeffMitgliedsnummer;Name VN;Ort VN\r\n012345;MUSTER, ANNA;Musterstadt\r\n200200;PROBE, CLARA;Probedorf\r\n300300;BEISPIEL, BERND;Beispielhausen\r\n');
+      await page.setInputFiles('#inhalt input[type=file]', liste);
+      await page.waitForSelector('dialog:has-text("3 Kunden erkannt")'); await page.click('dialog button:has-text("Übernehmen")');
+      assert.equal(await zahl('.vt-zeile'), 3);
+      await page.selectOption('.vt-zeile:has-text("MUSTER, ANNA") select >> nth=0', 'T');
+      await page.selectOption('.vt-zeile:has-text("PROBE, CLARA") select >> nth=0', 'O');
+      await nav('Aktionen');
+      assert.match(await page.textContent('.kachel:has-text("Kontaktiert") .wert'), /1/); assert.match(await page.textContent('.kachel:has-text("Nicht erreicht") .wert'), /1/);
+      assert.match(await page.textContent('.kachel:has-text("Nicht bearbeitet") .wert'), /1/);
+      const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#inhalt button:has-text("Excel")')]);
+      assert.match(dl.suggestedFilename(), /^Aktion_Mailing_Test\.xlsx$/);
+    });
     await t.test('Hilfe: Ablauf-Schaubild, FAQ-Suche und geführte Tour', async () => {
       await nav('Hilfe');
       assert.equal(await zahl('.prozess-schritt'), 5); assert.equal(await zahl('.prozess-pfeil'), 4);
