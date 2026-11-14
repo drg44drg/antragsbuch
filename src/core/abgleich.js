@@ -182,7 +182,7 @@
           erg.storno.push(r);
         } else if (r.shEnde && r.shEnde >= heute) erg.haftung.push(r);
         if (r.vollStorno) r.liste = 'storno'; else erg[r.liste].push(r);
-      } else if (M.pruefbar(a) && (a.status === 'eingereicht' || a.status === 'policiert')) {
+      } else if (M.pruefbar(a) && (a.status === 'eingereicht' || a.status === 'policiert' || (a.quelle === 'altbuch' && a.status === 'abgerechnet' && B.liste.length))) {
         r.tageOffen = U.tageZwischen(a.eingang, heute);
         if (r.tageOffen >= (+e.offenTage || 0)) { r.liste = 'offen'; erg.offen.push(r); }
       }
@@ -216,22 +216,33 @@
 
   function letzteQuelle(a) { return a.historie.length ? a.historie[a.historie.length - 1].quelle : ''; }
 
-  /** Stufe 2: Trefferwertung über Name, Beitrag, Beginn, Tarif. */
+  /**
+   * Stufe 2: Trefferwertung über Name, Beitrag, Provision, Beginn, Tarif.
+   * Kandidaten sind einzelne Bündel sowie Zusammenfassungen je Vertrag×Person, Vertrag×Tarifgruppe und Vertrag – jeweils im Buchungsmonat.
+   * So finden auch Einträge ohne Name und ohne Vertragsnummer (altes Antragsbuch) ihre Buchung.
+   */
   A.vorschlaege = function (reihen, freieBuendel, tol) {
     var offen = reihen.filter(function (r) {
       var a = r.antrag;
-      return !r.buendel.length && M.pruefbar(a) && !U.normVnr(a.vertragsnummer) && M.istOffen(a);
+      return !r.buendel.length && M.pruefbar(a) && !U.normVnr(a.vertragsnummer) && (M.istOffen(a) || (a.status === 'abgerechnet' && a.quelle === 'altbuch'));
     });
     if (!offen.length || !freieBuendel.length) return [];
     var gruppen = new Map();
-    freieBuendel.forEach(function (b) {
-      if (b.ignoriert) return;
-      var k = b.vn + '|' + b.monat, g = gruppen.get(k);
+    function lege(k, b) {
+      var g = gruppen.get(k);
       if (!g) { g = { vn: b.vn, vnr: b.vnr, monat: b.monat, buendel: [], namen: [] }; gruppen.set(k, g); }
       g.buendel.push(b);
       [b.vnName, b.vpName].forEach(function (n) { if (n && g.namen.indexOf(n) < 0) g.namen.push(n); });
+    }
+    freieBuendel.forEach(function (b) {
+      if (b.ignoriert) return;
+      lege('v|' + b.vn + '|' + b.monat, b); lege('p|' + b.vn + '|' + b.pnr + '|' + b.monat, b); lege('t|' + b.vn + '|' + b.tg + '|' + b.monat, b); lege('b|' + b.key, b);
     });
-    var gl = Array.from(gruppen.values());
+    var gesehen = {}, gl = [];
+    gruppen.forEach(function (g) {
+      var sig = g.buendel.map(function (b) { return b.key; }).sort().join('#');
+      if (gesehen[sig]) return; gesehen[sig] = 1; gl.push(g);
+    });
     gl.forEach(function (g) {
       g.mbd = summe(g.buendel, 'mbd'); g.prov = summe(g.buendel, 'prov');
       g.teile = {}; g.namen.forEach(function (n) { U.namensTeile(n).forEach(function (t) { g.teile[t.slice(0, 3)] = 1; }); });
@@ -239,17 +250,18 @@
     });
     var out = [];
     offen.forEach(function (r) {
-      var a = r.antrag, name = M.vnName(a), personen = a.positionen.map(function (p) { return p.person; }).filter(Boolean);
+      var a = r.antrag, name = /^Ohne Name/.test(a.vn.name) ? '' : M.vnName(a), personen = a.positionen.map(function (p) { return p.person; }).filter(Boolean);
       var teile = U.namensTeile(name + ' ' + personen.join(' ')).map(function (t) { return t.slice(0, 3); });
-      var kand = [];
+      var ohneMonat = a.eingang ? monatMinus1(a.eingang.slice(0, 7)) : '', kand = [];
       gl.forEach(function (g) {
         var punkte = 0, gruende = [];
-        var dB = Math.abs(g.mbd - r.sollB);
-        var beitragGenau = dB <= tol + 1e-9;
-        if (beitragGenau) { punkte += 30; gruende.push('Beitrag stimmt'); }
-        else if (dB <= Math.max(1, Math.abs(r.sollB) * 0.03)) { punkte += 18; gruende.push('Beitrag fast gleich'); }
+        var dB = Math.abs(g.mbd - r.sollB), beitragGenau = dB <= tol + 1e-9 && Math.abs(r.sollB) > 0.005;
+        var provGenau = Math.abs(r.sollP) > 1 && Math.abs(g.prov - r.sollP) <= 0.5;
         var nameMoeglich = teile.some(function (t) { return g.teile[t]; });
-        if (!nameMoeglich && !beitragGenau) return;
+        if (!nameMoeglich && !beitragGenau && !provGenau) return;
+        if (beitragGenau) { punkte += 30; gruende.push('Beitrag stimmt'); }
+        else if (Math.abs(r.sollB) > 0.005 && dB <= Math.max(1, Math.abs(r.sollB) * 0.03)) { punkte += 18; gruende.push('Beitrag fast gleich'); }
+        if (provGenau) { punkte += 30; gruende.push('Provision stimmt'); }
         var sim = 0;
         if (nameMoeglich) g.namen.forEach(function (n) {
           sim = Math.max(sim, U.namensAehnlichkeit(name, n));
@@ -264,17 +276,35 @@
           else if (a.beginn.slice(0, 7) === beg.slice(0, 7)) { punkte += 6; gruende.push('Beginn im selben Monat'); }
         }
         if (a.positionen.some(function (ps) { return ps.tarif && g.tarife[String(ps.tarif).toLowerCase()]; })) { punkte += 10; gruende.push('Tarif stimmt'); }
-        if (g.buendel.some(function (b) { return gruppenPassen(a, b.tg); })) punkte += 5; else punkte -= 15;
-        if (g.monat < (a.eingang || '').slice(0, 7)) punkte -= 20;
+        if (g.buendel.some(function (b) { return gruppenPassen(a, b.tg); })) punkte += 5; else punkte -= 10;
+        if (a.eingang && g.monat === a.eingang.slice(0, 7)) { punkte += 5; if (a.quelle === 'altbuch') gruende.push('gleicher Monat'); }
+        else if (g.monat < ohneMonat) punkte -= 20;
         if (punkte >= 45) kand.push({ vnr: g.vnr, vn: g.vn, monat: g.monat, keys: g.buendel.map(function (b) { return b.key; }),
-          punkte: Math.min(100, punkte), gruende: gruende, mbd: g.mbd, prov: g.prov, name: g.namen[0] || '', tarife: Object.keys(g.tarife).length ? g.buendel.reduce(function (t, b) { return t.concat(b.tarife); }, []) : [] });
+          punkte: Math.min(100, punkte), gruende: gruende, mbd: g.mbd, prov: g.prov, name: g.namen[0] || '', sicher: beitragGenau && provGenau,
+          tarife: g.buendel.reduce(function (t, b) { return t.concat(b.tarife); }, []) });
       });
       if (kand.length) {
-        kand.sort(function (x, y) { return y.punkte - x.punkte; });
-        out.push({ reihe: r, kandidaten: kand.slice(0, 3) });
+        kand.sort(function (x, y) { return y.punkte - x.punkte || y.keys.length - x.keys.length; });
+        // „sicher" nur, wenn es genau einen Vertrag mit Beitrag UND Provision gibt
+        var sichere = kand.filter(function (k) { return k.sicher; }), vns = {};
+        sichere.forEach(function (k) { vns[k.vn] = 1; });
+        kand.forEach(function (k) { k.sicher = k.sicher && Object.keys(vns).length === 1; });
+        out.push({ reihe: r, kandidaten: kand.slice(0, 3), sicher: kand[0].sicher });
       }
     });
     return out;
+  };
+
+  /** Alle sicheren Vorschläge (Beitrag und Provision stimmen, eindeutig) auf einmal bestätigen. → Anzahl */
+  A.bestaetigeSichere = function (p, erg) {
+    var vergeben = {}, n = 0;
+    erg.vorschlaege.forEach(function (v) {
+      var k = v.kandidaten[0];
+      if (!v.sicher || k.keys.some(function (x) { return vergeben[x]; })) return;
+      k.keys.forEach(function (x) { vergeben[x] = 1; });
+      if (A.bestaetige(p, v.reihe.antrag.id, k)) n++;
+    });
+    return n;
   };
 
   /** Vom Abgleich ermittelte Statuswechsel im Projekt eintragen. → Anzahl */

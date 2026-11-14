@@ -127,16 +127,18 @@
           { t: 'Erwartete Prov.', b: '120px', r: true, w: function (r) { return U.fmtEuro(r.sollP); }, s: function (r) { return r.sollP; } },
           { t: 'Status', b: '130px', w: function (r) { return AB.statusMarke(r.antrag); }, s: function (r) { return r.antrag.status; }, d: function (r) { return M.name('status', r.antrag.status); } },
           { t: '', b: '130px', w: function (r) { return D.btn(r.antrag.reklamation ? 'Reklamation' : 'Reklamieren', function () { AB.reklamation.oeffne([r.antrag]); }, { klasse: 'klein-btn', titel: 'Provisionsreklamation vorausgefüllt öffnen' }); }, d: function () { return ''; } }];
-        D.anhaengen(werkzeug, [h('span.muted.klein', null, 'Eingereicht oder policiert, aber seit mindestens ' + e.offenTage + ' Tagen keine Buchung.'), h('span.frei'), exportBtn()]);
+        D.anhaengen(werkzeug, [h('span.muted.klein', null, 'Eingereicht oder policiert, aber seit mindestens ' + e.offenTage + ' Tagen keine Buchung – oder aus dem alten Antragsbuch übernommen und noch keiner Buchung zugeordnet.'), h('span.frei'), exportBtn()]);
         if (erg.vorschlaege.length) {
-          var vb = h('div.karte', { style: { maxHeight: '178px', overflow: 'auto', padding: '12px 16px', flex: 'none' } }, h('h3', null, 'Zuordnungsvorschläge (' + erg.vorschlaege.length + ')'),
+          var nSicher = erg.vorschlaege.filter(function (v) { return v.sicher; }).length;
+          var vb = h('div.karte', { style: { maxHeight: '206px', overflow: 'auto', padding: '12px 16px', flex: 'none' } }, h('div.leiste', null, h('h3', null, 'Zuordnungsvorschläge (' + erg.vorschlaege.length + ')'), h('span.frei'),
+            nSicher ? D.btn('Alle ' + nSicher + ' sicheren bestätigen', function () { M.sichere(p, 'Vor Sammelbestätigung'); var n = AB.abgleich.bestaetigeSichere(p, erg); App.geaendert(); D.toast(n + ' Zuordnungen bestätigt und Vertragsnummern eingetragen.'); }, { klasse: 'klein-btn haupt-btn', icon: 'haken', titel: 'Sicher heißt: Beitrag und Provision stimmen und es gibt genau einen passenden Vertrag' }) : null),
             h('div.unter', null, 'Antrag ohne Vertragsnummer – passende Buchung gefunden. Ein Klick trägt die Vertragsnummer ein.'));
           erg.vorschlaege.forEach(function (v) {
             v.kandidaten.forEach(function (k, ki) {
               vb.appendChild(h('div.leiste', { style: { padding: '5px 0', borderTop: '1px solid var(--line)' } },
                 h('div', { style: { flex: 1, minWidth: 0 } }, ki === 0 ? h('b', null, M.vnName(v.reihe.antrag) + ' · ' + U.fmtEuro(v.reihe.sollB)) : h('span.mini', null, 'Alternative'), h('span.muted.klein', null, '  ↔  Vertrag ' + k.vnr + ' · ' + (k.name || 'ohne Name') + ' · ' + U.fmtEuro(k.mbd) + ' · ' + U.monatName(k.monat))),
                 h('span.marke-s' + (k.punkte >= 80 ? '.gut' : '.warn'), { title: k.gruende.join(', ') }, k.punkte + ' % · ' + k.gruende.join(', ')),
-                D.btn('Bestätigen', function () { AB.abgleich.bestaetige(p, v.reihe.antrag.id, k); App.geaendert(); D.toast('Vertragsnummer ' + k.vnr + ' eingetragen.'); }, { klasse: 'klein-btn haupt-btn', icon: 'haken' })));
+                k.sicher ? h('span.marke-s.gut', null, 'sicher') : null, D.btn('Bestätigen', function () { AB.abgleich.bestaetige(p, v.reihe.antrag.id, k); App.geaendert(); D.toast('Vertragsnummer ' + k.vnr + ' eingetragen.'); }, { klasse: 'klein-btn haupt-btn', icon: 'haken' })));
             });
           });
           el.appendChild(vb);

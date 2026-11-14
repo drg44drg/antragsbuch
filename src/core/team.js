@@ -163,12 +163,12 @@
    * Verdichtet die Abrechnung zu Zellen ADP × Monat × Tarifgruppe × Kategorie × Provisionsart.
    * → { zellen:[{adp, m, tg, kat, art, n, plus, minus, prov}], adps:[nr], gruppen:[tg], arten:[...] }
    */
-  T.wuerfel = function (zeilen, jahr) {
+  T.wuerfel = function (zeilen, jahr, eigen) {
     var map = new Map(), adps = {}, gruppen = {}, arten = {}, tarifCache = {};
     for (var i = 0; i < zeilen.length; i++) {
       var z = zeilen[i];
       if (jahr && +z.bdat.slice(0, 4) !== +jahr) continue;
-      var adp = T.schreiber(z), kat = T.kategorie(z), m = +z.bdat.slice(5, 7) - 1;
+      var adp = eigen ? 'ich' : T.schreiber(z), kat = T.kategorie(z), m = +z.bdat.slice(5, 7) - 1;
       var te = tarifCache[z.tarif] || (tarifCache[z.tarif] = AB.tarif.einordnen(z.tarif, z.tg)), sp = te.kategorie || 'Sonstige';
       var key = adp + '|' + m + '|' + z.tg + '|' + kat + '|' + z.part + '|' + sp + '|' + (te.beihilfe ? 1 : 0), c = map.get(key);
       if (!c) { c = { adp: adp, m: m, tg: z.tg, kat: kat, art: z.part, sp: sp, bh: !!te.beihilfe, n: 0, plus: 0, minus: 0, prov: 0, vn: new Set() }; map.set(key, c); }
@@ -184,7 +184,7 @@
   /** Würfel filtern und je ADP sowie je Monat summieren. f: { adps:Set|null, arten:Set|null, gruppen:Set|null, monate:[von,bis] } */
   T.auswertung = function (w, f) {
     f = f || {};
-    function neu() { return { n: 0, plus: 0, minus: 0, netto: 0, prov: 0, kat: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, katN: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, gruppen: {}, sparten: {}, beihilfe: 0, monate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }; }
+    function neu() { return { n: 0, plus: 0, minus: 0, netto: 0, prov: 0, kat: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, katN: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, gruppen: {}, sparten: {}, spartenDetail: {}, provMonate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], beihilfe: 0, monate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }; }
     var proAdp = {}, gesamt = neu(), von = f.monate ? f.monate[0] : 0, bis = f.monate ? f.monate[1] : 11;
     w.zellen.forEach(function (c) {
       if (f.arten && !f.arten.has(c.art)) return;
@@ -198,6 +198,8 @@
         x.gruppen[c.tg] = (x.gruppen[c.tg] || 0) + c.plus + c.minus;
         var spn = (c.bh ? 'Beihilfe · ' : '') + c.sp; x.sparten[spn] = (x.sparten[spn] || 0) + c.plus + c.minus;
         if (c.bh) x.beihilfe += c.plus + c.minus;
+        var sd = x.spartenDetail[spn] || (x.spartenDetail[spn] = { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0, netto: 0, n: 0, prov: 0 });
+        sd[c.kat] += c.plus + c.minus; sd.netto += c.plus + c.minus; sd.n += c.n; sd.prov += c.prov; x.provMonate[c.m] += c.prov;
         x.monate[c.m] += c.plus + c.minus;
       });
     });

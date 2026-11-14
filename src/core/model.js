@@ -7,12 +7,12 @@
   M.FORMAT = 'antragsbuch';
 
   M.BEREICHE = [
-    { id: 'voll', name: 'Vollversicherung', kurz: 'Voll', gruppen: ['Vollversicherung'] },
-    { id: 'zusatz', name: 'Zusatzversicherung', kurz: 'Zusatz', gruppen: ['Zusatzversicherung (Art Leben)', 'Zusatzversicherung (Art Schaden)'] },
+    { id: 'voll', name: 'Vollversicherung', kurz: 'Voll', gruppen: ['Vollversicherung', 'Pflegeversicherung'] },
+    { id: 'zusatz', name: 'Zusatzversicherung', kurz: 'Zusatz', gruppen: ['Zusatzversicherung (Art Leben)', 'Zusatzversicherung (Art Schaden)', 'Auslandskrankenversicherung'] },
     { id: 'bkv', name: 'bKV/Firmentarife', kurz: 'bKV', gruppen: ['Firmentarife'] },
     { id: 'gruppe', name: 'Gruppentarife', kurz: 'Gruppe', gruppen: ['Gruppentarife'] },
-    { id: 'pflege', name: 'Pflegepflicht', kurz: 'Pflege', gruppen: ['Vollversicherung', 'Zusatzversicherung (Art Leben)'] },
-    { id: 'leben', name: 'Leben', kurz: 'Leben', gruppen: ['Lebensversicherung (Standard)'] },
+    { id: 'pflege', name: 'Pflegepflicht', kurz: 'Pflege', gruppen: ['Vollversicherung', 'Pflegeversicherung', 'Zusatzversicherung (Art Leben)'] },
+    { id: 'leben', name: 'Leben', kurz: 'Leben', gruppen: ['Lebensversicherung (Standard)', 'SDL (Standard)'] },
     { id: 'unfall', name: 'Unfall', kurz: 'Unfall', gruppen: ['Unfallversicherung'] },
     { id: 'gkv', name: 'GKV (mhplus-Mitgliedschaft)', kurz: 'GKV', gruppen: [] }
   ];
@@ -60,7 +60,7 @@
       vermittlernummer: '', name: '',
       toleranzBeitrag: 0.05, toleranzProvision: 0.5, pruefeProvision: true,
       offenTage: 60, stornoSchwelle: 90,
-      provisionsarten: ['Abschluss', 'Erhöhung', 'Manuell', 'Bestand'],
+      provisionsarten: ['Abschluss', 'Erhöhung', 'Manuell', 'Bestand', 'Kündigungsrücknahme'], artenStand: 2,
       sla: M.standardSla(), abrechnungTag: 6
     };
   };
@@ -94,6 +94,7 @@
     var leer = M.neuesProjekt(p.jahr);
     Object.keys(leer).forEach(function (k) { if (p[k] == null && k !== 'team') p[k] = leer[k]; });
     var std = M.standardEinstellungen();
+    if (Array.isArray(p.einstellungen.provisionsarten) && !(p.einstellungen.artenStand >= 2)) { if (p.einstellungen.provisionsarten.indexOf('Kündigungsrücknahme') < 0) p.einstellungen.provisionsarten.push('Kündigungsrücknahme'); p.einstellungen.artenStand = 2; }
     Object.keys(std).forEach(function (k) { if (p.einstellungen[k] == null) p.einstellungen[k] = std[k]; });
     Object.keys(std.sla).forEach(function (k) { if (!p.einstellungen.sla[k]) p.einstellungen.sla[k] = std.sla[k]; });
     var regeln = AB.provision.standardRegeln();

@@ -111,7 +111,7 @@ test('Stufe 2: Vorschlag über Name/Beitrag/Beginn/Tarif, Bestätigung trägt Ve
   assert.equal(erg.vorschlaege.length, 1);
   const v = erg.vorschlaege[0];
   assert.equal(v.reihe.antrag.id, 'a-5'); assert.equal(v.kandidaten[0].vnr, '300300'); assert.ok(v.kandidaten[0].punkte >= 90);
-  assert.deepEqual(v.kandidaten[0].gruende, ['Beitrag stimmt', 'Name stimmt', 'Beginn stimmt', 'Tarif stimmt']);
+  assert.deepEqual(v.kandidaten[0].gruende, ['Beitrag stimmt', 'Provision stimmt', 'Name stimmt', 'Beginn stimmt', 'Tarif stimmt']);
   assert.deepEqual(ids(erg.ohneNr), ['a-5'], 'Bestandsgeschäft ohne Vertragsnummer wird angemahnt, Neugeschäft erst nach Policierung');
   A.bestaetige(p, 'a-5', v.kandidaten[0]);
   const a5 = p.antraege.find((a) => a.id === 'a-5');
@@ -390,4 +390,71 @@ test('Auswertung nach Kategorie und Beihilfe: Kennzahlen, Filter, Management-Wü
   assert.equal(U.runde(nur.gesamt.netto), 120); assert.equal(U.runde(alle.gesamt.beihilfe), 120);
   assert.equal(U.runde(alle.gesamt.sparten['Beihilfe · Ambulant']), 120);
   assert.ok(Math.abs(alle.gesamt.netto - nur.gesamt.netto - ohne.gesamt.netto) < 0.01);
+});
+
+test('Altes Excel-Antragsbuch: Einträge lesen, über Beitrag und Provision der Abrechnung zuordnen', async () => {
+  // Blatt wie im bisherigen Antragsbuch: Monatsblöcke in Spalte A, Beträge in Status-Spalten, ohne Name und Vertragsnummer
+  const kopf = [null, 'Datum', 'Antragsteller', 'Abgerechnet Jahr', 'Policiert', 'Eingereicht', null, 'Abgerechnet Jahr', 'Policiert', 'Eingereicht', 'GKV', 'brutto', 'Sparte', 'Tarif', 'Provision Jahr'];
+  const z = (a, o) => { const r = new Array(15).fill(null); r[0] = a; Object.entries(o || {}).forEach(([k, v]) => { r[+k] = v; }); return r; };
+  const zeilenBlatt = [kopf, z('Januar'),
+    z(null, { 3: 420.5, 12: 'Voll Neu', 13: 'A107', 14: 2312.75 }),           // = a-1 der Testabrechnung (Vertrag 012345)
+    z(null, { 7: 48, 12: 'Zusatz', 13: 'ZP9', 14: 216 }),                      // Vertrag 400400
+    z('Februar'), z(null, { 7: -20, 12: 'BKV Minderbeitrag', 13: 'Storno', 14: -110 }),
+    z(null, { 8: 99.99, 12: 'BKV Neu', 13: 'ILF', 14: 300 }),                  // policiert, keine Buchung
+    z(null, { 10: 2, 12: 'mhplus' }),
+    z('März'), z(null, { 2: 'Demo, Fritz', 7: 28.9, 12: 'Zusatz', 13: 'ZP7', 14: 130.05 }),
+    z('Dezember'), z('=SUM(A2:A9)', { 3: 420.5, 4: 0, 5: 0, 7: 56.9, 8: 99.99, 9: 0 })];
+  const fund = AB.altbuch.finde([{ name: 'Abrechnung', zeilen: [['x']] }, { name: '2026', zeilen: zeilenBlatt }]);
+  assert.equal(fund.jahr, 2026);
+  const alt = AB.altbuch.lies(fund);
+  assert.equal(alt.antraege.length, 6, 'Summenzeile wird nicht übernommen');
+  const [a1, a2, a3, a4, a5, a6] = alt.antraege;
+  assert.deepEqual([a1.eingang, a1.bereich, a1.vorgang, a1.status, M.beitrag(a1), a1.provisionManuell, a1.quelle], ['2026-01-01', 'voll', 'neu', 'abgerechnet', 420.5, 2312.75, 'altbuch']);
+  assert.match(a1.vn.name, /^Ohne Name/);
+  assert.deepEqual([a3.bereich, a3.vorgang, M.beitrag(a3), a3.eingang], ['bkv', 'minder', -20, '2026-02-01']);
+  assert.equal(a4.status, 'policiert'); assert.equal(a5.bereich, 'gkv'); assert.equal(a5.positionen.length, 2);
+  assert.deepEqual([a6.vn.name, a6.vn.vorname], ['Demo', 'Fritz']);
+  // gegen die Testabrechnung laufen lassen
+  const d = erzeuge(), p = M.neuesProjekt(2026);
+  alt.antraege.forEach((a) => p.antraege.push(a));
+  p.importZaehler = 1;
+  const r = await AB.importer.lies(new Uint8Array(d.dateien['abrechnung_2026_01-03.csv']), 'a.csv', { importNr: 1 });
+  assert.deepEqual(r.jahre, ['2026']);
+  const zeilen = S.entpacke(r.gepackt);
+  let erg = A.rechne(p, zeilen, HEUTE);
+  const vor = Object.fromEntries(erg.vorschlaege.map((v) => [v.reihe.antrag.id, v]));
+  assert.equal(vor[a1.id].kandidaten[0].vnr, '012345'); assert.equal(vor[a1.id].sicher, true);
+  assert.deepEqual(vor[a1.id].kandidaten[0].gruende.slice(0, 2), ['Beitrag stimmt', 'Provision stimmt']);
+  assert.equal(vor[a1.id].kandidaten[0].keys.length, 2, 'beide Personen des Vertrags zusammen');
+  assert.equal(vor[a2.id].kandidaten[0].vnr, '400400'); assert.equal(vor[a6.id].kandidaten[0].vnr, '140140');
+  assert.ok(ids(erg.offen).includes(a1.id), 'ohne Zuordnung steht der übernommene Eintrag unter Offen');
+  const n = A.bestaetigeSichere(p, erg);
+  assert.ok(n >= 3, n + ' sichere Zuordnungen');
+  assert.equal(a1.vertragsnummer, '012345'); assert.equal(a2.vertragsnummer, '400400');
+  erg = A.rechne(p, zeilen, HEUTE);
+  assert.equal(erg.proAntrag[a1.id].liste, 'gleich'); assert.equal(erg.proAntrag[a1.id].istP, 2312.75);
+  assert.ok(!erg.vorschlaege.some((v) => v.reihe.antrag.id === a1.id));
+  // Datei-Erkennung über den Importer (Excel mit Antragsbuch-Blatt)
+  const xl = AB.xlsxout.schreibe([{ name: '2026', spalten: kopf.map((t) => ({ t: t || '' })), zeilen: zeilenBlatt.slice(1).map((x) => x.map((v) => v == null ? '' : v)) }]);
+  const imp = await AB.importer.lies(xl, 'Antragsbuch.xlsx', {});
+  assert.equal(imp.art, 'altbuch'); assert.equal(imp.altbuch.antraege.length, 6); assert.equal(imp.blatt, '2026');
+});
+
+test('Neue Werte der echten Abrechnung: Kündigungsrücknahme, Pflege-, Auslands- und SDL-Tarifgruppe; eigene Auswertung', async () => {
+  const kopf = KOPF, zl = [kopf,
+    zeile({ vnr: '1', name: 'MUSTER, ANNA', tarif: 'PPN', tg: 'Pflegeversicherung', mbd: 30, f: 1.5, bdat: '2026-01-15', art: 'Kündigungsrücknahme' }),
+    zeile({ vnr: '2', name: 'PROBE, CLARA', tarif: 'AR', tg: 'Auslandskrankenversicherung', mbd: 5, f: 4.5, bdat: '2026-02-12', beteil: '913095 (Geschrieben), 900999 (Mitwirkung)' }),
+    zeile({ vnr: '3', name: 'TEST, DIETER', tarif: 'A30a', mbd: 120, bdat: '2026-02-12' })];
+  const r = S.lies(zl.map((z) => z.map(String)));
+  assert.equal(r.zeilen[0].part, 'Kündigungsrücknahme');
+  assert.ok(S.PROVISIONSARTEN.includes('Kündigungsrücknahme') && M.standardEinstellungen().provisionsarten.includes('Kündigungsrücknahme'));
+  assert.equal(M.bereichAusGruppe('Pflegeversicherung'), 'voll'); assert.equal(M.bereichAusGruppe('Auslandskrankenversicherung'), 'zusatz'); assert.equal(M.bereichAusGruppe('SDL (Standard)'), 'leben');
+  const alt = M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: { provisionsarten: ['Abschluss'] } });
+  assert.deepEqual(alt.einstellungen.provisionsarten, ['Abschluss', 'Kündigungsrücknahme']);
+  // eigene Auswertung: alles unter „ich", auch wenn ein Partner „geschrieben" hat
+  const we = AB.team.wuerfel(r.zeilen, 2026, true), wm = AB.team.wuerfel(r.zeilen, 2026);
+  assert.deepEqual(we.adps, ['ich']); assert.ok(wm.adps.includes('913095'));
+  const a = AB.team.auswertung(we, {}).gesamt;
+  assert.equal(U.runde(a.netto), 155); assert.equal(U.runde(a.beihilfe), 120);
+  assert.equal(U.runde(a.spartenDetail['Beihilfe · Ambulant'].neu), 120); assert.equal(U.runde(a.provMonate[1]), U.runde(5 * 4.5 + 120 * 5.5));
 });

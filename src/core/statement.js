@@ -35,9 +35,9 @@
   ];
   S.FELDER = S.SPALTEN.map(function (s) { return s[0]; }).concat(['imp']);
 
-  S.PROVISIONSARTEN = ['Abschluss', 'Erhöhung', 'Bestand', 'Manuell', 'Legacy', 'Hierarchie'];
+  S.PROVISIONSARTEN = ['Abschluss', 'Erhöhung', 'Bestand', 'Manuell', 'Kündigungsrücknahme', 'Legacy', 'Hierarchie'];
   var PART = { abschluss: 'Abschluss', erhhung: 'Erhöhung', erhoehung: 'Erhöhung', erhohung: 'Erhöhung',
-    bestand: 'Bestand', manuell: 'Manuell', legacy: 'Legacy', hierarchie: 'Hierarchie' };
+    bestand: 'Bestand', manuell: 'Manuell', kndigungsrcknahme: 'Kündigungsrücknahme', kuendigungsruecknahme: 'Kündigungsrücknahme', legacy: 'Legacy', hierarchie: 'Hierarchie' };
 
   /** Kopfzeile finden (innerhalb der ersten 15 Zeilen) und Spalten über den Namen zuordnen. */
   S.ordneSpalten = function (zeilen) {

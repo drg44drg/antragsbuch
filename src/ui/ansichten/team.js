@@ -68,39 +68,44 @@
   }
 
   // ---------- Management: ADP-Vergleich ----------
-  function zeigeMgmt(el, aktionen, p, z) {
+  function zeigeMgmt(el, aktionen, p, z, eigen) {
+    if (eigen && !App.zeilen.length) { el.appendChild(ablage('Legen Sie Ihre Provisionsabrechnung (CSV) ab. Die App zeigt daraus Ihre Produktion nach Monaten, Sparten, Kategorien, Neugeschäft, Erhöhungen und Storno – auch wenn Sie keinen einzigen Antrag erfasst haben.')); return; }
     if (!App.zeilen.length && !p.team) { el.appendChild(ablage('Legen Sie Ihre Provisionsabrechnung (mit Hierarchie-Buchungen) und die Monatsscheiben (Excel) ab. Die App erkennt beide Dateien automatisch und wertet sie je ADP aus.')); return; }
-    var w = App.wuerfel || (App.wuerfel = T.wuerfel(App.zeilen, p.jahr));
-    if (!z.arten) z.arten = new Set(w.arten.filter(function (a) { return a === 'Hierarchie' || a === 'Abschluss' || a === 'Erhöhung'; }));
+    var w = eigen ? (App.wuerfelEigen && App.wuerfelEigen.ref === App.zeilen ? App.wuerfelEigen.w : (App.wuerfelEigen = { ref: App.zeilen, w: T.wuerfel(App.zeilen, p.jahr, true) }).w) : (App.wuerfel || (App.wuerfel = T.wuerfel(App.zeilen, p.jahr)));
+    if (!z.arten) z.arten = new Set(w.arten.filter(function (a) { return eigen ? (a === 'Abschluss' || a === 'Erhöhung' || a === 'Manuell' || a === 'Kündigungsrücknahme') : (a === 'Hierarchie' || a === 'Abschluss' || a === 'Erhöhung'); }));
+    if (!eigen && w.arten.indexOf('Hierarchie') < 0 && App.zeilen.length) el.appendChild(h('div.meldung.warn.leiste', null, h('span', { style: { flex: 1 } }, 'Diese Abrechnung enthält keine Hierarchie-Buchungen – sie gehört einem einzelnen ADP. Die Nummern in der Liste sind beteiligte Partner (Spalte „Beteiligte Vermittler"), keine ADP.'),
+      D.btn('Zu „Meine Produktion"', function () { App.zeige('produktion'); }, { klasse: 'klein-btn haupt-btn' })));
     if (!z.farben) z.farben = {};
     if (z.von == null) { z.von = 0; z.bis = 11; }
+    if (eigen) z.mass = 'beitrag';
     if (!z.mass) z.mass = App.zeilen.length ? 'beitrag' : 'scheiben';
     var f = { arten: z.arten, gruppen: z.gruppe ? new Set([z.gruppe]) : null, monate: [z.von, z.bis], beihilfe: z.beihilfe || '' };
     var alle = T.auswertung(w, f), nrs = Object.keys(alle.proAdp);
     var scheibe = {}, vergeben = new Set();
     var merke = function (nr, t) { var s = 0; for (var m = z.von; m <= z.bis; m++) s += t.werte[m] || 0; scheibe[nr] = { summe: s, zeile: t }; vergeben.add(t); };
     nrs.forEach(function (nr) { var t = teamZeile(p, nr); if (t && !t.gesamt) merke(nr, t); });
-    (p.team ? p.team.zeilen : []).forEach(function (t) { if (!t.gesamt && !vergeben.has(t)) { nrs.push(t.nr); merke(t.nr, t); } });
+    if (!eigen) (p.team ? p.team.zeilen : []).forEach(function (t) { if (!t.gesamt && !vergeben.has(t)) { nrs.push(t.nr); merke(t.nr, t); } });
     var wertVon = function (nr) { return z.mass === 'scheiben' ? (scheibe[nr] ? scheibe[nr].summe : 0) : (alle.proAdp[nr] ? alle.proAdp[nr].netto : 0); };
     nrs.sort(function (a, b) { return wertVon(b) - wertVon(a); });
+    if (eigen) z.wahl = new Set(nrs);
     if (!z.wahl) z.wahl = new Set(nrs.slice(0, 5));
     nrs.slice().forEach(function (nr) { if (z.wahl.has(nr) && z.farben[nr] == null) { for (var c = 0; c < 5; c++) if (Object.keys(z.farben).every(function (k) { return z.farben[k] !== c; })) { z.farben[nr] = c; break; } } });
     Object.keys(z.farben).forEach(function (nr) { if (!z.wahl.has(nr)) delete z.farben[nr]; });
     var farbe = function (nr) { return z.farben[nr] != null ? G.FARBEN[z.farben[nr]] : G.GRAU; };
     var gew = T.auswertung(w, Object.assign({}, f, { adps: z.wahl })).gesamt;
-    var neu = function () { App.zeige('team'); };
+    var neu = function () { App.zeige(eigen ? 'produktion' : 'team'); };
 
-    aktionen.appendChild(D.btn('Teamdatei für ADP', function () {
+    if (!eigen) aktionen.appendChild(D.btn('Teamdatei für ADP', function () {
       if (!p.team) { D.toast('Bitte zuerst die Monatsscheiben einlesen.'); return; }
       D.lade('Teamdatei_' + p.team.jahr + (p.team.stand ? '_' + p.team.stand : '') + '.json', JSON.stringify({ format: 'antragsbuch-team', team: T.pseudonymisiere(p.team) }), 'application/json');
       D.toast('Teamdatei erzeugt – ohne Namen und Vermittlernummern. ADP ziehen sie einfach in ihr Antragsbuch.');
     }, { icon: 'runter', titel: 'Pseudonymisierte Teamdatei erzeugen, die Sie an Ihre ADP weitergeben können' }));
 
-    if (p.team && p.team.pseudonym) el.appendChild(h('div.meldung', null, 'Die Teamdaten sind ohne Namen gespeichert (im ADP-Modus eingelesen). Für Namen die Monatsscheiben im Management-Modus noch einmal ablegen.'));
+    if (!eigen && p.team && p.team.pseudonym) el.appendChild(h('div.meldung', null, 'Die Teamdaten sind ohne Namen gespeichert (im ADP-Modus eingelesen). Für Namen die Monatsscheiben im Management-Modus noch einmal ablegen.'));
     // Filterzeile
     var mOpt = U.MONATE.map(function (m, i) { return [String(i), m]; });
     el.appendChild(h('div.leiste', null,
-      D.seg([['beitrag', 'Beitrag lt. Abrechnung'], ['scheiben', 'Nettoproduktion lt. Monatsscheiben']], z.mass, function (v) { z.mass = v; neu(); }),
+      eigen ? null : D.seg([['beitrag', 'Beitrag lt. Abrechnung'], ['scheiben', 'Nettoproduktion lt. Monatsscheiben']], z.mass, function (v) { z.mass = v; neu(); }),
       h('span.klein.muted', null, 'von'), D.auswahl(mOpt, String(z.von), function (v) { z.von = +v; if (z.bis < z.von) z.bis = z.von; neu(); }, { style: { width: '124px' } }),
       h('span.klein.muted', null, 'bis'), D.auswahl(mOpt, String(z.bis), function (v) { z.bis = +v; if (z.von > z.bis) z.von = z.bis; neu(); }, { style: { width: '124px' } }),
       D.auswahl([['', 'Alle Tarifgruppen']].concat(w.gruppen.map(function (g) { return [g, g]; })), z.gruppe || '', function (v) { z.gruppe = v; neu(); }, { style: { width: '210px' } }),
@@ -122,20 +127,20 @@
 
     var storno = Math.abs(gew.kat.storno), plus = gew.plus || 0;
     var kacheln = h('div.raster.r-4', null,
-      kachel('Netto-Beitrag (Auswahl)', gew.netto, euro0, U.fmtZahl(gew.n, 0) + ' Buchungen · ' + z.wahl.size + ' ADP', { akzent: true, einheit: '€' }),
+      kachel(eigen ? 'Mein Netto-Beitrag' : 'Netto-Beitrag (Auswahl)', gew.netto, euro0, U.fmtZahl(gew.n, 0) + ' Buchungen' + (eigen ? ' · Provision ' + U.fmtEuro0(gew.prov) : ' · ' + z.wahl.size + ' ADP'), { akzent: true, einheit: '€' }),
       kachel('Neugeschäft', gew.kat.neu, euro0, U.fmtZahl(gew.katN.neu, 0) + ' Buchungen', { einheit: '€', punkt: G.FARBEN[0] }),
       kachel('Erhöhungen', gew.kat.mehr, euro0, U.fmtZahl(gew.katN.mehr, 0) + ' Buchungen', { einheit: '€', punkt: G.FARBEN[2] }),
       kachel('Storno + Reduzierung', gew.kat.storno + gew.kat.minder, euro0, 'Stornoquote ' + U.fmtZahl(plus ? storno / plus * 100 : 0, 1) + ' %', { einheit: '€', punkt: 'var(--crit)' }));
     var dKat = h('div'), dRing = h('div'), dLin = h('div'), dQuer = h('div');
     var rechts = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 } }, kacheln,
       h('div.raster.r-21', null,
-        h('div.karte.rein', null, h('h3', null, 'Beitrag je Monat nach Kategorie'), h('div.unter', null, 'ausgewählte ADP · Zugänge nach oben, Abgänge nach unten'), dKat),
+        h('div.karte.rein', null, h('h3', null, 'Beitrag je Monat nach Kategorie'), h('div.unter', null, (eigen ? 'laut Abrechnung' : 'ausgewählte ADP') + ' · Zugänge nach oben, Abgänge nach unten'), dKat),
         h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Mix nach'), D.seg([['gruppe', 'Sparte'], ['kategorie', 'Kategorie']], z.ring || 'gruppe', function (v) { z.ring = v; neu(); })),
           h('div.unter', null, 'Netto-Beitrag · davon Beihilfe ' + U.fmtEuro0(gew.beihilfe)), dRing)),
       h('div.raster.r-2', null,
-        h('div.karte.rein', null, h('h3', null, 'ADP im Verlauf'), h('div.unter', null, (z.mass === 'scheiben' ? 'Nettoproduktion lt. Monatsscheiben' : 'Netto-Beitrag lt. Abrechnung') + ' · gestrichelt: Median aller ADP'), dLin),
-        h('div.karte.rein', null, h('h3', null, 'Rangfolge'), h('div.unter', null, 'ausgewählte ADP im gewählten Zeitraum'), dQuer)));
-    el.appendChild(h('div', { style: { display: 'grid', gridTemplateColumns: '268px minmax(0, 1fr)', gap: '16px' } }, links, rechts));
+        h('div.karte.rein', null, h('h3', null, eigen ? 'Beitrag und Provision je Monat' : 'ADP im Verlauf'), h('div.unter', null, eigen ? 'Netto-Beitrag und gebuchte Provision laut Abrechnung' : (z.mass === 'scheiben' ? 'Nettoproduktion lt. Monatsscheiben' : 'Netto-Beitrag lt. Abrechnung') + ' · gestrichelt: Median aller ADP'), dLin),
+        h('div.karte.rein', null, h('h3', null, eigen ? 'Wo kommt es her?' : 'Rangfolge'), h('div.unter', null, eigen ? 'Netto-Beitrag nach Kategorie' : 'ausgewählte ADP im gewählten Zeitraum'), dQuer)));
+    el.appendChild(eigen ? rechts : h('div', { style: { display: 'grid', gridTemplateColumns: '268px minmax(0, 1fr)', gap: '16px' } }, links, rechts));
 
     requestAnimationFrame(function () {
       var kats = [['neu', 'Neugeschäft', 0], ['mehr', 'Erhöhung', 2], ['minder', 'Reduzierung', 3], ['storno', 'Storno', 1]], proMonat = {};
@@ -154,6 +159,13 @@
       var med = U.MONATE.map(function (_, i) { return i >= z.von && i <= Math.min(z.bis, letzter) ? U.median(nrs.map(function (nr) { return reihe(nr)[i] || 0; })) : null; });
       var gewaehlt = nrs.filter(function (nr) { return z.wahl.has(nr); });
       var bunt = gewaehlt.filter(function (nr) { return z.farben[nr] != null; }), grau = gewaehlt.filter(function (nr) { return z.farben[nr] == null; });
+      if (eigen) {
+        G.linie(dLin, { titel: 'Beitrag und Provision je Monat', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro, hoehe: 250,
+          reihen: [{ name: 'Netto-Beitrag', farbe: G.FARBEN[0], stark: true, flaeche: true, werte: schnitt(gew.monate) }, { name: 'Provision', farbe: G.FARBEN[1], werte: schnitt(gew.provMonate) }] });
+        var spq = Object.keys(gew.sparten).map(function (k) { return { name: k, wert: U.runde(gew.sparten[k]), zusatz: gew.spartenDetail[k].n + ' Buchungen · Provision ' + U.fmtEuro(gew.spartenDetail[k].prov) }; }).sort(function (a, b) { return b.wert - a.wert; });
+        G.quer(dQuer, { format: U.fmtEuro0, zeilen: spq.slice(0, 12) });
+        return;
+      }
       G.linie(dLin, { titel: 'ADP im Verlauf', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro, hoehe: 250,
         reihen: grau.slice(0, 20).map(function (nr) { return { name: nameVon(p, nr) || nr, farbe: G.GRAU, werte: schnitt(reihe(nr)) }; })
           .concat(bunt.map(function (nr) { return { name: nameVon(p, nr) || nr, farbe: farbe(nr), werte: schnitt(reihe(nr)), stark: true }; }))
@@ -161,6 +173,20 @@
       G.quer(dQuer, { format: U.fmtEuro0, zeilen: gewaehlt.slice(0, 14).map(function (nr) { var a = alle.proAdp[nr]; return { name: nameVon(p, nr) || nr, wert: wertVon(nr), farbe: farbe(nr), zusatz: a ? a.n + ' Buchungen' : '' }; }) });
     });
 
+    if (eigen) {
+      var ek = ['Kategorie', 'Neugeschäft', 'Erhöhung', 'Reduzierung', 'Storno', 'Netto-Beitrag', 'Buchungen', 'Provision'];
+      var ez = Object.keys(gew.spartenDetail).map(function (k) { var d = gew.spartenDetail[k]; return [k, U.runde(d.neu), U.runde(d.mehr), U.runde(d.minder), U.runde(d.storno), U.runde(d.netto), d.n, U.runde(d.prov)]; }).sort(function (a, b) { return b[5] - a[5]; });
+      var es = ['Summe', U.runde(gew.kat.neu), U.runde(gew.kat.mehr), U.runde(gew.kat.minder), U.runde(gew.kat.storno), U.runde(gew.netto), gew.n, U.runde(gew.prov)];
+      var etb = h('tbody');
+      ez.concat([es]).forEach(function (r, ri) { var tr = h('tr', ri === ez.length ? { style: { fontWeight: 650 } } : null); r.forEach(function (c, i) { tr.appendChild(h('td' + (i ? '.num' : ''), { style: i ? { textAlign: 'right' } : null }, i === 0 ? c : i === 6 ? U.fmtZahl(c, 0) : U.fmtEuro(c))); }); etb.appendChild(tr); });
+      el.appendChild(h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Meine Produktion nach Kategorie'), h('span.muted.klein', null, U.MONATE[z.von] + ' bis ' + U.MONATE[z.bis] + ' ' + p.jahr), h('span.frei'),
+        D.exportBtn('Meine_Produktion_' + p.jahr, function () { var t = AB.kennzahlen.alsTabelle(ek, ez); t.spalten[6].typ = 'ganz'; t.spalten[0].b = 30; t.summe = es;
+          return Object.assign({ name: 'Meine Produktion', titel: 'Meine Produktion ' + p.jahr, unter: U.MONATE[z.von] + ' bis ' + U.MONATE[z.bis] + ' · ' + Array.from(z.arten).join(', ') + ' · Stand ' + U.fmtDatum(U.heute()) }, t); },
+          function () { return AB.csv.schreibe(ek, ez.concat([es])); }, { klasse: 'klein-btn' })),
+        h('div', { style: { overflowX: 'auto', marginTop: '8px' } }, h('table.einfach', null, h('thead', null, h('tr', null, ek.map(function (t, i) { return h('th', { style: i ? { textAlign: 'right' } : null }, t); }))), etb)),
+        h('p.mini', null, 'Quelle ist allein Ihre Provisionsabrechnung. Neugeschäft = Beitragsdifferenz entspricht dem Monatsbeitrag; Erhöhung = positiver Mehrbeitrag; Reduzierung = negativer Beitrag bei fortbestehendem Tarif; Storno = Tarif endet oder Stornogrund vorhanden. Die Kategorie stammt aus dem Tarifschlüssel. Über die Schalter oben nehmen Sie Provisionsarten wie „Bestand" hinzu.')));
+      return;
+    }
     // Vergleichstabelle
     var rang = {}; nrs.slice().sort(function (a, b) { return (scheibe[b] ? scheibe[b].summe : -1e12) - (scheibe[a] ? scheibe[a].summe : -1e12); }).forEach(function (nr, i) { if (scheibe[nr]) rang[nr] = i + 1; });
     var kopf = ['ADP', 'Nummer', 'Neugeschäft', 'Erhöhung', 'Reduzierung', 'Storno', 'Netto-Beitrag', 'Stornoquote %', 'Buchungen', 'Provision', 'Monatsscheiben', 'Rang'];
@@ -183,5 +209,14 @@
 
   AB.ansichten.team = { icon: 'team', titel: function () { return App.modus() === 'mgmt' ? 'Management' : 'Team'; },
     unter: function () { var t = App.p.team; return App.modus() === 'mgmt' ? 'ADP-Vergleich aus Abrechnung und Monatsscheiben' + (t && t.stand ? ' · Monatsscheiben Stand ' + U.fmtDatum(t.stand) : '') : 'Wo stehe ich im Team?'; },
+    _eigen: function (el, aktionen, p, z) { zeigeMgmt(el, aktionen, p, z, true); },
     zeige: function (el, aktionen, z) { if (App.modus() === 'mgmt') zeigeMgmt(el, aktionen, App.p, z); else zeigeAdp(el, App.p); } };
+})(globalThis.AB = globalThis.AB || {});
+
+(function (AB) {
+  'use strict';
+  var App = AB.app;
+  AB.ansichten.produktion = { icon: 'chart', titel: 'Meine Produktion',
+    unter: function () { var e = App.p.einstellungen; return 'Auswertung der eigenen Abrechnung ' + App.p.jahr + (e.vermittlernummer ? ' · Vermittler ' + e.vermittlernummer : '') + ' – ohne Antragsbuch nutzbar'; },
+    zeige: function (el, aktionen, z) { AB.ansichten.team._eigen(el, aktionen, App.p, z); } };
 })(globalThis.AB = globalThis.AB || {});

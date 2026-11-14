@@ -4,7 +4,7 @@
   var D = AB.dom, h = D.h, U = AB.util, M = AB.model, Sp = AB.speicher;
   var App = AB.app = { p: null, zeilen: [], erg: null, kz: null, ansicht: 'uebersicht', zustand: {}, wuerfel: null };
   AB.ansichten = AB.ansichten || {};
-  var REIHENFOLGE = ['uebersicht', 'antraege', 'abgleich', 'vdienst', 'team', 'einstellungen', 'hilfe'];
+  var REIHENFOLGE = ['uebersicht', 'antraege', 'abgleich', 'vdienst', 'produktion', 'team', 'einstellungen', 'hilfe'];
 
   // ---------- Worker ----------
   var worker = null, offen = {}, zaehler = 0;
@@ -146,14 +146,20 @@
     Sp.onstatus && Sp.onstatus({ art: 'lauf', text: 'Liest „' + name + '" …' });
     var r;
     try {
-      r = await App.lies(bytes, name, p ? { alt: p.abrechnung && p.abrechnung.zeilen && p.abrechnung.zeilen.length ? p.abrechnung : null, importNr: p.importZaehler + 1, jahr: p.jahr, vermittlernummer: p.einstellungen.vermittlernummer } : {});
+      r = await App.lies(bytes, name, p ? { alt: p.abrechnung && p.abrechnung.zeilen && p.abrechnung.zeilen.length ? p.abrechnung : null, importNr: p.importZaehler + 1, jahr: p.jahr, vermittlernummer: p.einstellungen.vermittlernummer, nurAbrechnung: !!opt.nurAbrechnung } : {});
     } finally { Sp.onstatus && Sp.onstatus(Sp.status); }
     if (r.art === 'projekt') {
       if (p && !(await D.frage('Anderes Projekt öffnen?', '„' + name + '" ist eine Antragsbuch-Projektdatei. Das aktuelle Projekt bleibt gespeichert und wird geschlossen.', 'Projekt öffnen'))) return;
       return App.oeffneMitSpiegel(r.projekt, null, name);
     }
     if (!p) throw new Error('Bitte zuerst ein Projekt öffnen oder neu anlegen.');
+    if (r.art === 'altbuch') return App.uebernimmAltbuch(r, bytes, name, opt);
     if (r.art === 'abrechnung') {
+      var jahre = r.jahre || [], anderes = jahre.length === 1 && +jahre[0] !== +p.jahr ? +jahre[0] : null;
+      if (anderes) {
+        var umstellen = !p.antraege.length || opt.still || (await D.frage('Projektjahr umstellen?', 'Die Abrechnung enthält Buchungen aus ' + anderes + ', das Projekt ist für ' + p.jahr + ' angelegt. Soll das Projekt auf ' + anderes + ' umgestellt werden? Ihre Anträge bleiben unverändert.', 'Auf ' + anderes + ' umstellen', { nein: 'Bei ' + p.jahr + ' bleiben' }));
+        if (umstellen && !(opt.still && p.antraege.length)) { p.jahr = anderes; r.warnungen = r.warnungen.filter(function (w) { return !/Buchungen aus/.test(w); }); D.toast('Das Projekt ist jetzt auf das Jahr ' + anderes + ' eingestellt.'); }
+      }
       M.sichere(p, 'Vor Import „' + name + '"');
       p.importZaehler++;
       p.abrechnung = r.gepackt; App.zeilen = AB.abrechnung.entpacke(r.gepackt); App.wuerfel = null;
@@ -184,6 +190,26 @@
       if (opt.still) { D.toast('Im Ordner liegt „' + name + '" – bitte im Reiter Veränderungsdienst einlesen.', { aktion: ['Öffnen', function () { App.zeige('vdienst'); AB.ansichten.vdienst.oeffne(r, name); }] }); return; }
       App.zeige('vdienst'); AB.ansichten.vdienst.oeffne(r, name);
     }
+  };
+
+  /** Einträge aus dem alten Excel-Antragsbuch übernehmen (mit Rückfrage). */
+  App.uebernimmAltbuch = async function (r, bytes, name, opt) {
+    var p = App.p, alt = r.altbuch, schon = p.antraege.filter(function (a) { return a.quelle === 'altbuch'; }).length;
+    var mitAbr = h('input', { type: 'checkbox' });
+    var text = h('div', null, h('p.muted', { style: { margin: '0 0 8px' } }, 'Im Blatt „' + r.blatt + '" stehen ' + alt.antraege.length + ' Einträge aus ' + alt.jahr + '. Sie werden als Anträge übernommen – mit Monat, Bereich, Vorgangsart, Tarif, Beitrag, Status und Provision.'),
+      h('p.muted', { style: { margin: '0 0 8px' } }, 'Fehlen Name und Vertragsnummer, schlägt der Abgleich danach passende Buchungen über Beitrag und Provision vor.'),
+      schon ? h('div.meldung.warn', null, 'Es sind bereits ' + schon + ' Einträge aus einem alten Antragsbuch im Projekt. Beim erneuten Übernehmen entstehen Dubletten.') : null,
+      r.abrechnungsblatt ? h('label.schalter', { style: { marginTop: '8px' } }, mitAbr, 'Auch das Blatt „' + r.abrechnungsblatt.name + '" als Abrechnung einlesen (' + U.fmtZahl(r.abrechnungsblatt.zeilen, 0) + ' Zeilen, ' + r.abrechnungsblatt.jahre.join('/') + ')') : null);
+    if (!(await D.frage('Altes Antragsbuch übernehmen?', text, alt.antraege.length + ' Einträge übernehmen'))) return;
+    M.sichere(p, 'Vor Übernahme „' + name + '"');
+    if (!p.antraege.length && !App.zeilen.length && alt.jahr) p.jahr = alt.jahr;
+    alt.antraege.forEach(function (a) { p.antraege.push(M.ergaenzeAntrag(a)); });
+    M.erweitereTarife(p, [], 'manuell');
+    p.importe.push({ id: U.uid(), typ: 'Altes Antragsbuch', datum: new Date().toISOString(), datei: name, zeilen: alt.antraege.length });
+    App.ansicht = 'antraege';
+    App.geaendert();
+    D.toast(alt.antraege.length + ' Einträge übernommen. Lesen Sie jetzt die Abrechnung ' + alt.jahr + ' ein – der Abgleich schlägt die Vertragsnummern vor.');
+    if (mitAbr.checked) await App.importiereBytes(bytes, name, Object.assign({}, opt, { nurAbrechnung: true }));
   };
 
   /** Passwortgeschützte Projektdatei entsperren. → Projekt-Objekt oder null (abgebrochen) */
