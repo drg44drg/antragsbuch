@@ -44,6 +44,8 @@
     var p = App.p; if (!p) return;
     App.erg = AB.abgleich.rechne(p, App.zeilen);
     if (AB.abgleich.wendeStatusAn(p, App.erg)) App.erg = AB.abgleich.rechne(p, App.zeilen);
+    var geschlossen = AB.abgleich.schliesseReklamationen(p, App.erg);
+    if (geschlossen) setTimeout(function () { D.toast(geschlossen + (geschlossen === 1 ? ' Reklamation wurde' : ' Reklamationen wurden') + ' durch eine Korrekturbuchung erledigt.'); }, 300);
     App.kz = AB.kennzahlen.rechne(p, App.erg, App.zeilen);
   };
   /** Nach jeder Änderung: neu rechnen, speichern, Ansicht auffrischen. */

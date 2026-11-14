@@ -13,14 +13,14 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 
 ## B · Zulieferungen (bitte schicken)
 
-- [ ] Formular „Provisionsreklamation"
 - [ ] Beispielliste für eine Aktion (z. B. Anschreiben Altersvorsorgedepot) und das zugehörige Schreiben
 - [ ] Alte Reportings als Muster
 - [ ] Abrechnung 2025 (für den Test mit dem alten Antragsbuch)
 - [ ] Service-Level je Bereich und Liste der Postkörbe (bisher überall 5/10 Werktage als Platzhalter)
 - [ ] Unternehmensziele je Sparte (für den Vergleich im Team)
 - [ ] Produktunterlagen aus dem Ordner „ADP-Gewinnung" (zweimal gesucht, liegt nicht im verbundenen Google Drive)
-- [ ] Die vier offenen Fragen in `docs/Tarif-Kategorien-Vorschlag.md` beantworten (Endungen a/u/n, VP, Beihilfe, unklare Kürzel)
+- [ ] Die 15 Punkte „Bitte absegnen" in `docs/Tarif-Kategorien-Vorschlag.md` beantworten
+- [ ] Bedingungswerke hochladen: `1.591_Bedingungen_Vollversicherung_Beihilfe.pdf`, Tarifbuch `1.700_…`, Prospekte
 - [ ] Genaue Dateinamen von Veränderungsdienst und Provisionsabrechnung (für Ablauf-Schaubild und Tour)
 - [ ] Rechtliche Einschätzung dem Datenschutzbeauftragten und der IT-Sicherheit vorlegen
 - [ ] Altes Antragsbuch eines ADP **mit** dessen Abrechnung (Test der Zusammenführung bei spärlichen Eingaben)
@@ -28,11 +28,11 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 ## C · Erweiterungen
 
 ### Paket 2 – braucht ein Muster
-- [ ] Provisionsreklamation: Zeile(n) unter „Abweichung"/„Offen" anklicken → vorausgefülltes Formular → Drucken/PDF
 - [ ] Import des alten Excel-Antragsbuchs (Blatt je Jahr)
 - [ ] Regel „Vollversicherung oder Zusatz" aus dem vorhandenen Skill (Bestands-/BAP-Analyse) übernehmen
 
 ### Paket 3 – Aktionen und Reporting
+- [ ] Reklamations-Auswertung nach dem Muster „Reporting Provisionsreklamationen": Anzahl, Quote, Ergebnis, Verursacher je Quartal
 - [ ] Reiter „Aktionen": Aktion anlegen, Kundenliste importieren, Status je Kunde
       (bearbeitet, nicht bearbeitet, kontaktiert, nicht erreicht, abgesagt, Termin, Abschluss)
 - [ ] Aktions-Dashboard: Stück, Quoten, MB aus der Aktion, Verknüpfung zu Anträgen
@@ -54,6 +54,12 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 ### Ideen aus dem Alltag
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
+
+## D0 · Erledigt (Version 1.3)
+
+Provisionsreklamation: aus Abweichung, Offen oder Antragsauswahl vorausgefülltes Formular (Aufbau wie Vordruck 0.038),
+Druck/PDF im Hochformat, Vermerk im Antrag, Ergebnis (erfolgreich/teilweise/nicht), automatische Erledigung durch Korrekturbuchung ·
+Tarif-Einordnung mit Tarifwelt a/n/u und bestätigten Kategorien
 
 ## D · Erledigt (Version 1.2)
 

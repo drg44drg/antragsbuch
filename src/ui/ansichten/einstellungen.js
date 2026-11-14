@@ -71,7 +71,7 @@
         var q = U.falte(z.tsuche || ''); D.leere(tListe);
         var treffer = p.tarife.filter(function (t) { return !q || U.falte(t.name + ' ' + t.gruppe).indexOf(q) >= 0; });
         treffer.slice(0, 300).forEach(function (t) {
-          tListe.appendChild(h('span.chip', { title: (t.gruppe || 'ohne Tarifgruppe') + ' · ' + (t.quelle === 'abrechnung' ? 'aus Abrechnung' : 'manuell'), style: { cursor: 'default' } }, t.name,
+          tListe.appendChild(h('span.chip', { title: (AB.tarif.text(t.name, t.gruppe) || 'ohne Tarifgruppe') + ' · ' + (t.quelle === 'abrechnung' ? 'aus Abrechnung' : 'manuell'), style: { cursor: 'default' } }, t.name,
             h('button', { type: 'button', style: { all: 'unset', cursor: 'pointer', color: 'var(--text-3)' }, title: 'Entfernen', onclick: function () { p.tarife = p.tarife.filter(function (x) { return x !== t; }); App.geaendert({ still: true }); zeichneTarife(); } }, '×')));
         });
         if (treffer.length > 300) tListe.appendChild(h('span.mini', null, '… und ' + (treffer.length - 300) + ' weitere'));

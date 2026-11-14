@@ -147,6 +147,13 @@
     window.print();
   };
 
+  /** Beliebige Knoten drucken (z. B. Formulare); jede .seite beginnt auf einem neuen Blatt. */
+  D.druckeKnoten = function (knoten) {
+    var box = D.leere(document.getElementById('druck'));
+    D.anhaengen(box, knoten);
+    window.print();
+  };
+
   // ---------- Darstellung ----------
   D.thema = function (wert) {
     if (wert) { try { localStorage.setItem('antragsbuch-thema', wert); } catch (e) { /* privat */ } }

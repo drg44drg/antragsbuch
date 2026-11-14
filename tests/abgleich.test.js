@@ -300,3 +300,45 @@ test('Excel-Export: formatierte Arbeitsmappe ist lesbar und enthält Farben und 
   const roh = Buffer.from(bytes).toString('latin1');
   assert.match(roh, /FF6250D6/); assert.match(roh, /\[Red\]/); assert.match(roh, /state="frozen"/);
 });
+
+test('Reklamation: Status, automatische Erledigung durch Korrekturbuchung', async () => {
+  const { p, zeilen, erg } = await stand('01-03');
+  A.wendeStatusAn(p, erg);
+  const a3 = p.antraege.find((a) => a.id === 'a-3'), a4 = p.antraege.find((a) => a.id === 'a-4');
+  a3.reklamation = { datum: HEUTE, ergebnis: '' };                       // Abweichung reklamiert: Status bleibt „Abgerechnet"
+  a4.reklamation = { datum: HEUTE, ergebnis: '' }; M.setzeStatus(a4, 'reklamiert', HEUTE, 'reklamation'); a4.vertragsnummer = '444444';
+  assert.equal(a4.statusManuell, false);
+  let e2 = A.rechne(p, zeilen, HEUTE);
+  assert.equal(A.schliesseReklamationen(p, e2), 0);
+  assert.ok(AB.kennzahlen.rechne(p, e2, zeilen, HEUTE).hinweise.some((h) => /2 Reklamationen offen/.test(h.text)));
+  // Korrekturen kommen mit der nächsten Abrechnung
+  const basis = zeilen.find((z) => U.normVnr(z.vnr) === '250250');
+  const nach = Object.assign({}, basis, { mbd: 0, prov: 20, bdat: '2026-04-09', part: 'Manuell' });
+  const neu = Object.assign({}, basis, { vnr: '444444', vnName: 'PLATZHALTER, ANNA', tg: 'Zusatzversicherung (Art Leben)', tarif: 'ZP9', mb: 22.4, mbd: 22.4, prov: 100.8, bdat: '2026-04-09', part: 'Abschluss', gvnr: '' });
+  e2 = A.rechne(p, zeilen.concat([nach, neu]), HEUTE);
+  assert.equal(A.wendeStatusAn(p, e2), 1);
+  assert.equal(a4.status, 'abgerechnet', 'reklamierter Antrag wird nach der Buchung abgerechnet');
+  e2 = A.rechne(p, zeilen.concat([nach, neu]), HEUTE);
+  assert.equal(A.schliesseReklamationen(p, e2), 2);
+  assert.equal(a3.reklamation.ergebnis, 'erfolgreich'); assert.equal(a3.reklamation.erledigtAm, '2026-04-09'); assert.equal(a3.reklamation.automatisch, true);
+  assert.equal(A.schliesseReklamationen(p, e2), 0, 'nur einmal');
+});
+
+test('Tarif-Einordnung: Tarifwelt a/n/u und Kategorien', () => {
+  const T = AB.tarif, V = 'Vollversicherung', ZL = 'Zusatzversicherung (Art Leben)';
+  assert.equal(T.einordnen('A107a', V).welt, 'a'); assert.match(T.einordnen('A107a', V).weltName, /Alte Tarifwelt/);
+  assert.equal(T.einordnen('A103n', V).welt, 'n'); assert.equal(T.einordnen('S101u', V).welt, 'u'); assert.equal(T.einordnen('VP', V).welt, '');
+  assert.equal(T.einordnen('TA6', V).welt, ''); assert.equal(T.einordnen('PG2SDu', ZL).welt, '', 'Tarifwelt nur in der Vollversicherung');
+  assert.deepEqual([T.einordnen('BEa', V).kategorie, T.einordnen('BEa', V).sicher], ['Beitragsentlastung', true]);
+  assert.equal(T.einordnen('Ba', V).kategorie, 'Beihilfe-Ergänzung'); assert.equal(T.einordnen('BA30a', V).kategorie, 'Beihilfe');
+  assert.equal(T.einordnen('R30u', V).kategorie, 'Beihilfe stationär'); assert.equal(T.einordnen('Wu', V).kategorie, 'Beihilfe stationär');
+  assert.equal(T.einordnen('A107a', V).kategorie, 'Ambulant'); assert.equal(T.einordnen('AM13', V).kategorie, 'Ambulant');
+  assert.equal(T.einordnen('S101u', V).kategorie, 'Stationär'); assert.equal(T.einordnen('Z8', V).kategorie, 'Zahn');
+  assert.match(T.einordnen('A20u', V).hinweis, /auch als Beihilfetarif/);
+  assert.equal(T.einordnen('PG3AD', ZL).kategorie, 'Pflegeergänzung'); assert.match(T.einordnen('PG3AD', ZL).hinweis, /Dynamik/);
+  assert.match(T.einordnen('PG3A', ZL).hinweis, /Pflegegrad 3/);
+  assert.equal(T.einordnen('NHu', ZL).kategorie, 'Naturheilverfahren'); assert.equal(T.einordnen('10u', ZL).kategorie, 'Krankenhaustagegeld');
+  assert.equal(T.einordnen('AB1O', 'Firmentarife').kategorie, 'bKV obligatorisch'); assert.equal(T.einordnen('ZP7F', 'Firmentarife').kategorie, 'bKV fakultativ');
+  assert.equal(T.einordnen('XYZ', V).kategorie, '');
+  assert.match(T.text('A107a', V), /Vollversicherung · Ambulant \(Vorschlag\) · Alte Tarifwelt/);
+});

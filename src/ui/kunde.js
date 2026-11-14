@@ -81,7 +81,7 @@
       // Aktueller Stand laut Abrechnung
       if (akt.length) {
         detail.appendChild(h('h3', { style: { marginTop: '14px' } }, 'Tarife laut letzter Buchung'));
-        detail.appendChild(h('div.leiste', null, akt.map(function (z) { return h('span.chip', { style: { cursor: 'default' }, title: z.tg + ' · Person ' + z.pnr }, z.tarif, h('b', null, U.fmtEuro(z.mb))); })));
+        detail.appendChild(h('div.leiste', null, akt.map(function (z) { return h('span.chip', { style: { cursor: 'default' }, title: AB.tarif.text(z.tarif, z.tg) + ' · Person ' + z.pnr }, z.tarif, h('b', null, U.fmtEuro(z.mb))); })));
       }
       // Buchungen
       detail.appendChild(h('div.leiste', { style: { marginTop: '14px' } }, h('h3', null, 'Buchungen (' + eigene.length + (eigene.length !== k.zeilen.length ? ' von ' + k.zeilen.length : '') + ')'),

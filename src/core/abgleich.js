@@ -190,7 +190,7 @@
       var ziel = null, datum = null;
       if (r.buendel.length) {
         if (r.vollStorno && !a.statusManuell && (a.status === 'eingereicht' || a.status === 'policiert' || a.status === 'abgerechnet')) { ziel = 'storno'; datum = r.stDatum; }
-        else if (a.status === 'eingereicht' || a.status === 'policiert') { ziel = 'abgerechnet'; datum = r.bdat; }
+        else if (a.status === 'eingereicht' || a.status === 'policiert' || (a.status === 'reklamiert' && letzteQuelle(a) === 'reklamation')) { ziel = 'abgerechnet'; datum = r.bdat; }
         else if (a.status === 'storno' && !r.vollStorno && !a.statusManuell && letzteQuelle(a) === 'abgleich') { ziel = 'abgerechnet'; datum = r.bdat; }
       } else if (!a.statusManuell && letzteQuelle(a) === 'abgleich' && (a.status === 'abgerechnet' || a.status === 'storno')) {
         var vor = M.statusVorAbgleich(a); ziel = vor.status; datum = vor.datum;
@@ -286,6 +286,21 @@
       if (a && M.setzeStatus(a, s.status, s.datum, 'abgleich')) n++;
     });
     erg.status = [];
+    return n;
+  };
+
+  /**
+   * Offene Reklamationen schließen, sobald der Abgleich stimmt (Buchung da, keine Abweichung mehr).
+   * → Anzahl geschlossener Reklamationen
+   */
+  A.schliesseReklamationen = function (p, erg) {
+    var n = 0;
+    p.antraege.forEach(function (a) {
+      var r = erg.proAntrag[a.id];
+      if (!M.reklaOffen(a) || !r || !r.buendel.length || r.liste !== 'gleich' || r.akzeptiert) return;
+      a.reklamation.ergebnis = 'erfolgreich'; a.reklamation.erledigtAm = r.buendel[r.buendel.length - 1].bdat;
+      a.reklamation.automatisch = true; a.geaendert = new Date().toISOString(); n++;
+    });
     return n;
   };
 

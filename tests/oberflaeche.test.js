@@ -189,6 +189,33 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       assert.match(await page.textContent('.kachel.akzent .lbl'), /Zusatz/);
       await page.click('button:has-text("Filter aufheben")');
     });
+    await t.test('Provisionsreklamation: vorausgefülltes Formular aus einer Abweichung, Vermerk im Antrag', async () => {
+      await nav('Abgleich'); await page.click('.reiter button:has-text("Abweichung")');
+      await page.click('.vt-zeile:has-text("Test, Dieter") button:has-text("Reklamieren")');
+      await page.waitForSelector('dialog .rekla');
+      const formular = await page.textContent('dialog .rekla');
+      assert.match(formular, /Provisionsreklamation[\s\S]*Angaben zum Vertriebspartner[\s\S]*Angaben zur Reklamation[\s\S]*Bearbeitungsvermerk/);
+      assert.match(formular, /Mitgliedsnummer:\s*250250/); assert.match(formular, /AB1F/);
+      assert.match(formular, /erhalten in EUR:\s*100,00/); assert.match(formular, /Anspruch Provision\/Produktion in EUR:\s*120,00/);
+      assert.match(formular, /Provision abweichend: erwartet 120,00 €, abgerechnet 100,00 €/);
+      assert.match(formular, /Aus Abrechnung vom \(mm\/yy\):\s*03\/26/);
+      await page.fill('dialog label.feld:has-text("Begründung") input', 'Faktor 3,0 laut Vereinbarung');
+      assert.match(await page.textContent('dialog .rekla'), /Faktor 3,0 laut Vereinbarung/);
+      await page.click('dialog button:has-text("Nur vermerken")');
+      await page.waitForSelector('dialog[open]', { state: 'detached' });
+      assert.equal(await page.evaluate(() => AB.app.p.antraege.find((a) => a.id === 'a-3').reklamation.begruendung), 'Faktor 3,0 laut Vereinbarung');
+      assert.equal(await page.evaluate(() => AB.app.p.antraege.find((a) => a.id === 'a-3').status), 'abgerechnet');
+      await nav('Übersicht');
+      assert.equal(await zahl('.hinweis:has-text("1 Reklamation offen")'), 1);
+      // Druckansicht: Formular steht im Druckbereich (window.print wird im Test abgefangen)
+      await page.evaluate(() => { window.print = () => { window.__gedruckt = document.getElementById('druck').textContent; }; });
+      await nav('Anträge'); await page.click('.chip:has-text("Reklamiert")');
+      assert.equal(await zahl('.vt-zeile'), 1);
+      await page.click('.vt-zeile input[type=checkbox]'); await page.click('.auswahlleiste button:has-text("Reklamation")');
+      await page.click('dialog button:has-text("Drucken / PDF")');
+      assert.match(await page.evaluate(() => window.__gedruckt), /Provisionsreklamation[\s\S]*250250[\s\S]*Faktor 3,0 laut Vereinbarung/);
+      await page.click('.chip:has-text("Reklamiert")');
+    });
     await t.test('Hilfe: Ablauf-Schaubild, FAQ-Suche und geführte Tour', async () => {
       await nav('Hilfe');
       assert.equal(await zahl('.prozess-schritt'), 5); assert.equal(await zahl('.prozess-pfeil'), 4);

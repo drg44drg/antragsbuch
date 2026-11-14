@@ -51,6 +51,8 @@
     M.BEREICHE.forEach(function (b) { s[b.id] = { gelb: 5, rot: 10 }; });
     return s;
   };
+  M.REKLA_ERGEBNIS = [{ id: '', name: 'Offen' }, { id: 'erfolgreich', name: 'Erfolgreich' }, { id: 'teilweise', name: 'Teilweise erfolgreich' }, { id: 'nicht', name: 'Nicht erfolgreich' }];
+  M.reklaOffen = function (a) { return !!(a.reklamation && !a.reklamation.ergebnis); };
   M.NACHBEARBEITUNG = [{ id: '', name: 'Keine' }, { id: 'offen', name: 'Offen' }, { id: 'erledigt', name: 'Erledigt' }];
 
   M.standardEinstellungen = function () {
@@ -113,7 +115,7 @@
       beginn: '', gruppenvertrag: '', firma: '', laufzeit: null,
       eantrag: false, bank: { aktiv: false, anteil: 50 }, bemerkung: '',
       status: 'eingereicht', statusDatum: U.heute(), statusManuell: false, historie: [],
-      provisionManuell: null, abweichungOk: null, nachbearbeitung: { status: '', text: '', datum: '' },
+      provisionManuell: null, abweichungOk: null, nachbearbeitung: { status: '', text: '', datum: '' }, reklamation: null,
       erstellt: new Date().toISOString(), geaendert: new Date().toISOString()
     };
     if (vorlage) {
@@ -231,6 +233,7 @@
     if (a.status === status && a.statusDatum === (datum || a.statusDatum)) return false;
     a.status = status; a.statusDatum = datum || U.heute();
     a.historie.push({ status: status, datum: a.statusDatum, am: new Date().toISOString(), quelle: quelle || 'manuell', notiz: notiz || '' });
+    if (quelle === 'reklamation') a.statusManuell = false;
     if (quelle === 'manuell' || !quelle) a.statusManuell = !(status === 'eingereicht' || status === 'policiert');
     a.geaendert = new Date().toISOString();
     return true;
@@ -247,7 +250,7 @@
   M.suchtext = function (a) {
     var t = [a.vn.name, a.vn.vorname, a.vertragsnummer, U.normVnr(a.vertragsnummer), M.name('bereich', a.bereich), M.name('vorgang', a.vorgang),
       M.name('status', a.status), U.fmtDatum(a.eingang), U.fmtDatum(a.beginn), a.gruppenvertrag, a.firma, a.bemerkung,
-      U.fmtZahl(M.beitrag(a)), a.nachbearbeitung && a.nachbearbeitung.status === 'offen' ? 'nachbearbeitung ' + a.nachbearbeitung.text : ''];
+      U.fmtZahl(M.beitrag(a)), a.nachbearbeitung && a.nachbearbeitung.status === 'offen' ? 'nachbearbeitung ' + a.nachbearbeitung.text : '', a.reklamation ? 'reklamation ' + (a.reklamation.begruendung || '') : ''];
     a.positionen.forEach(function (p) { t.push(p.person, p.personennummer, p.tarif, p.beitrag == null ? '' : U.fmtZahl(+p.beitrag)); });
     return U.falte(t.join(' '));
   };

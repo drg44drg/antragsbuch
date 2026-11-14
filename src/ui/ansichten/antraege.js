@@ -39,7 +39,7 @@
         var c = h('button.chip' + (z.spezial === id ? '.aktiv' : ''), { type: 'button', onclick: function () { z.spezial = z.spezial === id ? '' : id; App.zeige('antraege'); } }, textC, h('b', null, String(zahl)));
         return zahl || z.spezial === id ? c : null;
       }
-      el.appendChild(h('div.leiste', null, h('div.suche', null, D.icon('suche'), suche), fM, fB, fS, fA, chip('ohneNr', 'Ohne Vertragsnr.', erg.ohneNr.length), chip('nb', 'Nachbearbeitung', nbOffen), h('span.frei'),
+      el.appendChild(h('div.leiste', null, h('div.suche', null, D.icon('suche'), suche), fM, fB, fS, fA, chip('ohneNr', 'Ohne Vertragsnr.', erg.ohneNr.length), chip('nb', 'Nachbearbeitung', nbOffen), chip('rekla', 'Reklamiert', p.antraege.filter(M.reklaOffen).length), h('span.frei'),
         D.exportBtn('Antraege_' + p.jahr, function () { return Object.assign({ name: 'Anträge', titel: 'Anträge ' + p.jahr, unter: AB.ansichten.uebersicht.unter() + ' · Stand ' + U.fmtDatum(U.heute()) }, AB.kennzahlen.tabelleAntraege(p, erg, tab.zeilen())); },
           function () { return AB.kennzahlen.exportAntraege(p, erg, tab.zeilen()); }),
         D.btn('', drucke, { icon: 'druck', titel: 'Drucken oder als PDF speichern' })));
@@ -49,6 +49,7 @@
       D.anhaengen(leiste, [anzahl, h('span.klein', null, 'ausgewählt · Prioritätenliste exportieren:'),
         D.btn('Excel', function () { AB.prioListe(gewaehlt(), 'excel'); }, { klasse: 'klein-btn haupt-btn', icon: 'runter' }),
         D.btn('Drucken / PDF', function () { AB.prioListe(gewaehlt(), 'druck'); }, { klasse: 'klein-btn', icon: 'druck' }),
+        D.btn('Reklamation …', function () { AB.reklamation.oeffne(gewaehlt()); }, { klasse: 'klein-btn', titel: 'Provisionsreklamation für die ausgewählten Anträge vorbereiten' }),
         D.btn('Nachbearbeitung offen setzen', function () { gewaehlt().forEach(function (a) { a.nachbearbeitung = { status: 'offen', text: a.nachbearbeitung.text || '', datum: a.nachbearbeitung.datum || U.heute() }; a.geaendert = new Date().toISOString(); }); z.wahl.clear(); App.geaendert(); }, { klasse: 'klein-btn' }),
         h('span.frei'), D.btn('Auswahl aufheben', function () { z.wahl.clear(); tab.zeichne(); zeigeLeiste(); }, { klasse: 'klein-btn leise' })]);
       el.appendChild(leiste);
@@ -68,7 +69,7 @@
           { t: 'Tarif(e)', b: 'minmax(80px, 1fr)', w: function (a) { return M.tarife(a); }, s: function (a) { return M.tarife(a); } },
           { t: 'Beitrag', b: '98px', r: true, w: function (a) { return AB.geld(M.beitrag(a), true); }, s: function (a) { return M.beitrag(a); } },
           { t: 'Vertragsnr.', b: '100px', w: function (a) { return a.vertragsnummer || (ohneNr[a.id] ? h('span.marke-s.warn', { title: 'Vertragsnummer nachtragen' }, 'fehlt') : h('span.mini', null, '–')); }, s: function (a) { return a.vertragsnummer; } },
-          { t: 'Status', b: '122px', w: function (a) { return [AB.statusMarke(a), a.nachbearbeitung.status === 'offen' ? h('span.marke-s.krit', { title: 'Nachbearbeitung offen' }, 'NB') : null]; }, s: function (a) { return a.status; } },
+          { t: 'Status', b: '122px', w: function (a) { return [AB.statusMarke(a), a.nachbearbeitung.status === 'offen' ? h('span.marke-s.krit', { title: 'Nachbearbeitung offen' }, 'NB') : null, a.reklamation ? h('span.marke-s' + (a.reklamation.ergebnis === 'erfolgreich' ? '.gut' : a.reklamation.ergebnis ? '' : '.warn'), { title: 'Reklamation vom ' + U.fmtDatum(a.reklamation.datum) + ': ' + M.REKLA_ERGEBNIS.find(function (x) { return x.id === (a.reklamation.ergebnis || ''); }).name }, 'Rekl.') : null]; }, s: function (a) { return a.status; } },
           { t: 'Prov. Soll', b: '98px', r: true, w: function (a) { var r = R(a); return r.soll ? [r.soll.ueberschrieben ? h('span.marke-s.warn', { title: 'manuell überschrieben' }, 'm') : null, U.fmtEuro(r.sollP)] : ''; }, s: function (a) { return R(a).sollP; } },
           { t: 'Prov. Ist', b: '98px', r: true, w: function (a) { var r = R(a); return r.buendel && r.buendel.length ? U.fmtEuro(r.istP) : h('span.mini', null, '–'); }, s: function (a) { var r = R(a); return r.buendel && r.buendel.length ? r.istP : null; } }
         ],
@@ -87,6 +88,7 @@
           if (z.ampel && (z.ampel === 'gelbrot' ? !(ampel[a.id].stufe === 'gelb' || ampel[a.id].stufe === 'rot') : ampel[a.id].stufe !== z.ampel)) return false;
           if (z.spezial === 'ohneNr' && !ohneNr[a.id]) return false;
           if (z.spezial === 'nb' && a.nachbearbeitung.status !== 'offen') return false;
+          if (z.spezial === 'rekla' && !M.reklaOffen(a)) return false;
           if (q.length) { var t = text(a); for (var i = 0; i < q.length; i++) if (t.indexOf(q[i]) < 0) return false; }
           return true;
         }));

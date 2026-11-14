@@ -20,7 +20,53 @@ Die feinere Zuordnung (Spalte „Unterkategorie") ist aus den Tarifkürzeln **ge
 - **Unfall:** betrieblich · Mitglieder · sonstige
 - **Leben** (in der Abrechnung als eigene Sparte LV)
 
-## Zuordnung der Tarife
+## Bestätigt (von Ihnen bzw. aus dem Tarifbuch, Abschnitt „Beihilfeberechtigte")
+
+| Kürzel | Bedeutung | Quelle |
+|---|---|---|
+| Endung `a` | alte Tarifwelt: Bisex, ohne Verteilung der Schwangerschaftskosten (KV-Voll vor 2009) | Ihre Angabe |
+| Endung `n` | neue Tarifwelt: Bisex, 2009 bis 2013 | Ihre Angabe |
+| Endung `u` | Unisex-Tarife | Ihre Angabe |
+| `PG1`–`PG5` | Pflegeergänzung nach Pflegegrad | Ihre Angabe, Tarifbuch |
+| `PG…D` | wie oben, mit Dynamik über das 70. Lebensjahr | Ihre Angabe |
+| `PEV`, `PZ`, `PZM` | Pflegeergänzung | Tarifbuch |
+| `S`, `R`, `W` (Beihilfe) | stationäre Heilbehandlung | Tarifbuch |
+| `A` (Beihilfe) | ambulante Heilbehandlung | Tarifbuch |
+| `Z`, `ZE` (Beihilfe) | Zahn-Ergänzung | Tarifbuch |
+| `B`, `BW1`, `BW2` | Beihilfe-Ergänzungstarife | Tarifbuch |
+| `NH` | Naturheilverfahren | Tarifbuch |
+| `10` | Krankenhaustagegeld | Tarifbuch |
+| `PPB` | Pflegepflicht für Beihilfeberechtigte | Tarifbuch |
+
+Diese Regeln sind in der App hinterlegt (Tarif-Hinweis in Kundenakte und Tarifliste).
+
+## Bitte absegnen – hier bin ich nicht sicher
+
+| Nr. | Frage | Mein Vorschlag | Ihre Antwort |
+|---|---|---|---|
+| 1 | `A20`, `A30`, `S20`, `S30`, `Z…` gibt es in Voll **und** Beihilfe. Woran erkenne ich in der Abrechnung den Beihilfetarif? | An der Zahl = Erstattungssatz (A20 = 20 %, A30 = 30 %)? Dann wären `A20/A30/A35/A40/A75/A80` und `S20/S25/S30` Beihilfe, `A100–A109` und `S1/S3/S101–S103` Normaltarife. | |
+| 2 | `BA30`, `BS30`, `BZ`, `BAE`, `BSE` | Beihilfe (ambulant / stationär / Zahn / Ergänzung) | |
+| 3 | `VP` (Beiträge um 5–11 €) | Pflegepflicht? Oder Vorsorge? | |
+| 4 | `AM10`–`AM33` | Ambulant, modular (neue Tarifgeneration) | |
+| 5 | `AE…`, `AZ…`, `SE…`, `RE…` | Ergänzungstarife zu ambulant / stationär | |
+| 6 | `TA2`–`TA52` in der Vollversicherung | Krankentagegeld, Zahl = Karenzwoche? | |
+| 7 | `ZS75`, `Z260` | Zahn | |
+| 8 | `WG`, `WGZ3/4`, `V` (Zusatz Art Leben) | unklar | |
+| 9 | `ZG30/50/70`, `ZGB`, `ZH40`, `ZP1–ZP9` | Zahnzusatz | |
+| 10 | `SG1/SG2`, `SP1/SP2/SPU` | stationäre Zusatz | |
+| 11 | `AG`, `AG80`, `AGZ`, `AP1–AP9` | ambulante Zusatz | |
+| 12 | `GKVP` und die Endungen `K` und `M` (Zusatz Art Schaden) | Kollektiv / Mitglieder? | |
+| 13 | Gruppentarife: `…FR`/`…OR` = R-Tarife, `…G`/`…Gz` = G-Tarif | so übernehmen? | |
+| 14 | Leben: `SBU…` = Berufsunfähigkeit; `T…`, `BT…`, `N…`, `L2`, `DT…`, `R` | Unterarten offen | |
+| 15 | Wo steht die Pflegepflicht in der Abrechnung (`PVN`, `PPN`, `PPB`)? Im Reklamationsbeispiel kommt „PPN" vor. | eigener Bereich „Pflege" mit eigenem Faktor | |
+
+## Unterlagen
+
+Prospekte oder Bedingungswerke habe ich nicht gefunden – weder im Repository noch im verbundenen Google Drive.
+Hilfreich wären als Upload: `1.591_Bedingungen_Vollversicherung_Beihilfe.pdf`, das allgemeine Tarifbuch (`1.700_…`)
+und je ein Prospekt für Vollversicherung, Zusatz und bKV.
+
+## Zuordnung nach Tarifgruppe (Arbeitsstand)
 
 | Tarifgruppe (Abrechnung) | Bereich in der App | Kürzel-Muster | Unterkategorie (Vorschlag) | Sicher? |
 |---|---|---|---|---|
@@ -48,12 +94,3 @@ Die feinere Zuordnung (Spalte „Unterkategorie") ist aus den Tarifkürzeln **ge
 | Unfallversicherung | Unfall | `UT`, `UB`, `U350`, `U500` | Unfall | sicher |
 | Lebensversicherung (Standard) | Leben | `SBU…`, `T…`, `BT…`, `N…`, `L2`, `DT…`, `R` | Leben (BU, Risiko, Rente) | Bereich sicher, Unterart offen |
 
-## Offene Fragen
-
-1. Was bedeuten die Endungen `a`, `u`, `n` (z. B. A107a / A107n / A103u)?
-2. Ist `VP` die Pflegepflichtversicherung? Dann gehört sie in den Bereich „Pflege" mit eigenem Provisionsfaktor.
-3. Stehen Beihilfe-Tarife immer mit `B` am Anfang – außer `BE` (Beitragsentlastung)?
-4. Was sind `AE`, `AZ`, `RE`, `W`, `WG`, `NH`, `10`, `V`, `GKVP` und die Endungen `K` und `M`?
-
-Sobald das bestätigt ist, wird daraus ein Filter „Kategorie" im Dashboard und im Management-Vergleich
-(z. B. „Voll mit Beihilfe", „Pflegezusatz", „Zahn").

@@ -81,6 +81,8 @@
       if (erg.abweichung.length) h.push({ art: 'krit', text: erg.abweichung.length + (erg.abweichung.length === 1 ? ' Abweichung' : ' Abweichungen') + ' zur Abrechnung', ziel: 'abgleich', filter: 'abweichung' });
       if (erg.vorschlaege.length) h.push({ art: 'info', text: erg.vorschlaege.length + (erg.vorschlaege.length === 1 ? ' Zuordnungsvorschlag' : ' Zuordnungsvorschläge') + ' zu bestätigen', ziel: 'abgleich', filter: 'offen' });
       if (neuOffen) h.push({ art: 'info', text: neuOffen + (neuOffen === 1 ? ' Buchung' : ' Buchungen') + ' ohne Antrag', ziel: 'abgleich', filter: 'neu' });
+      var rk = p.antraege.filter(M.reklaOffen).length;
+      if (rk) h.push({ art: 'info', text: rk + (rk === 1 ? ' Reklamation' : ' Reklamationen') + ' offen', ziel: 'antraege', filter: 'rekla' });
       var st = erg.storno.length;
       if (st) h.push({ art: 'krit', text: st + (st === 1 ? ' Rückbuchung' : ' Rückbuchungen') + ' zu abgerechneten Anträgen', ziel: 'abgleich', filter: 'storno' });
     }
