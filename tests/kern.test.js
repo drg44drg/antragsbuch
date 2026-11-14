@@ -242,3 +242,29 @@ test('Gesetzlicher Zuschlag (VT) zählt zum Beitrag, löst aber keine Provision 
   const s = P.soll(a, P.standardRegeln());
   assert.equal(s.betrag, 1650); assert.match(s.teile[1].text, /gesetzlicher Zuschlag/);
 });
+
+test('Bonus-Rechner: Werte des Bonus-Reportings, Stufen, Sonderregelung, Zusatzboni', () => {
+  const B = AB.bonus;
+  // wie im Bonus-Reporting: Stufe 1+2, Bestand 373.185 €, KV-Netto 4.485 €, gesamt 4.607 €, 4 neue VP Voll, 38 neue VP bKV
+  let r = B.rechne({ stufe: '1+2', bestandKv: 373185, neueVoll: 4, neueBkv: 38, nettoKv: 4485, nettoGesamt: 4607 });
+  assert.deepEqual([r.ziel1.soll, r.ziel1.fehlt, r.ziel1.erreicht], [9, 5, false]);
+  assert.deepEqual([Math.round(r.ziel2.soll), Math.round(r.ziel2.fehlt), Math.round(r.ziel2.je1000)], [8210, 3725, 12]);
+  assert.deepEqual([Math.round(r.zb1.soll), Math.round(r.zb1.fehlt), r.zb1.max], [9330, 4845, 750]);
+  assert.deepEqual([r.sonder.mindest, r.sonder.fehlt, r.sonder.greift], [6000, 1393, false]);
+  assert.deepEqual([r.bkv.soll, r.bkv.erreicht, r.bkv.praemie, r.bkv.max], [25, true, 0, 500], 'bKV-Ziel erreicht, zählt aber erst mit Grundbonus');
+  assert.equal(r.summe, 0); assert.equal(r.maxZusatz, 4250);
+  assert.ok(r.schritte.some((s) => /noch 5 neue Personen/.test(s)) && r.schritte.some((s) => /3\.725 €/.test(s)) && r.schritte.some((s) => /1\.393 €/.test(s)));
+  // Sonderregelung: Mindestproduktion erreicht → halber Grundbonus
+  r = B.rechne({ stufe: '1+2', bestandKv: 373185, bestandVoll: 300000, neueVoll: 4, neueBkv: 38, nettoKv: 6100, nettoGesamt: 6200 });
+  assert.deepEqual([r.grundErreicht, r.sonder.greift, r.grund, r.summe], [false, true, 1240, 1240]);
+  // Beispiele aus den Bedingungen: Stufe 4, 9 neue Personen bei 350.000 € Bestand, 11.000 € → 6.600 €
+  r = B.rechne({ stufe: '4', bestandKv: 350000, bestandVoll: 350000, neueVoll: 9, neueBkv: 0, nettoKv: 11000, nettoGesamt: 11000 });
+  assert.equal(r.ziel1.soll, 9); assert.equal(r.ziel1.erreicht, true); assert.equal(r.grund, 6600); assert.equal(r.kombi.praemie, 6000);
+  assert.equal(r.zb1.praemie, 4050); assert.equal(r.summe, 6600 + 6000 + 4050);
+  // Stufe 5, 400.000 € Bestand, 12.500 € → 8.750 €; Stufe 3, 275.000 €, 7.500 € → Zusatzbonus 2.100 €
+  assert.equal(B.rechne({ stufe: '5', bestandKv: 400000, nettoKv: 12500, nettoGesamt: 12500 }).grund, 8750);
+  r = B.rechne({ stufe: '3', bestandKv: 275000, nettoKv: 7500, nettoGesamt: 7500, neueBkv: 35 });
+  assert.equal(r.zb1.praemie, 2100); assert.equal(r.bkv.praemie, 1000); assert.equal(r.grund, 3750);
+  assert.equal(B.rechne(B.leer()).summe, 0);
+  assert.equal(B.rechne({ stufe: '3', bestandKv: 80000 }).ziel1.soll, 3, 'mindestens drei neue Personen');
+});

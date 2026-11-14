@@ -2,9 +2,9 @@
 /* Bündelt alle Quellen zu EINER Datei: antragsbuch.html (HTML + CSS + JS inline, keine Abhängigkeiten). */
 const fs = require('fs'), path = require('path');
 const r = (...p) => fs.readFileSync(path.join(__dirname, ...p), 'utf8');
-const KERN = ['util', 'csv', 'xlsx', 'statement', 'provision', 'model', 'abgleich', 'kennzahlen', 'team', 'vdienst', 'xlsxout', 'tarifdaten', 'tarif', 'krypto', 'altbuch', 'import'];
+const KERN = ['util', 'csv', 'xlsx', 'statement', 'provision', 'model', 'abgleich', 'kennzahlen', 'team', 'vdienst', 'xlsxout', 'tarifdaten', 'tarif', 'krypto', 'altbuch', 'bonus', 'import'];
 const UI = ['dom', 'diagramme', 'tabelle', 'speicher', 'app', 'maske', 'kunde', 'reklamation', 'tour',
-  'ansichten/start', 'ansichten/uebersicht', 'ansichten/antraege', 'ansichten/abgleich', 'ansichten/vdienst', 'ansichten/team', 'ansichten/einstellungen', 'ansichten/hilfe'];
+  'ansichten/start', 'ansichten/uebersicht', 'ansichten/antraege', 'ansichten/abgleich', 'ansichten/vdienst', 'ansichten/team', 'ansichten/bonus', 'ansichten/einstellungen', 'ansichten/hilfe'];
 
 const kern = KERN.map((k) => r('src', 'core', k + '.js')).join('\n');
 const ui = UI.filter((u) => fs.existsSync(path.join(__dirname, 'src', 'ui', u + '.js'))).map((u) => r('src', 'ui', u + '.js')).join('\n');
