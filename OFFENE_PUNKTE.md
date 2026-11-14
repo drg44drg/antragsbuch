@@ -36,10 +36,11 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 
 ### Paket 3 – Aktionen und Reporting
 - [ ] Reklamations-Auswertung nach dem Muster „Reporting Provisionsreklamationen": Anzahl, Quote, Ergebnis, Verursacher je Quartal
-- [ ] Reiter „Aktionen": Aktion anlegen, Kundenliste importieren, Status je Kunde
-      (bearbeitet, nicht bearbeitet, kontaktiert, nicht erreicht, abgesagt, Termin, Abschluss)
-- [ ] Aktions-Dashboard: Stück, Quoten, MB aus der Aktion, Verknüpfung zu Anträgen
-- [ ] Automatisches Einlesen alter Reportings; Export als Excel/PDF
+- [x] Reiter „Aktionen": Aktion anlegen, Kundenliste einlesen, drei Kontaktstufen (T/M/P/O/X) mit festem Datum,
+      Ergebnis, Monatsbeitrag, Zieldatum mit „überfällig", Kennzahlen, Diagramme, Excel/PDF, Antrag aus dem Kunden heraus
+- [ ] Bitte prüfen: Passt der Aufbau zu Ihrer Excel-Aktionsmatrix? Fehlende Spalten/Status nennen
+- [ ] Abschluss einer Aktion automatisch mit dem erfassten Antrag verknüpfen (MB dann aus dem Antrag)
+- [ ] Automatisches Einlesen alter Reportings (Muster fehlt)
 - [ ] Mehrere Schreiben/Anlässe je Aktion
 
 ### Paket 4 – Team
@@ -58,7 +59,11 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D0000 · Erledigt (Version 1.6)
+## D0000 · Erledigt (Version 1.7)
+
+Reiter „Aktionen" (Kundenlisten nachhalten, Auswertung, Export).
+
+## Erledigt (Version 1.6)
 
 Altes Excel-Antragsbuch übernehmen; Zuordnung ohne Name und Vertragsnummer über Beitrag und Provision, Sammelbestätigung ·
 Reiter „Meine Produktion" (Auswertung nur aus der Abrechnung) · Projektjahr passt sich der Abrechnung an ·
