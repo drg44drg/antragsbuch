@@ -460,3 +460,18 @@ test('Grundvergütung: Betrag nach Karrierestufe, von Hand überschreibbar, Jahr
   ak.positionen = [Object.assign(M.neuePosition(), { person: 'Baby Muster', tarif: 'A20u', beitrag: 45 })]; pk.antraege.push(ak);
   assert.equal(AB.bonus.simulation(pk, [], null).voll.beantragt, 1); assert.deepEqual(M.pruefeAntrag(ak), []);
 });
+
+test('Beitragsentlastung immer als BE/<Stufe>; Kindernachversicherung nur in der Vollversicherung', () => {
+  assert.deepEqual(M.beTarif('BE 700'), { be: true, stufe: 700, tarif: 'BE/700' });
+  assert.deepEqual(['be/560', 'BE560', 'BE-375', 'BE/700u'].map((t) => M.beTarif(t).tarif), ['BE/560', 'BE/560', 'BE/375', 'BE/700']);
+  assert.deepEqual(['BE', 'BEu', 'BE MAX', 'BE/', 'bea'].map((t) => [M.beTarif(t).stufe, M.beTarif(t).tarif]), Array(5).fill([null, 'BE/']));
+  assert.deepEqual(['BFRO', 'BEIHILFE', 'A107', ''].map(M.beTarif), [null, null, null, null]);
+  assert.equal(AB.tarif.einordnen('BE/700').kategorie, 'Beitragsentlastung');
+  const a = Object.assign(M.neuerAntrag(), { vorgang: 'mehr', vn: { name: 'Muster', vorname: 'Anna' } });
+  a.positionen[0].tarif = 'BEu'; a.positionen[0].beitrag = 50;
+  assert.match(M.pruefeAntrag(a)[0].text, /Beitragsentlastung bitte mit Stufe angeben, z\. B\. BE\/700/);
+  a.positionen[0].tarif = 'BE/700'; assert.deepEqual(M.pruefeAntrag(a), []);
+  a.positionen[0].tarif = 'BEu'; a.quelle = 'abrechnung'; assert.deepEqual(M.pruefeAntrag(a), [], 'aus der Abrechnung übernommen: dort steht keine Stufe');
+  const k = Object.assign(M.neuerAntrag(), { bereich: 'bkv', vorgang: 'neu', herkunft: 'kind', vn: { name: 'Firma', vorname: '' } }); k.positionen[0].tarif = 'BFRO'; k.positionen[0].beitrag = 20;
+  assert.match(M.pruefeAntrag(k)[0].text, /nur in der Vollversicherung/);
+});

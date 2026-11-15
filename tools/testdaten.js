@@ -27,7 +27,7 @@ function zeile(o) {
   const prov = o.prov != null ? o.prov : prozent ? mb * f / 100 : o.bwsd ? o.bwsd * f / 1000 : mbd * f;
   return [o.vm || VM, 'SDK', o.vnr, o.name || '', 'Testweg 1', ort[0], ort[1], o.pnr || '1', o.person || o.name || '',
     tg === 'Lebensversicherung (Standard)' ? 'LV' : 'KVUV', tg, o.tarif, de(mb), de(mbd), de(o.bws || 0), de(o.bwsd || 0), o.lz || '',
-    '0', '0', prozent ? 'Prozent' : 'Ganze', String(f).replace('.', ','), de(prov), prozent ? 'Prozent' : 'Ganze',
+    prozent ? '0' : '1', prozent ? '0' : de(mbd), prozent ? 'Prozent' : 'Ganze', String(f).replace('.', ','), de(prov), prozent ? 'Prozent' : 'Ganze',
     prozent ? 'Nettomonatsbeitrag' : 'Monatsbeitrag', o.art || 'Abschluss', o.x ? 'X' : '', dat(o.bdat), dat(o.vbeg || o.bdat.slice(0, 8) + '01'),
     o.grund || '', o.gvnr || '', o.beteil || '', '', dat(o.sh || '')];
 }
@@ -115,7 +115,7 @@ function projekt() {
   A({ nr: 2, eingang: '2026-01-20', name: 'Probe', vorname: 'Clara', bereich: 'zusatz', vnr: '200200', pos: [['ZP7', 35]] });
   A({ nr: 3, eingang: '2026-02-20', name: 'Test', vorname: 'Dieter', bereich: 'bkv', vnr: '250250', firma: 'Beispiel GmbH', gvnr: '0998001', pos: [['AB1F', 40]] });
   A({ nr: 4, eingang: '2026-01-10', name: 'Platzhalter', vorname: 'Anna', bereich: 'zusatz', pos: [['ZP9', 22.4]] });
-  A({ nr: 5, eingang: '2026-01-28', name: 'Beispiel', vorname: 'Bernd', vorgang: 'mehr', beginn: '2026-02-01', pos: [['BE560', 55.2]] });
+  A({ nr: 5, eingang: '2026-01-28', name: 'Beispiel', vorname: 'Bernd', vorgang: 'mehr', beginn: '2026-02-01', pos: [['BE/560', 55.2]] });
   A({ nr: 6, eingang: '2026-01-07', name: 'Demo', vorname: 'Eva', bereich: 'zusatz', vnr: '400400', pos: [['ZP9', 48]] });
   A({ nr: 7, eingang: '2026-01-08', name: 'Vorlage', vorname: 'Fritz', vnr: '500500', pos: [['A109', 300]] });
   A({ nr: 8, eingang: '2026-02-02', name: 'Platzhalter', vorname: 'Gerda', vorgang: 'minder', vnr: '600600', pos: [['S101', 20]] });

@@ -518,3 +518,13 @@ test('Vorschlag: laufende Bestandsprovision braucht keinen Antrag', () => {
   const b = { mbd: 3.08, tg: 'Unfallversicherung', zeilen: [{ part: 'Bestand', tarif: 'UT', mb: 3.08, mbd: 3.08 }] };
   assert.deepEqual((({ id, abhaken, sicher }) => [id, abhaken, sicher])(AB.abgleich.vorschlagFuer(b)), ['bestand', true, true]);
 });
+
+test('Vorschläge: Pflegezusatz ohne D ist Dynamik, Unfall ohne Antrag ist laufende Provision, Provision ohne Produktion deutet auf Teilung', () => {
+  const V = (rows, tg) => AB.abgleich.vorschlagFuer({ zeilen: rows, tg: tg || rows[0].tg, mbd: rows.reduce((s, z) => s + z.mbd, 0), hatStorno: false });
+  const z = (o) => Object.assign({ tg: 'Zusatzversicherung (Art Leben)', tarif: 'PG3A', mb: 30, mbd: 0.8, prov: 4.4, prod: 0.8, part: 'Erhöhung', st: 0 }, o);
+  assert.deepEqual([V([z({})]).id, V([z({})]).sicher], ['dynamik', true]);
+  assert.equal(V([z({ tg: 'Unfallversicherung', tarif: 'UT', part: 'Manuell', mb: 3, mbd: 3 })]).id, 'bestand');
+  assert.equal(V([z({ part: 'Abschluss', tarif: 'ZP7', mb: 35, mbd: 35, prod: 0, prov: 96 })]).id, 'teilung');
+  assert.equal(V([z({ part: 'Abschluss', tarif: 'ZP7', mb: 35, mbd: 35, prod: 35, prov: 0 })]).id, 'teilung');
+  assert.equal(V([z({ part: 'Abschluss', tarif: 'ZP7', mb: 35, mbd: 35, prod: 35, prov: 96 })]).id, 'neu');
+});

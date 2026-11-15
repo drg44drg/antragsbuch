@@ -186,6 +186,17 @@
   M.brauchtHerkunft = function (a) { return a.vorgang === 'neu' && (a.bereich === 'voll' || a.bereich === 'bkv'); };
   M.istPflegepflicht = function (tarif) { var e = tarif ? AB.tarif.einordnen(tarif) : null; return !!(e && e.kategorie === 'Pflegepflicht'); };
 
+  /**
+   * Beitragsentlastung wird immer als „BE/<Stufe>" geführt (Stufe = Zahl, z. B. BE/700). „BE MAX", „BEu" usw. sind nur Begriffe ohne Stufe.
+   * Rückgabe: { be: true, tarif: 'BE/700' | 'BE/', stufe: 700 | null } oder null, wenn es kein BE-Tarif ist.
+   */
+  M.beTarif = function (tarif) {
+    var t = String(tarif || '').trim(), m = /^BE\s*[\/ \-]?\s*(\d+(?:[.,]\d+)?)\s*[a-z]?$/i.exec(t);
+    if (m) return { be: true, stufe: U.parseZahl(m[1]), tarif: 'BE/' + m[1].replace('.', ',') };
+    if (/^BE(\s*[\/\-]?\s*(MAX)?|[aunz])?$/i.test(t)) return { be: true, stufe: null, tarif: 'BE/' };
+    return null;
+  };
+
   M.vnName = function (a) {
     return (a.vn.name || '') + (a.vn.vorname ? ', ' + a.vn.vorname : '');
   };
@@ -249,12 +260,15 @@
       f.push({ feld: 'vn.vorname', text: 'Vorname des Versicherungsnehmers fehlt.' });
     if (!M.bereich[a.bereich]) f.push({ feld: 'bereich', text: 'Bereich fehlt.' });
     if (!M.vorgang[a.vorgang]) f.push({ feld: 'vorgang', text: 'Vorgangsart fehlt.' });
-    if (M.brauchtHerkunft(a) && !M.HERKUNFT[a.herkunft]) f.push({ feld: 'herkunft', text: 'Bitte angeben: Neuversicherung (neue Person) oder aus dem Bestand.' });
+    if (a.herkunft === 'kind' && a.bereich !== 'voll') f.push({ feld: 'herkunft', text: 'Kindernachversicherung gibt es nur in der Vollversicherung.' });
+    else if (M.brauchtHerkunft(a) && !M.HERKUNFT[a.herkunft]) f.push({ feld: 'herkunft', text: 'Bitte angeben: Neuversicherung (neue Person) oder aus dem Bestand.' });
     var pos = a.positionen.filter(function (p) { return p.tarif || p.beitrag != null || p.person; });
     if (!pos.length) f.push({ feld: 'pos.0.tarif', text: 'Mindestens eine Position mit Tarif und Beitrag erfassen.' });
     a.positionen.forEach(function (p, i) {
       if (pos.indexOf(p) < 0 && a.positionen.length > 1) return;
       if (!String(p.tarif || '').trim()) f.push({ feld: 'pos.' + i + '.tarif', text: 'Position ' + (i + 1) + ': Tarif fehlt.' });
+      var be = M.beTarif(p.tarif);
+      if (be && be.stufe == null && a.quelle !== 'abrechnung' && a.quelle !== 'altbuch') f.push({ feld: 'pos.' + i + '.tarif', text: 'Position ' + (i + 1) + ': Beitragsentlastung bitte mit Stufe angeben, z. B. BE/700.' });
       if (a.bereich !== 'gkv' && (p.beitrag == null || p.beitrag === '' || isNaN(p.beitrag)))
         f.push({ feld: 'pos.' + i + '.beitrag', text: 'Position ' + (i + 1) + ': Beitrag fehlt.' });
     });

@@ -51,6 +51,12 @@
       var t = h('input', { type: 'text', value: ps.tarif || '', autocomplete: 'off', spellcheck: false, placeholder: 'Tarif' }); t.setAttribute('list', 'tarifliste');
       var b = h('input', { type: 'text', value: zahlText(ps.beitrag), inputMode: 'decimal', placeholder: '0,00', style: { textAlign: 'right' } });
       var pe = h('input', { type: 'text', value: ps.person || '', autocomplete: 'off', placeholder: 'wie Versicherungsnehmer' }), nr = h('input', { type: 'text', value: ps.personennummer || '', inputMode: 'numeric', autocomplete: 'off' });
+      // Beitragsentlastung: immer „BE/<Stufe>" – nach der Wahl von BE wird die Stufe (Zahl) abgefragt
+      t.addEventListener('change', function () {
+        var be = M.beTarif(t.value); if (!be) return;
+        t.value = be.tarif; aktualisiere();
+        if (be.stufe == null) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); D.toast('Beitragsentlastung: bitte die Stufe als Zahl ergänzen, z. B. BE/700.'); }
+      });
       [t, b, pe, nr].forEach(function (i) { i.addEventListener('input', aktualisiere); });
       z._lies = function () { return { id: ps.id, person: pe.value.trim(), personennummer: nr.value.trim(), tarif: t.value.trim(), beitrag: liesZahl(b.value), bereich: bSel.value }; };
       z._felder = { tarif: t, beitrag: b };
@@ -75,6 +81,7 @@
     function aktualisiere() {
       var x = sammle(), soll = AB.provision.soll(x, p.regeln);
       blockLeben.hidden = x.bereich !== 'leben'; blockHerkunft.hidden = !M.brauchtHerkunft(x);
+      var oKind = fHerkunft.querySelector('option[value="kind"]'); if (oKind) { oKind.hidden = oKind.disabled = x.bereich !== 'voll'; if (x.bereich !== 'voll' && fHerkunft.value === 'kind') fHerkunft.value = ''; }
       blockGv.hidden = blockFirma.hidden = !(x.bereich === 'bkv' || x.bereich === 'gruppe');
       fAnteil.parentNode.hidden = !fBank.checked;
       D.leere(sollText);

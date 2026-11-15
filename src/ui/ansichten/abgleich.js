@@ -152,6 +152,13 @@
         var hake = function (bs, an) { bs.forEach(function (b) { if (an) p.ignoriert[b.key] = { am: U.heute() }; else delete p.ignoriert[b.key]; }); z.wahl.clear(); App.geaendert(); };
         var zn = sichtbar(), wahlBtn = D.btn('Ausgewählte abhaken', function () { hake(zn.filter(function (b) { return z.wahl.has(b.key); }), true); }, { icon: 'haken', aus: !z.wahl.size });
         var alle = h('input', { type: 'checkbox', title: 'Alle angezeigten auswählen', onchange: function () { z.wahl.clear(); if (alle.checked) tab.zeilen().forEach(function (b) { if (!b.ignoriert) z.wahl.add(b.key); }); wahlBtn.disabled = !z.wahl.size; tab.zeichne(); } });
+        var ksMb = (function () { var g = p.einstellungen.grundverguetung, ks = g && M.KARRIERE.find(function (x) { return x.id === g.stufe; }); return ks ? ks.mb : null; })();
+        var bankText = function (b) {
+          var zb = b.zeilen.find(function (zz) { return zz.beteil; }); if (!zb) return '';
+          var f = +zb.fProv, rolle = (/als ([^)]+)\)/.exec(zb.beteil) || [])[1] || 'beteiligt', nr = (/^\d+/.exec(zb.beteil) || [''])[0];
+          var art = ksMb != null && Math.abs(f - (ksMb - 1)) < 0.01 ? ' = Bestands-Bank (freies Geschäft − 1 MB)' : Math.abs(f - 3) < 0.01 ? ' = aktive Bank' : '';
+          return ' · ' + rolle + ' ' + nr + (f ? ' · ' + U.fmtZahl(f, 1) + ' MB' + art : '');
+        };
         var spn = [
           { t: '', kopf: alle, b: '26px', w: function (b) { return b.ignoriert ? h('span', { title: 'abgehakt' }, '✓') : h('input', { type: 'checkbox', checked: z.wahl.has(b.key), onchange: function () { if (this.checked) z.wahl.add(b.key); else z.wahl.delete(b.key); wahlBtn.disabled = !z.wahl.size; } }); }, d: function () { return ''; } },
           { t: 'Monat', b: '104px', w: function (b) { return [U.MONATE_KURZ[+b.monat.slice(5) - 1] + ' ' + b.monat.slice(2, 4), b.neu ? h('span.marke-s.gut', { title: 'Neu im letzten Import' }, 'neu') : null]; }, s: function (b) { return b.monat; }, d: function (b) { return b.monat + (b.neu ? ' (neu)' : ''); }, absteigend: true },
@@ -159,7 +166,7 @@
           { t: 'Tarifgruppe · Tarife', b: 'minmax(140px, 1.2fr)', k: 'zwei', w: function (b) { return [h('span', null, b.tarife.join(', ')), h('small', null, b.tg)]; }, s: function (b) { return b.tg; }, d: function (b) { return b.tarife.join(', '); } },
           { t: 'Beitragsdiff.', b: '104px', r: true, w: function (b) { return AB.geld(b.mbd, true); }, s: function (b) { return b.mbd; }, d: function (b) { return U.fmtEuro(b.mbd); } },
           { t: 'Provision', b: '100px', r: true, w: function (b) { return AB.geld(b.prov, true); }, s: function (b) { return b.prov; }, d: function (b) { return U.fmtEuro(b.prov); } },
-          { t: 'Vorschlag', b: 'minmax(250px, 1.3fr)', k: 'zwei', w: function (b) { return [h('span', null, h('span.marke-s' + (b.vorschlag.sicher ? '.gut' : ''), { title: b.vorschlag.sicher ? 'Eindeutig – kann gesammelt übernommen werden' : 'Vorschlag – bitte prüfen' }, b.vorschlag.text)), h('small', null, b.arten.join(', ') + (b.hatStorno ? ' · Storno (X)' : ''))]; }, s: function (b) { return b.vorschlag.text; }, d: function (b) { return b.vorschlag.text + ' (' + b.arten.join(', ') + ')'; } },
+          { t: 'Vorschlag', b: 'minmax(250px, 1.3fr)', k: 'zwei', w: function (b) { return [h('span', null, h('span.marke-s' + (b.vorschlag.sicher ? '.gut' : ''), { title: b.vorschlag.sicher ? 'Eindeutig – kann gesammelt übernommen werden' : 'Vorschlag – bitte prüfen' }, b.vorschlag.text)), h('small', null, b.arten.join(', ') + (b.hatStorno ? ' · Storno (X)' : '') + bankText(b))]; }, s: function (b) { return b.vorschlag.text; }, d: function (b) { return b.vorschlag.text + ' (' + b.arten.join(', ') + ')'; } },
           { t: '', b: '222px', w: function (b) { return b.ignoriert ? D.btn('Wieder aufnehmen', function () { hake([b], false); }, { klasse: 'klein-btn leise' }) : [
             D.btn('Antrag', function () { if (App.gesperrt()) return; var a = AB.abgleich.antragAusBuendel(p, [b]); App.geaendert(); D.toast('Antrag angelegt: ' + M.vnName(a) + ' (' + M.name('vorgang', a.vorgang) + ').', { aktion: ['Öffnen', function () { AB.maske.oeffne(a); }] }); }, { klasse: 'klein-btn', titel: 'Als Antrag ins Antragsbuch übernehmen – Vorschlag: ' + b.vorschlag.text + '. Der Antrag lässt sich danach ändern.' }),
             D.btn('Zuordnen', function () { waehleAntrag([b]); }, { klasse: 'klein-btn', titel: 'Einem vorhandenen Antrag zuordnen' }),

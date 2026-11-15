@@ -275,7 +275,10 @@
           if (a.beginn === beg) { punkte += 10; gruende.push('Beginn stimmt'); }
           else if (a.beginn.slice(0, 7) === beg.slice(0, 7)) { punkte += 6; gruende.push('Beginn im selben Monat'); }
         }
-        if (a.positionen.some(function (ps) { return ps.tarif && g.tarife[String(ps.tarif).toLowerCase()]; })) { punkte += 10; gruende.push('Tarif stimmt'); }
+        // Tarifvergleich ohne Sonderzeichen; Beitragsentlastung („BE/700" im Antrag, „BEu" in der Abrechnung) gilt als derselbe Tarif
+        var tKeys = Object.keys(g.tarife), tn = function (s) { return String(s).toLowerCase().replace(/[^a-z0-9äöü]/g, ''); };
+        if (a.positionen.some(function (ps) { if (!ps.tarif) return false; var be = M.beTarif(ps.tarif);
+          return tKeys.some(function (k) { return tn(k) === tn(ps.tarif) || (be && M.beTarif(k)); }); })) { punkte += 10; gruende.push('Tarif stimmt'); }
         if (g.buendel.some(function (b) { return gruppenPassen(a, b.tg); })) punkte += 5; else punkte -= 10;
         if (a.eingang && g.monat === a.eingang.slice(0, 7)) { punkte += 5; if (a.quelle === 'altbuch') gruende.push('gleicher Monat'); }
         else if (g.monat < ohneMonat) punkte -= 20;
@@ -350,23 +353,27 @@
    * An einer echten Jahresabrechnung abgelesen: Dynamik erscheint als Provisionsart „Erhöhung" auf Pflegetarifen mit Dynamik (PG…D), meist zum 01.10.
    */
   A.VORSCHLAG = { dynamik: 'Dynamik', anpassung: 'Dynamik oder Beitragsanpassung', mehr: 'Erhöhung (Mehrbeitrag)', vollneu: 'Vollversicherung neu (mit Pflegepflicht)', bkv: 'bKV-Anmeldung',
-    neu: 'Neugeschäft – Antrag fehlt im Buch?', wechsel: 'Mehrbeitrag oder Tarifwechsel', storno: 'Storno / Rückbuchung', minder: 'Reduzierung',
+    teilung: 'Provisions- oder Produktionsteilung?', neu: 'Neugeschäft – Antrag fehlt im Buch?', wechsel: 'Mehrbeitrag oder Tarifwechsel', storno: 'Storno / Rückbuchung', minder: 'Reduzierung',
     bestand: 'Laufende Bestandsprovision', ruecknahme: 'Kündigungsrücknahme', legacy: 'Korrektur aus dem Altsystem', manuell: 'Manuelle Buchung' };
   A.vorschlagFuer = function (b) {
-    var zl = b.zeilen || [], arten = {}, alleNeu = true, pp = false, dynTarif = zl.length > 0, klein = zl.length > 0;
+    var zl = b.zeilen || [], arten = {}, alleNeu = true, pp = false, dynTarif = zl.length > 0, klein = zl.length > 0, prod = 0, prov = 0, hatProd = false;
     zl.forEach(function (z) {
       arten[z.part] = 1;
       if (Math.abs(z.mb - z.mbd) > 0.005) alleNeu = false;
       if (M.istPflegepflicht(z.tarif)) pp = true;
-      if (!/^PG.*D$/i.test(String(z.tarif || '').trim())) dynTarif = false;
+      // Pflegezusatz hat Dynamik bis zum 70. Lebensjahr – auch Tarife ohne „D" im Namen
+      var te = AB.tarif.einordnen(z.tarif, z.tg); if (!(te && te.kategorie === 'Pflegezusatz') && !/^PG.*D/i.test(String(z.tarif || '').trim())) dynTarif = false;
+      if (z.prod != null) { hatProd = true; prod += Math.abs(+z.prod || 0); } prov += Math.abs(+z.prov || 0);
       if (Math.abs(z.mbd) >= 5) klein = false;
     });
     var nur = function (x) { return Object.keys(arten).length === 1 && arten[x]; }, v = function (id, vorgang, sicher, extra) { return Object.assign({ id: id, text: A.VORSCHLAG[id], vorgang: vorgang, sicher: !!sicher }, extra || {}); };
-    if (nur('Bestand')) return v('bestand', '', true, { abhaken: true });
+    if (nur('Bestand') || (b.tg === 'Unfallversicherung' && !arten.Abschluss && !arten.Erhöhung)) return v('bestand', '', true, { abhaken: true });
     if (nur('Kündigungsrücknahme')) return v('ruecknahme', '', false, { abhaken: true });
     if (nur('Legacy')) return v('legacy', '', false, { abhaken: true });
     if (nur('Manuell')) return v('manuell', b.mbd < 0 ? 'minder' : 'mehr', false);
     if (b.mbd < -0.005) return b.hatStorno ? v('storno', 'storno', false) : v('minder', 'minder', false);
+    // Provision ohne Produktion (oder umgekehrt): kann eine Teilung mit einem anderen Außendienstpartner sein
+    if (hatProd && (arten.Abschluss || arten.Erhöhung) && ((prod < 0.005 && prov > 0.005) || (prod > 0.005 && prov < 0.005))) return v('teilung', b.mbd < 0 ? 'minder' : 'mehr', false);
     if (nur('Erhöhung')) return dynTarif ? v('dynamik', 'dynamik', true) : klein ? v('anpassung', 'dynamik', false) : v('mehr', 'mehr', false);
     if (arten.Abschluss && pp) return v('vollneu', 'neu', false, { bereich: 'voll', herkunft: 'neu' });
     if (arten.Abschluss && b.tg === 'Firmentarife') return v('bkv', 'neu', false, { bereich: 'bkv' });
@@ -398,6 +405,7 @@
     if (mbd < 0) pos.forEach(function (ps) { ps.beitrag = Math.abs(ps.beitrag); });
     a.positionen = pos;
     a.bemerkung = (a.vorgang === 'dynamik' ? 'Aus Dynamik' : 'Aus Abrechnung übernommen') + ' (' + U.monatName(b0.monat) + ')';
+    a.quelle = 'abrechnung';
     a.historie = [{ status: 'eingereicht', datum: a.eingang, am: a.erstellt, quelle: 'manuell', notiz: 'aus Abrechnung übernommen' }];
     a.statusDatum = a.eingang;
     p.antraege.push(a);

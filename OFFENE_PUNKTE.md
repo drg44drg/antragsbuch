@@ -69,7 +69,26 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D0000 · Erledigt (Version 2.4)
+## Blitzlicht · Was Sie noch hochladen wollten (Stand Version 2.5)
+
+- [ ] ADP-Verträge und Provisionsrichtlinien (Storno-Schwelle 90 % klären, Teil-Rückbuchung, Mitwirkungsgrade Bank)
+- [ ] Erklärung/FAQ zu den Provisionsdaten (Bedeutung der Spalten, Stornozeilen ohne Grund)
+- [ ] Kennzeichnung der Dynamik „nach Ziffer" im Antragsbuch
+- [ ] Echte Datei des Veränderungsdienstes (bisher nur Bildschirmfoto)
+- [ ] Genaue SDK-Produktfarben (Ordner am MacBook)
+- [ ] Stuttgarter Tarifliste Leben/Unfall · SLA je Postkorb · alte Reportings als Muster · neue Wettbewerbsbedingungen, sobald es sie gibt
+- [ ] Rückmeldung: wofür stehen die Blätter „GDms" und „GVms"?
+
+## D0000 · Erledigt (Version 2.5)
+
+Beitragsentlastung immer als „BE/<Stufe>" (Maske fragt die Zahl ab) · Karrieretabelle mit GD oben · Dynamik auch bei Pflegezusatz ohne „D" ·
+Unfall ohne Antrag = laufende Provision · Vorschlag „Provisions- oder Produktionsteilung?" · Anzeige des Bestandsinhabers/der Bank mit Provisionssatz ·
+Kindernachversicherung nur in der Vollversicherung.
+
+Erkannt an der Abrechnung 2025: Spalte „Beteiligte Vermittler" nennt den Bestandsinhaber (Nummern 91xxxx); der Provisionssatz ist dann 4,5 MB (HV 5,5 − 1) oder 3 MB.
+Offen: Sätze 1,5 MB (Gruppentarife) und 2,8 MB noch nicht erklärt – Provisionsrichtlinien abwarten.
+
+## Erledigt (Version 2.4)
 
 Liste „Abgerechnet ohne Antrag" mit Vorschlag je Zeile (Dynamik, Bestandsprovision, bKV-Anmeldung, Voll neu, Erhöhung, Storno …) · Sammelübernahme eindeutiger Dynamik ·
 Bestandsprovision in einem Schritt abhaken · Filter „Nur zu prüfende" · Karrieresystem mit sechs Stufen (BV1, BV2, HV, GV, GL, GD) und Fixum ·
