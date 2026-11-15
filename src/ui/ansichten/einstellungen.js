@@ -37,6 +37,8 @@
         slaTb.appendChild(h('tr', null, h('td', null, b.name), h('td', { style: { width: '110px' } }, zahl(s.gelb, function (n) { s.gelb = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } })),
           h('td', { style: { width: '110px' } }, zahl(s.rot, function (n) { s.rot = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } }))));
       });
+      // Ohne Vermittlernummer steht der Cursor gleich im Feld (das autofocus-Attribut greift nach dem Starthinweis nicht mehr zuverlässig)
+      if (!e.vermittlernummer) setTimeout(function () { var f = el.querySelector('input[placeholder="z. B. 900402"]'); if (f && !document.querySelector('dialog[open]')) f.focus(); }, 0);
       // Akzentfarbe: Auswahl ändert zuerst nur die Vorschau; erst „Übernehmen" schaltet das Programm um
       (function () {
         var AK = AB.akzent, aktiv = AK.lade(), entwurf = JSON.parse(JSON.stringify(aktiv));

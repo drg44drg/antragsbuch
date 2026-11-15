@@ -80,7 +80,16 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Rückmeldung: wofür stehen die Blätter „GDms" und „GVms"?
 - [ ] Altersvorsorgedepot: Regeln und Vergütung erst ab Januar 2027 verlässlich – dann nachliefern und einbauen
 
-## D0000 · Erledigt (Version 2.9)
+## D0000 · Erledigt (Version 3.0)
+
+Hinweis bei jedem Programmstart: Arbeitshilfe, keine Zusage oder Garantie, maßgeblich sind Abrechnungen und Richtlinien des Versicherers (auch in der Hilfe).
+
+## Nächster Auftrag · Management-Cockpit (Auswahl durch die Führungskraft steht aus)
+
+Vorschlag als Bausteinliste A–F in der Antwort vom Stand Version 3.0: Stammdaten je ADP (Karrierestufe, Bestand, Ziel), Vergleich gleicher Karrierestufen,
+Anteile je ADP und Sparte, Bestandsausschöpfung, Gesprächsblatt je ADP, Auswahl/Abwahl, Exporte. Bleibt in derselben HTML-Datei (Modus Management).
+
+## Erledigt (Version 2.9)
 
 Einlesen mit getrennten Feldern (Provisionsabrechnung, bisheriges Antragsbuch, Veränderungsdienst, Team und Auswertung, Projektdatei) ·
 Inhalt wird geprüft; passt die Datei nicht zum Feld, fragt die App nach statt still zu verwechseln.

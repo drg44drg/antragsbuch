@@ -170,6 +170,21 @@
   }
   document.addEventListener('click', function () { var k = document.querySelector('.kurz.auf'); if (k) k.classList.remove('auf'); });
 
+  // ---------- Hinweis bei jedem Programmstart: Arbeitshilfe, keine Zusage ----------
+  App.HINWEIS = [
+    'Das Antragsbuch ist eine Arbeitshilfe. Es soll helfen, Anträge im Blick zu behalten und Provisionen, Stornos und den Bonus nachzuvollziehen.',
+    'Alle Beträge, Vorschläge und Vorschauen beruhen auf den allgemeinen Provisions- und Wettbewerbsregeln und auf Ihren eigenen Eingaben. Sie sind keine Zusage, keine Garantie und keine verbindliche Abrechnung.',
+    'Maßgeblich sind allein die Abrechnungen, Richtlinien, Verträge und Auswertungen des Versicherers. Weicht etwas ab, klären Sie es bitte dort – die App zeigt Ihnen, wo Sie hinsehen sollten.',
+    'Ihre Daten bleiben auf diesem Gerät. Es wird nichts ins Internet übertragen.'
+  ];
+  App.zeigeHinweis = function () {
+    var d = D.dialog('Bitte beachten', { klasse: 'schmal' });
+    D.anhaengen(d.rumpf, App.HINWEIS.map(function (t, i) { return h('p', { style: { margin: i ? '10px 0 0' : 0 } }, t); }));
+    var ok = D.btn('Verstanden', d.zu, { klasse: 'haupt-btn' }); ok.id = 'hinweisOk';
+    D.anhaengen(d.fuss, [h('span.mini', { style: { flex: 1 } }, 'Dieser Hinweis erscheint bei jedem Start. Sie finden ihn auch unter Hilfe.'), ok]);
+    ok.focus();
+  };
+
   // ---------- Einlesen mit getrennten Feldern: Der Inhalt wird geprüft, damit nichts verwechselt wird ----------
   App.IMPORTARTEN = [
     { id: 'abrechnung', titel: 'Provisionsabrechnung', text: 'Die Abrechnung des Versicherers als CSV oder Excel. Jede neue Datei ersetzt die vorige, weil sie das ganze Jahr enthält.', arten: ['abrechnung'], icon: 'abgleich', endung: '.csv,.txt,.xlsx,.xlsm' },
@@ -341,7 +356,7 @@
 
   // ---------- Start ----------
   App.start = function () {
-    D.thema(); AB.akzent.wende(AB.akzent.lade());
+    D.thema(); AB.akzent.wende(AB.akzent.lade()); App.zeigeHinweis();
     starteWorker();
     Sp.onstatus = function (s) {
       document.getElementById('speicherpunkt').className = 'punkt ' + (s.art === 'ok' ? '' : s.art);

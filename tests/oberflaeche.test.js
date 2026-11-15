@@ -39,6 +39,7 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
   const einlesen = (datei) => page.setInputFiles('#schalter input[type=file]', path.join(tmp, datei));
   try {
     await page.goto('file://' + HTML);
+    assert.match(await page.textContent('dialog[open]'), /Arbeitshilfe[\s\S]*keine Zusage, keine Garantie[\s\S]*Maßgeblich sind allein/); await page.click('#hinweisOk');
     await t.test('Start: Fallback-Hinweis ohne File System Access API', async () => {
       await page.waitForSelector('text=Neues Projekt');
       assert.equal(await zahl('text=kann nicht direkt in Dateien speichern'), 1);
@@ -80,7 +81,7 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
     });
     await t.test('Neustart: Stand wird aus dem Browser-Spiegel wiederhergestellt', async () => {
       await page.waitForFunction(() => /gesichert um/.test(document.getElementById('speichertext').textContent));
-      await page.reload();
+      await page.reload(); await page.click('#hinweisOk');
       await page.click('button.wahl:has-text("Weiterarbeiten")');
       await nav('Anträge');
       assert.equal(await zahl('.vt-zeile'), 2);
@@ -346,7 +347,7 @@ test('Speichern in die Projektdatei (File System Access API, nachgestellt) und W
       } });
   });
   try {
-    await page.goto('file://' + HTML);
+    await page.goto('file://' + HTML); await page.click('#hinweisOk');
     assert.equal(await page.locator('text=kann nicht direkt in Dateien speichern').count(), 0);
     await page.click('button.wahl:has-text("Neues Projekt")');
     await page.waitForFunction(() => /^Gespeichert um \d\d:\d\d$/.test(document.getElementById('speichertext').textContent));
@@ -456,7 +457,7 @@ test('Lizenz: Werkzeug erzeugt Schlüssel und prägt die App; App prüft Testzei
     // --- geprägte App ---
     const page = await ctx.newPage(); page.on('pageerror', (e) => fehler.push('App: ' + e.message));
     await page.addInitScript(() => { delete window.showSaveFilePicker; delete window.showOpenFilePicker; delete window.showDirectoryPicker; });
-    await page.goto('file://' + app);
+    await page.goto('file://' + app); await page.click('#hinweisOk');
     await page.click('text=Mit Beispieldaten ausprobieren');
     await page.waitForSelector('#lizenzleiste:has-text("Testzeitraum: noch 20 Tage")');
     assert.equal(await page.evaluate(() => AB.app.nurLesen), false);
@@ -490,7 +491,7 @@ test('Lizenz: Werkzeug erzeugt Schlüssel und prägt die App; App prüft Testzei
     await trage(gut);
     assert.equal(await page.evaluate(() => AB.app.nurLesen), false);
     // ungeprägte Datei: keine Lizenzprüfung
-    const frei = await ctx.newPage(); await frei.goto('file://' + HTML); await frei.click('text=Mit Beispieldaten ausprobieren'); await frei.waitForSelector('h1:has-text("Übersicht")');
+    const frei = await ctx.newPage(); await frei.goto('file://' + HTML); await frei.click('#hinweisOk'); await frei.click('text=Mit Beispieldaten ausprobieren'); await frei.waitForSelector('h1:has-text("Übersicht")');
     assert.equal(await frei.evaluate(() => AB.app.lizenz.modus), 'frei'); assert.equal(await frei.isHidden('#lizenzleiste'), true);
     await frei.click('#nav button:has-text("Einstellungen")');
     assert.equal(await frei.locator('h3:has-text("Lizenz")').count(), 0);
