@@ -321,13 +321,13 @@
       p.abrechnung = r.gepackt; App.zeilen = AB.abrechnung.entpacke(r.gepackt); App.wuerfel = null;
       var neueTarife = M.erweitereTarife(p, r.tarife, 'abrechnung');
       p.importe.push({ id: U.uid(), nr: p.importZaehler, typ: 'Abrechnung', datum: new Date().toISOString(), datei: name, zeilen: r.anzahl,
-        provisionssumme: r.provisionssumme, neu: r.vergleich.neu, provisionNeu: r.vergleich.provisionNeu, entfallen: r.vergleich.entfallen, info: r.info });
+        provisionssumme: r.provisionssumme, neu: r.vergleich.neu, provisionNeu: r.vergleich.provisionNeu, entfallen: r.vergleich.entfallen, behalten: r.vergleich.behalten || 0, info: r.info });
       if (!p.einstellungen.vermittlernummer && r.vermittler.length === 1) p.einstellungen.vermittlernummer = r.vermittler[0];
       App.zustand.abgleich = Object.assign(App.zustand.abgleich || {}, { reiter: null });
       App.ansicht = opt.still ? App.ansicht : 'abgleich';
       App.geaendert();
       D.toast('Abrechnung eingelesen: ' + U.fmtZahl(r.anzahl, 0) + ' Zeilen, davon ' + U.fmtZahl(r.vergleich.neu, 0) + ' neu' +
-        (r.vergleich.entfallen ? ', ' + r.vergleich.entfallen + ' entfallen' : '') + (neueTarife ? ' · ' + neueTarife + ' neue Tarife' : '') + '.');
+        (r.vergleich.behalten ? ', ' + r.vergleich.behalten + ' aus früheren Importen behalten (fehlen in der neuen Datei)' : '') + (r.vergleich.entfallen ? ', ' + r.vergleich.entfallen + ' entfallen' : '') + (neueTarife ? ' · ' + neueTarife + ' neue Tarife' : '') + '.');
       r.warnungen.forEach(function (w) { D.toast(w, { krit: true }); });
     } else if (r.art === 'monatsscheiben' || r.art === 'teamdatei') {
       M.sichere(p, 'Vor Import „' + name + '"');

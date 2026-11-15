@@ -31,6 +31,10 @@
         if (r.fehler) throw new Error(r.fehler);
         var alt = opt.alt ? AB.abrechnung.entpacke(opt.alt) : [];
         var v = AB.abrechnung.vergleiche(alt, r.zeilen, opt.importNr || 1);
+        // Verlustfreier Import: Zeilen des bisherigen Stands, die in der neuen Datei fehlen, bleiben erhalten; gleiche Zeilen zählen nur einmal.
+        var behaltenAnz = v.behalten.length;
+        if (behaltenAnz) { r.zeilen = r.zeilen.concat(v.behalten); r.zeilen.sort(function (x, y) { return x.bdat < y.bdat ? -1 : x.bdat > y.bdat ? 1 : 0; }); r.provisionssumme = AB.util.runde(r.zeilen.reduce(function (s, z) { return s + (+z.prov || 0); }, 0)); }
+        v = { neu: v.neu, provisionNeu: v.provisionNeu, entfallen: v.entfallen, behalten: behaltenAnz };
         if (altErg && !opt.nurAbrechnung) return { art: 'altbuch', altbuch: altErg, blatt: altFund.blatt.name, abrechnungsblatt: { name: t.blaetter[b].name, zeilen: r.zeilen.length, jahre: r.jahre } };
         return { art: 'abrechnung', jahre: r.jahre, gepackt: AB.abrechnung.packe(r.zeilen), anzahl: r.zeilen.length, warnungen: r.warnungen,
           provisionssumme: r.provisionssumme, vergleich: v, info: t.info, tarife: AB.abrechnung.tarife(r.zeilen), vermittler: r.vermittler };

@@ -91,20 +91,20 @@ test('Kumulativ-Vergleich: neue Buchungen, entfallene, identische Doppelzeilen �
   assert.equal(v1.neu, jan.length);
   const v2 = S.vergleiche(jan, feb, 2);
   assert.equal(v2.neu, feb.filter((z) => z.bdat.startsWith('2026-02')).length);
-  assert.equal(v2.entfallen, 1, 'eine Januar-Buchung wurde korrigiert');
+  assert.equal(v2.entfallen, 0); assert.equal(v2.behalten.length, 1, 'eine Januar-Buchung fehlt in der Februar-Datei und wird behalten'); assert.equal(v2.behalten[0].fehlt, 2);
   assert.ok(feb.filter((z) => z.bdat.startsWith('2026-01')).every((z) => z.imp === 1));
   const v3 = S.vergleiche(feb, mrz, 3);
   assert.equal(v3.neu, mrz.filter((z) => z.bdat.startsWith('2026-03')).length);
   assert.ok(mrz.filter((z) => z.bdat.startsWith('2026-02')).every((z) => z.imp === 2), 'Erst-Import bleibt über Folgeimporte erhalten');
   // gleicher Stand noch einmal: nichts neu
   const nochmal = lies('abrechnung_2026_01-03.csv');
-  assert.deepEqual(S.vergleiche(mrz, nochmal, 4), { neu: 0, provisionNeu: 0, entfallen: 0 });
+  assert.deepEqual(S.vergleiche(mrz, nochmal, 4), { neu: 0, provisionNeu: 0, entfallen: 0, behalten: [] });
   // Doppelzeilen: 2 identische alt, 3 identische neu → genau 1 neu
   const d = (imp) => ({ vnr: '1', pnr: '1', tarif: 'T', bdat: '2026-01-01', part: 'Abschluss', mbd: 10, prov: 55, imp });
   const neu = [d(0), d(0), d(0)];
   assert.equal(S.vergleiche([d(1), d(1)], neu, 2).neu, 1);
   assert.deepEqual(neu.map((z) => z.imp), [1, 1, 2]);
-  assert.equal(S.vergleiche([d(1), d(1), d(1)], [d(0)], 2).entfallen, 2);
+  assert.equal(S.vergleiche([d(1), d(1), d(1)], [d(0)], 2).behalten.length, 2, 'zwei der drei alten Zeilen fehlen in der neuen Datei und bleiben erhalten');
 });
 
 test('Packen/Entpacken ist verlustfrei', () => {

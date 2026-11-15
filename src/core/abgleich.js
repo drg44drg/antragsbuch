@@ -370,7 +370,7 @@
 
   A.VORSCHLAG = { dynamik: 'Dynamik', anpassung: 'Dynamik oder Beitragsanpassung', mehr: 'Erhöhung (Mehrbeitrag)', vollneu: 'Vollversicherung neu (mit Pflegepflicht)', bkv: 'bKV-Anmeldung',
     teilung: 'Provisions- oder Produktionsteilung?', neu: 'Neugeschäft – Antrag fehlt im Buch?', wechsel: 'Mehrbeitrag oder Tarifwechsel', storno: 'Storno / Rückbuchung', minder: 'Reduzierung',
-    bestand: 'Laufende Bestandsprovision', ruecknahme: 'Kündigungsrücknahme', legacy: 'Korrektur aus dem Altsystem', manuell: 'Manuelle Buchung' };
+    fehlt: 'Fehlt in der neuesten Abrechnung – bitte prüfen', bestand: 'Laufende Bestandsprovision', ruecknahme: 'Kündigungsrücknahme', legacy: 'Korrektur aus dem Altsystem', manuell: 'Manuelle Buchung' };
   A.vorschlagFuer = function (b) {
     var zl = b.zeilen || [], arten = {}, alleNeu = true, pp = false, dynTarif = zl.length > 0, klein = zl.length > 0, prod = 0, prov = 0, hatProd = false;
     zl.forEach(function (z) {
@@ -383,6 +383,7 @@
       if (Math.abs(z.mbd) >= 5) klein = false;
     });
     var nur = function (x) { return Object.keys(arten).length === 1 && arten[x]; }, v = function (id, vorgang, sicher, extra) { return Object.assign({ id: id, text: A.VORSCHLAG[id], vorgang: vorgang, sicher: !!sicher }, extra || {}); };
+    if (zl.length && zl.every(function (z) { return z.fehlt; })) return v('fehlt', '', false, { abhaken: true });
     if (nur('Bestand') || (b.tg === 'Unfallversicherung' && !arten.Abschluss && !arten.Erhöhung)) return v('bestand', '', true, { abhaken: true });
     if (nur('Kündigungsrücknahme')) return v('ruecknahme', '', false, { abhaken: true });
     if (nur('Legacy')) return v('legacy', '', false, { abhaken: true });

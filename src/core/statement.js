@@ -33,7 +33,7 @@
     ['beteil', 'Beteiligte Vermittler', 0, 't'],
     ['shEnde', 'Stornohaftungszeitende', 0, 'd']
   ];
-  S.FELDER = S.SPALTEN.map(function (s) { return s[0]; }).concat(['imp']);
+  S.FELDER = S.SPALTEN.map(function (s) { return s[0]; }).concat(['imp', 'fehlt']);
 
   S.PROVISIONSARTEN = ['Abschluss', 'Erhöhung', 'Bestand', 'Manuell', 'Kündigungsrücknahme', 'Legacy', 'Hierarchie'];
   var PART = { abschluss: 'Abschluss', erhhung: 'Erhöhung', erhoehung: 'Erhöhung', erhohung: 'Erhöhung',
@@ -120,17 +120,20 @@
     var vorrat = new Map(), i, k, a;
     for (i = 0; i < alt.length; i++) {
       k = S.schluessel(alt[i]); a = vorrat.get(k);
-      if (a) a.push(alt[i].imp || 0); else vorrat.set(k, [alt[i].imp || 0]);
+      if (a) a.push(alt[i]); else vorrat.set(k, [alt[i]]);
     }
     var anzNeu = 0, provNeu = 0;
     for (i = 0; i < neu.length; i++) {
       k = S.schluessel(neu[i]); a = vorrat.get(k);
-      if (a && a.length) neu[i].imp = a.shift();
+      if (a && a.length) neu[i].imp = a.shift().imp || 0;
       else { neu[i].imp = importNr; anzNeu++; provNeu += neu[i].prov; }
     }
-    var entfallen = 0;
-    vorrat.forEach(function (arr) { entfallen += arr.length; });
-    return { neu: anzNeu, provisionNeu: U.runde(provNeu), entfallen: entfallen };
+    // Zeilen, die nur im bisherigen Stand stehen: Sie fehlen in der neuen Datei (z. B. weil ein Monat herausgelöscht wurde).
+    // Sie werden behalten, wenn sie zum selben Jahr und Vermittler gehören wie die neue Datei – ein Import ergänzt, er löscht nicht.
+    var jahre = {}, vms = {}, behalten = [], entfallen = 0;
+    for (i = 0; i < neu.length; i++) { jahre[neu[i].bdat.slice(0, 4)] = 1; vms[neu[i].vm] = 1; }
+    vorrat.forEach(function (arr) { arr.forEach(function (z) { if (jahre[z.bdat.slice(0, 4)] && vms[z.vm]) { z.fehlt = z.fehlt || importNr; behalten.push(z); } else entfallen++; }); });
+    return { neu: anzNeu, provisionNeu: U.runde(provNeu), entfallen: entfallen, behalten: behalten };
   };
 
   /** Platzsparend speichern: Feldliste + Zeilen als Arrays. */
@@ -148,7 +151,7 @@
     var F = p.felder, out = new Array(p.zeilen.length);
     for (var i = 0; i < p.zeilen.length; i++) {
       var a = p.zeilen[i], z = {};
-      for (var f = 0; f < F.length; f++) z[F[f]] = a[f];
+      for (var f = 0; f < F.length; f++) { if (F[f] === 'fehlt' && !a[f]) continue; z[F[f]] = a[f]; }
       out[i] = z;
     }
     return out;

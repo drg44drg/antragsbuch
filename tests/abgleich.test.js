@@ -33,7 +33,8 @@ test('Alle fünf Listen werden korrekt befüllt (Stand Jan–Mrz)', async () => 
   assert.deepEqual(ids(erg.abweichung), ['a-2', 'a-3']);
   assert.deepEqual(ids(erg.offen), ['a-4', 'a-5']);
   assert.deepEqual(ids(erg.storno), ['a-6', 'a-7']);
-  assert.deepEqual(erg.neu.map((b) => b.vnr).sort(), ['120120', '130130', '140140', '150150', '300300']);
+  assert.deepEqual(erg.neu.map((b) => b.vnr).sort(), ['120120', '130130', '140140', '150150', '160160', '300300'], '160160 fehlt in der neuesten Datei, bleibt aber erhalten');
+  assert.equal(erg.neu.find((b) => b.vnr === '160160').vorschlag.id, 'fehlt');
   // nicht geprüft: Umstellung ohne Provision und GKV; zu jung für OFFEN: a-16, a-17
   for (const id of ['a-9', 'a-10', 'a-16', 'a-17']) assert.equal(erg.proAntrag[id].liste, '');
 });
@@ -537,4 +538,29 @@ test('Storno nach Provisionsrichtlinie: Anteil als Bruch, Verrechnung ohne Provi
   const r = AB.provision.regelnNachStufe(5.5);
   assert.deepEqual([r['voll|neu'], r['zusatz|mehr'], r['pflege|neu'], r['leben|neu'], r['unfall|neu'], r['gkv|neu'], r['voll|umstellung']],
     [{ art: 'faktor', wert: 5.5 }, { art: 'faktor', wert: 5.5 }, { art: 'faktor', wert: 2 }, { art: 'leben', wert: 30 }, { art: 'unfall', wert: 20 }, { art: 'stueck', wert: 100 }, { art: 'keine', wert: 0 }]);
+});
+
+test('Verlustfreier Import: neue Abrechnung ergänzt, löscht nichts und zählt nichts doppelt (idempotent)', async () => {
+  const kopf = AB.abrechnung.SPALTEN.map((s) => s[1]);
+  const zeile = (vnr, mbd, datum, vm) => { const o = { 'Vermittlernummer': vm || '900999', 'Versicherungsgesellschaft': 'SDK', 'Vertragsnummer': vnr, 'Versicherungsnehmer (Name)': 'MUSTER, ANNA', 'Personennummer': '1', 'Sparte': 'KVUV', 'Tarifgruppe': 'Vollversicherung', 'Tarif': 'A107',
+    'Monatsbeitrag': String(mbd), 'Monatsbeitragsdifferenz': String(mbd), 'Faktor Produktion': '1', 'Produktion': String(mbd), 'Faktor Provision': '5,5', 'Provision': String(mbd * 5.5).replace('.', ','), 'Provisionsart': 'Abschluss', 'Buchungsdatum (Berechnungsdatum)': datum, 'Versicherungsbeginn/Änderungsdatum': datum };
+    return kopf.map((k) => o[k] == null ? '' : o[k]); };
+  const csv = (rows) => new TextEncoder().encode('﻿' + [kopf].concat(rows).map((r) => r.join(';')).join('\r\n'));
+  const jan = zeile('111', 10, '15.01.2026'), feb = zeile('222', 20, '10.02.2026'), mrz = zeile('333', 30, '05.03.2026');
+  let r = await AB.importer.lies(csv([jan]), 'jan.csv', { importNr: 1 });
+  assert.deepEqual([r.anzahl, r.vergleich.neu, r.vergleich.behalten], [1, 1, 0]);
+  // Februar-Datei enthält den Januar noch einmal: Januar zählt nicht doppelt
+  r = await AB.importer.lies(csv([jan, feb]), 'feb.csv', { importNr: 2, alt: r.gepackt });
+  assert.deepEqual([AB.abrechnung.entpacke(r.gepackt).length, r.vergleich.neu, r.vergleich.behalten, r.provisionssumme], [2, 1, 0, 165]);
+  // dieselbe Datei noch einmal: nichts ändert sich
+  const nochmal = await AB.importer.lies(csv([jan, feb]), 'feb.csv', { importNr: 3, alt: r.gepackt });
+  assert.deepEqual([AB.abrechnung.entpacke(nochmal.gepackt).length, nochmal.vergleich.neu, nochmal.vergleich.behalten], [2, 0, 0]);
+  // März-Datei, aus der jemand den Januar gelöscht hat: Januar bleibt erhalten
+  r = await AB.importer.lies(csv([feb, mrz]), 'mrz.csv', { importNr: 4, alt: nochmal.gepackt });
+  const zl = AB.abrechnung.entpacke(r.gepackt);
+  assert.deepEqual([zl.length, r.vergleich.neu, r.vergleich.behalten, r.vergleich.entfallen, r.provisionssumme], [3, 1, 1, 0, 330]);
+  assert.deepEqual(zl.map((z) => z.vnr), ['111', '222', '333'], 'nach Buchungsdatum sortiert'); assert.equal(zl.find((z) => z.vnr === '111').imp, 1, 'der Januar behält seine Importnummer');
+  // Datei eines anderen Jahres oder Vermittlers: der alte Stand wird nicht hineingemischt
+  const anders = await AB.importer.lies(csv([zeile('999', 5, '03.01.2027')]), '2027.csv', { importNr: 5, alt: r.gepackt });
+  assert.deepEqual([AB.abrechnung.entpacke(anders.gepackt).length, anders.vergleich.behalten, anders.vergleich.entfallen], [1, 0, 3]);
 });

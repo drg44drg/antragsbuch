@@ -95,17 +95,18 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
         await page.waitForSelector(`#untertitel:has-text("${f}")`);
       }
       const reiter = await page.$$eval('.reiter button', (bs) => bs.map((b) => b.textContent));
-      assert.equal(reiter[0], 'Gleich8'); assert.equal(reiter[1], 'Abweichung2'); assert.equal(reiter[3], 'Abgerechnet ohne Antrag5'); assert.equal(reiter[4], 'Storno2');
-      assert.match(await page.textContent('.ablage'), /204 Zeilen.*67 neu/);
+      assert.equal(reiter[0], 'Gleich8'); assert.equal(reiter[1], 'Abweichung2'); assert.equal(reiter[3], 'Abgerechnet ohne Antrag6'); assert.equal(reiter[4], 'Storno2');
+      assert.match(await page.textContent('.ablage'), /205 Zeilen.*67 neu/);
       // Vorschlag bestätigen
       await page.click('.reiter button:has-text("Offen")');
       await page.click('button:has-text("Bestätigen")');
       assert.equal((await page.$$eval('.reiter button', (bs) => bs.map((b) => b.textContent)))[0], 'Gleich9');
       // Buchung abhaken und als Antrag übernehmen
       await page.click('.reiter button:has-text("Abgerechnet ohne Antrag")');
-      assert.equal(await zahl('.vt-zeile'), 4);
+      assert.equal(await zahl('.vt-zeile'), 5);
+      assert.match(await page.textContent('.vt-zeile:has-text("ENTWURF, ANNA")'), /Fehlt in der neuesten Abrechnung/);
       await page.click('.vt-zeile:has-text("PROBE, DIETER") button[title^="Kein Antrag"]');
-      assert.equal(await zahl('.vt-zeile'), 3);
+      assert.equal(await zahl('.vt-zeile'), 4);
       await page.click('.vt-zeile:has-text("DEMO, FRITZ") button:has-text("Antrag")');
       assert.equal((await page.$$eval('.reiter button', (bs) => bs.map((b) => b.textContent)))[0], 'Gleich10');
       await nav('Übersicht');
@@ -313,7 +314,7 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       await einlesen('gross.csv');
       await page.waitForSelector('#untertitel:has-text("gross.csv")', { timeout: 60000 });
       const dauer = Date.now() - t0;
-      assert.match(await page.textContent('.ablage'), /52\.000 Zeilen/);
+      assert.match(await page.textContent('.ablage'), /52\.205 Zeilen/);
       assert.equal(await page.evaluate(() => AB.app.mitWorker()), true, 'Import läuft im Web Worker');
       for (const art of ['Hierarchie']) await page.click(`.chip:has-text("${art}")`);
       await page.click('.reiter button:has-text("Abgerechnet ohne Antrag")');
@@ -393,7 +394,7 @@ test('Speichern in die Projektdatei (File System Access API, nachgestellt) und W
     await page.click('#nav button:has-text("Einstellungen")');
     await page.click('button:has-text("Ordner verbinden")');
     await page.waitForFunction(() => AB.app.p.importe.length === 2);
-    assert.deepEqual(await page.evaluate(() => AB.app.p.importe.map((i) => [i.datei, i.zeilen, i.neu])), [['abrechnung_2026_01.csv', 69, 69], ['abrechnung_2026_01-02.csv', 137, 69]]);
+    assert.deepEqual(await page.evaluate(() => AB.app.p.importe.map((i) => [i.datei, i.zeilen, i.neu])), [['abrechnung_2026_01.csv', 69, 69], ['abrechnung_2026_01-02.csv', 138, 69]]);
     // erneutes Prüfen liest nichts doppelt; eine neue Datei wird beim nächsten Prüfen geholt
     await page.evaluate((x) => { window.__ordner.push(x); }, { name: 'abrechnung_2026_01-03.csv', b64: b64('abrechnung_2026_01-03.csv'), geaendert: 4000 });
     await page.click('button:has-text("Jetzt prüfen")');
