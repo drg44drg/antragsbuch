@@ -252,6 +252,22 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#inhalt button:has-text("Excel")')]);
       assert.match(dl.suggestedFilename(), /^Aktion_Mailing_Test\.xlsx$/);
     });
+    await t.test('Einlesen mit getrennten Feldern: falsches Feld wird bemerkt, richtiges Feld liest ein', async () => {
+      await page.click('#schalter button:has-text("Einlesen")');
+      assert.equal(await zahl('dialog .importfeld'), 5);
+      assert.match(await page.textContent('dialog .importfelder'), /Provisionsabrechnung[\s\S]*Mein bisheriges Antragsbuch[\s\S]*Veränderungsdienst[\s\S]*Team und Auswertung[\s\S]*Projektdatei/);
+      // Abrechnung versehentlich ins Feld für das bisherige Antragsbuch gelegt
+      await page.setInputFiles('dialog [data-art="altbuch"] + input[type=file]', path.join(tmp, 'abrechnung_2026_01-03.csv'));
+      await page.waitForSelector('dialog:has-text("passt nicht zu diesem Feld")');
+      assert.match(await page.textContent('dialog:has-text("passt nicht zu diesem Feld")'), /Mein bisheriges Antragsbuch[\s\S]*eine Provisionsabrechnung/);
+      await page.click('dialog:has-text("passt nicht zu diesem Feld") button:has-text("Abbrechen")');
+      await page.waitForSelector('.toast:has-text("wurde nicht eingelesen")');
+      // dieselbe Datei im richtigen Feld
+      await page.click('#schalter button:has-text("Einlesen")');
+      await page.setInputFiles('dialog [data-art="abrechnung"] + input[type=file]', path.join(tmp, 'abrechnung_2026_01-03.csv'));
+      await page.waitForSelector('.toast:has-text("Abrechnung eingelesen")');
+      assert.equal(await zahl('dialog[open]'), 0);
+    });
     await t.test('Hilfe: Ablauf-Schaubild, FAQ-Suche und geführte Tour', async () => {
       await nav('Hilfe');
       assert.equal(await zahl('.prozess-schritt'), 5); assert.equal(await zahl('.prozess-pfeil'), 4);

@@ -80,7 +80,12 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Rückmeldung: wofür stehen die Blätter „GDms" und „GVms"?
 - [ ] Altersvorsorgedepot: Regeln und Vergütung erst ab Januar 2027 verlässlich – dann nachliefern und einbauen
 
-## D0000 · Erledigt (Version 2.8)
+## D0000 · Erledigt (Version 2.9)
+
+Einlesen mit getrennten Feldern (Provisionsabrechnung, bisheriges Antragsbuch, Veränderungsdienst, Team und Auswertung, Projektdatei) ·
+Inhalt wird geprüft; passt die Datei nicht zum Feld, fragt die App nach statt still zu verwechseln.
+
+## Erledigt (Version 2.8)
 
 Akzentfarbe in den Einstellungen: Standard, zwölf Einzelfarben oder Multicolor (jeder Klick würfelt eine neue Serie aus dem Farbpool des Multicolor-Skills) ·
 Vorschau mit Beispielmenü, Kacheln und Knopf; erst „Übernehmen" schaltet das Programm um · gilt je Browser · Produktfarben und Ampel bleiben fest.

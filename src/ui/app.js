@@ -139,7 +139,7 @@
     if (App.p) {
       var wahl = h('input', { type: 'file', multiple: true, hidden: true, accept: '.csv,.txt,.xlsx,.xlsm,.json', onchange: function () { App.importiere(Array.from(wahl.files)); wahl.value = ''; } });
       box.appendChild(wahl);
-      box.appendChild(D.btn('Einlesen', function () { wahl.click(); }, { icon: 'hoch', titel: 'Abrechnung, Veränderungsdienst oder Monatsscheiben einlesen – oder einfach ins Fenster ziehen' }));
+      box.appendChild(D.btn('Einlesen', function () { App.einleseDialog(); }, { icon: 'hoch', titel: 'Datei einlesen: je Art ein eigenes Feld (Abrechnung, bisheriges Antragsbuch, Veränderungsdienst, Team, Projektdatei)' }));
     }
   }
 
@@ -170,6 +170,30 @@
   }
   document.addEventListener('click', function () { var k = document.querySelector('.kurz.auf'); if (k) k.classList.remove('auf'); });
 
+  // ---------- Einlesen mit getrennten Feldern: Der Inhalt wird geprüft, damit nichts verwechselt wird ----------
+  App.IMPORTARTEN = [
+    { id: 'abrechnung', titel: 'Provisionsabrechnung', text: 'Die Abrechnung des Versicherers als CSV oder Excel. Jede neue Datei ersetzt die vorige, weil sie das ganze Jahr enthält.', arten: ['abrechnung'], icon: 'abgleich', endung: '.csv,.txt,.xlsx,.xlsm' },
+    { id: 'altbuch', titel: 'Mein bisheriges Antragsbuch', text: 'Das Excel-Antragsbuch, das Sie bisher geführt haben. Die Einträge werden als Anträge übernommen.', arten: ['altbuch'], icon: 'antraege', endung: '.xlsx,.xlsm' },
+    { id: 'vdienst', titel: 'Veränderungsdienst', text: 'Die Liste der policierten Verträge. Passende Anträge werden auf „Policiert" gesetzt.', arten: ['tabelle'], icon: 'vdienst', endung: '.csv,.txt,.xlsx,.xlsm' },
+    { id: 'team', titel: 'Team und Auswertung', text: 'Monatsscheiben, Sammelmappe, persönliche Auswertung oder die Teamdatei Ihrer Führungskraft.', arten: ['monatsscheiben', 'teamdatei'], icon: 'team', endung: '.xlsx,.xlsm,.json' },
+    { id: 'projekt', titel: 'Antragsbuch-Projektdatei', text: 'Eine gespeicherte Projektdatei dieser App (.json) öffnen, zum Beispiel eine Sicherung.', arten: ['projekt'], icon: 'einstellungen', endung: '.json' }
+  ];
+  App.ARTNAME = { abrechnung: 'eine Provisionsabrechnung', altbuch: 'ein bisheriges Excel-Antragsbuch', tabelle: 'eine einfache Liste (z. B. Veränderungsdienst)', monatsscheiben: 'eine Team-Auswertung (Monatsscheiben)', teamdatei: 'eine Teamdatei', projekt: 'eine Antragsbuch-Projektdatei' };
+  App.einleseDialog = function () {
+    var d = D.dialog('Datei einlesen', { klasse: 'mittel' });
+    D.anhaengen(d.rumpf, [h('p.muted', { style: { margin: 0 } }, 'Ziehen Sie die Datei auf das passende Feld oder klicken Sie darauf. Die App prüft den Inhalt und fragt nach, wenn die Datei nicht zum Feld passt.'),
+      h('div.importfelder', null, App.IMPORTARTEN.map(function (art) {
+        var wahl = h('input', { type: 'file', hidden: true, multiple: art.id !== 'projekt' && art.id !== 'altbuch', accept: art.endung, onchange: function () { var fs = Array.from(wahl.files); wahl.value = ''; nimm(fs); } });
+        function nimm(dateien) { if (!dateien.length) return; d.zu(); App.importiere(dateien, { erwartet: art }); }
+        var feld = h('button.importfeld', { type: 'button', 'data-art': art.id, onclick: function () { wahl.click(); },
+          ondragover: function (e) { e.preventDefault(); e.stopPropagation(); feld.classList.add('drueber'); }, ondragleave: function () { feld.classList.remove('drueber'); },
+          ondrop: function (e) { e.preventDefault(); e.stopPropagation(); feld.classList.remove('drueber'); document.body.classList.remove('zieht'); nimm(Array.from((e.dataTransfer && e.dataTransfer.files) || [])); } },
+          D.icon(art.icon), h('span', null, h('b', null, art.titel), h('small', null, art.text)));
+        return h('div', null, feld, wahl);
+      }))]);
+    D.anhaengen(d.fuss, [h('span.mini', { style: { flex: 1 } }, 'Alles bleibt auf diesem Gerät. Ziehen Sie eine Datei neben die Felder, erkennt die App die Art selbst.'), D.btn('Schließen', d.zu)]);
+  };
+
   // ---------- Import-Weiche: jede Datei wird am Inhalt erkannt ----------
   App.importiere = async function (dateien, opt) {
     opt = opt || {};
@@ -190,6 +214,11 @@
     try {
       r = await App.lies(bytes, name, p ? { alt: p.abrechnung && p.abrechnung.zeilen && p.abrechnung.zeilen.length ? p.abrechnung : null, importNr: p.importZaehler + 1, jahr: p.jahr, vermittlernummer: p.einstellungen.vermittlernummer, nurAbrechnung: !!opt.nurAbrechnung } : {});
     } finally { Sp.onstatus && Sp.onstatus(Sp.status); }
+    // Getrennte Felder: passt der erkannte Inhalt nicht zum gewählten Feld, wird nachgefragt statt still verwechselt
+    if (opt.erwartet && opt.erwartet.arten.indexOf(r.art) < 0) {
+      var ok = await D.frage('Die Datei passt nicht zu diesem Feld', '„' + name + '" wurde im Feld „' + opt.erwartet.titel + '" abgelegt, ist nach dem Inhalt aber ' + (App.ARTNAME[r.art] || 'eine andere Datei') + '. Soll sie als das eingelesen werden, was sie ist?', 'Trotzdem einlesen');
+      if (!ok) { D.toast('„' + name + '" wurde nicht eingelesen.'); return; }
+    }
     if (r.art === 'projekt') {
       if (p && !(await D.frage('Anderes Projekt öffnen?', '„' + name + '" ist eine Antragsbuch-Projektdatei. Das aktuelle Projekt bleibt gespeichert und wird geschlossen.', 'Projekt öffnen'))) return;
       return App.oeffneMitSpiegel(r.projekt, null, name);
