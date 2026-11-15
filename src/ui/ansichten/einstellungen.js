@@ -23,7 +23,7 @@
           D.feld('Toleranz Beitrag (€)', zahl(e.toleranzBeitrag, function (v) { e.toleranzBeitrag = Math.abs(v); }), 's3'),
           D.feld('Toleranz Provision (€)', zahl(e.toleranzProvision, function (v) { e.toleranzProvision = Math.abs(v); }), 's3'),
           D.feld('„Offen" nach Tagen', zahl(e.offenTage, function (v) { e.offenTage = Math.max(0, Math.round(v)); }), 's3'),
-          D.feld('Storno ab % Rückbuchung', zahl(e.stornoSchwelle, function (v) { e.stornoSchwelle = Math.min(100, Math.max(1, v)); }), 's3'),
+          D.feld('Status Storno ab % entfallenem Beitrag', zahl(e.stornoSchwelle, function (v) { e.stornoSchwelle = Math.min(100, Math.max(1, v)); }), 's3'),
           h('label.schalter.s12', null, h('input', { type: 'checkbox', checked: !!e.pruefeProvision, onchange: function () { e.pruefeProvision = this.checked; App.geaendert({ still: true }); } }), 'Auch die Provision gegen meine Regeln prüfen (sonst nur den Beitrag)'),
           h('div.feld.s12', null, h('span', null, 'Provisionsarten im Abgleich'), h('div.leiste', null, AB.abrechnung.PROVISIONSARTEN.map(function (a) {
             var an = e.provisionsarten.indexOf(a) >= 0;
@@ -48,7 +48,12 @@
         h('div.formraster', { style: { marginTop: '10px' } },
           D.feld('Meine Karrierestufe', D.auswahl([['', '– bitte wählen –']].concat(KS.map(function (s) { return [s.id, 'Stufe ' + s.id + ' · ' + s.kurz + ' · ' + s.name]; })), gv.stufe || '', function (v) {
             gv.stufe = v; var ks = KS.find(function (x) { return x.id === v; }); if (ks && p.bonus) p.bonus.stufe = ks.bonus; App.geaendert(); }), 's5'),
-          D.feld('Abweichendes Fixum je Monat (€)', leerZahl(gv.betrag, function (v) { gv.betrag = v; }, 'leer = laut Stufe'), 's4')),
+          D.feld('Abweichendes Fixum je Monat (€)', leerZahl(gv.betrag, function (v) { gv.betrag = v; }, 'leer = laut Stufe'), 's4'),
+          h('div.feld.s3', null, h('span', null, 'Provisionsregeln'), D.btn('Sätze der Stufe übernehmen', function () {
+            var ks = KS.find(function (x) { return x.id === gv.stufe; }); if (!ks) { D.toast('Bitte zuerst die Karrierestufe wählen.', { krit: true }); return; }
+            D.frage('Provisionsregeln auf Stufe ' + ks.kurz + ' setzen?', 'Die Regeltabelle wird nach den Provisionsrichtlinien neu belegt: Krankenversicherung ' + U.fmtZahl(ks.mb, 1) + ' MB, Pflegepflicht 2 MB, Leben 30 ‰ der Wertungssumme, Unfall 20 % laufend, mhplus-Mitgliedschaft 100 € je Mitglied, Umstellung ohne Provision. Eigene Änderungen an den Regeln gehen verloren; vorher wird ein Sicherungsstand angelegt.', 'Übernehmen').then(function (ja) {
+              if (!ja || App.gesperrt()) return; AB.model.sichere(p, 'Vor Übernahme der Provisionssätze Stufe ' + ks.kurz); p.regeln = AB.provision.regelnNachStufe(ks.mb); App.geaendert(); D.toast('Provisionsregeln auf ' + U.fmtZahl(ks.mb, 1) + ' MB gesetzt.'); });
+          }, { titel: 'Regeltabelle nach Karrierestufe und Provisionsrichtlinien belegen' }))),
         h('div', { style: { overflowX: 'auto', marginTop: '10px' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Stufe', 'Bezeichnung', 'Fixum je Monat', 'Wertung', 'Provision freies Geschäft'].map(function (t, i) { return h('th', { style: i >= 2 ? { textAlign: 'right' } : null }, t); }))),
           h('tbody', null, KS.slice().reverse().map(function (s) { return h('tr', gv.stufe === s.id ? { style: { fontWeight: 700, background: 'var(--accent-soft)' } } : null, h('td', null, s.id + ' · ' + s.kurz), h('td', null, s.name),
             h('td', { style: { textAlign: 'right', width: '150px' } }, leerZahl(gv.tabelle[s.id], function (v) { gv.tabelle[s.id] = v; }, U.fmtZahl(s.fixum, 0))), h('td.num', { style: { textAlign: 'right' } }, s.wertung), h('td.num', { style: { textAlign: 'right' } }, U.fmtZahl(s.mb, 1) + ' MB')); })))),

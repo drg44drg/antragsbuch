@@ -69,15 +69,25 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## Blitzlicht · Was Sie noch hochladen wollten (Stand Version 2.5)
+## Blitzlicht · Was Sie noch hochladen wollten (Stand Version 2.6)
 
-- [ ] ADP-Verträge und Provisionsrichtlinien (Storno-Schwelle 90 % klären, Teil-Rückbuchung, Mitwirkungsgrade Bank)
-- [ ] Erklärung/FAQ zu den Provisionsdaten (Bedeutung der Spalten, Stornozeilen ohne Grund)
+- [x] Provisionsrichtlinien ADP und Ventil, Vertretervertrag, Wettbewerbsrichtlinien, Annahmerichtlinien (erhalten; ausgewertet: Provisionsrichtlinien)
+- [ ] Erklärung/FAQ zu den Provisionsdaten (Bedeutung der Spalten)
 - [ ] Kennzeichnung der Dynamik „nach Ziffer" im Antragsbuch
 - [ ] Echte Datei des Veränderungsdienstes (bisher nur Bildschirmfoto)
 - [ ] Genaue SDK-Produktfarben (Ordner am MacBook)
-- [ ] Stuttgarter Tarifliste Leben/Unfall · SLA je Postkorb · alte Reportings als Muster · neue Wettbewerbsbedingungen, sobald es sie gibt
+- [ ] SLA je Postkorb · alte Reportings als Muster · neue Wettbewerbsbedingungen, sobald es sie gibt
 - [ ] Rückmeldung: wofür stehen die Blätter „GDms" und „GVms"?
+
+## D0000 · Erledigt (Version 2.6)
+
+Storno nach Provisionsrichtlinie: Anteil der Rückbuchung als Bruch (n/12, n/60), Verrechnung ohne Provisionswirkung getrennt von Storno ·
+Knopf „Sätze der Stufe übernehmen" für die Provisionsregeln · Erklärung des Provisionssatzes bei Beteiligten (Bank, mhplus, Teilung) ·
+Zusammenfassung der Regeln in `docs/Provisionsregeln-Zusammenfassung.md`.
+
+Offen dazu: Status „Storno" richtet sich weiter nach dem entfallenen Beitrag (Schwelle 90 %, einstellbar) – bitte bestätigen oder Regel nennen ·
+Bankart (Anschrift/Antrag/Bestands-Bank) im Antrag wählbar machen statt Prozentangabe · Leben: Laufzeitfaktor und Tarifgruppen aus der Anlage Vergütungsniveau ·
+Ziffer 7 der Richtlinie (Reduzierung und Neuabschluss binnen 12 Monaten) · Stuttgarter Tarife aus der Ventil-Richtlinie in die Tarifliste aufnehmen.
 
 ## D0000 · Erledigt (Version 2.5)
 

@@ -528,3 +528,13 @@ test('Vorschläge: Pflegezusatz ohne D ist Dynamik, Unfall ohne Antrag ist laufe
   assert.equal(V([z({ part: 'Abschluss', tarif: 'ZP7', mb: 35, mbd: 35, prod: 35, prov: 0 })]).id, 'teilung');
   assert.equal(V([z({ part: 'Abschluss', tarif: 'ZP7', mb: 35, mbd: 35, prod: 35, prov: 96 })]).id, 'neu');
 });
+
+test('Storno nach Provisionsrichtlinie: Anteil als Bruch, Verrechnung ohne Provisionswirkung, Regeln nach Karrierestufe', () => {
+  const H = AB.abgleich.haftungsAnteil;
+  assert.deepEqual([H(10 / 12, false).text, H(0.5, false).text, H(1, false).text, H(0.4167, false).text], ['10/12', '6/12', 'vollständig', '5/12']);
+  assert.deepEqual([H(37 / 60, true).text, H(37 / 60, false).text, H(0.3333, true).text], ['37/60', '62 %', '4/12']);
+  assert.deepEqual([M.HAFTUNG.voll, M.HAFTUNG.zusatz, M.HAFTUNG.bkv, M.HAFTUNG.gruppe], [60, 12, 12, 12]);
+  const r = AB.provision.regelnNachStufe(5.5);
+  assert.deepEqual([r['voll|neu'], r['zusatz|mehr'], r['pflege|neu'], r['leben|neu'], r['unfall|neu'], r['gkv|neu'], r['voll|umstellung']],
+    [{ art: 'faktor', wert: 5.5 }, { art: 'faktor', wert: 5.5 }, { art: 'faktor', wert: 2 }, { art: 'leben', wert: 30 }, { art: 'unfall', wert: 20 }, { art: 'stueck', wert: 100 }, { art: 'keine', wert: 0 }]);
+});

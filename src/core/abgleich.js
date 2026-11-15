@@ -179,6 +179,12 @@
           r.stB = summe(r.stornos, 'mbd'); r.stP = summe(r.stornos, 'prov');
           r.stDatum = r.stornos[0].bdat; r.stGrund = r.stornos.map(function (b) { return b.stgrund; }).filter(Boolean)[0] || '';
           r.vollStorno = r.istB > 0 && Math.abs(r.stB) >= r.istB * (+e.stornoSchwelle || 90) / 100 - tolB;
+          // „X" heißt Storno ODER Verrechnung: ohne Provisionswirkung ist es eine Verrechnung (z. B. Tarifwechsel).
+          // Sonst wird nach der Provisionsrichtlinie anteilig zurückgebucht: je nicht belegtem Monat 1/12 (nicht substitutiv) bzw. 1/60 (substitutiv).
+          var basis = 0, zur = 0, subst = false;
+          r.stornos.forEach(function (b) { b.zeilen.forEach(function (z) { if (!z.st || Math.abs(z.prov) < 0.005) return; basis += Math.abs((+z.fProv || 0) * z.mbd); zur += Math.abs(z.prov); if (z.tg === 'Vollversicherung' || z.tg === 'Pflegeversicherung') subst = true; }); });
+          r.verrechnung = Math.abs(r.stP) < 0.005;
+          r.stAnteil = basis > 0.005 ? A.haftungsAnteil(zur / basis, subst) : null;
           erg.storno.push(r);
         } else if (r.shEnde && r.shEnde >= heute) erg.haftung.push(r);
         if (r.vollStorno) r.liste = 'storno'; else erg[r.liste].push(r);
@@ -352,6 +358,16 @@
    * Vorschlag, was eine abgerechnete Position ohne Antrag vermutlich ist. sicher = darf gesammelt übernommen werden.
    * An einer echten Jahresabrechnung abgelesen: Dynamik erscheint als Provisionsart „Erhöhung" auf Pflegetarifen mit Dynamik (PG…D), meist zum 01.10.
    */
+  /** Anteil der zurückgebuchten Provision als Bruch nach der Haftungszeit: n/12, bei substitutiver KV auch n/60. */
+  A.haftungsAnteil = function (q, substitutiv) {
+    q = Math.max(0, Math.min(1.05, q));
+    var o = { q: q, text: U.fmtZahl(q * 100, 0) + ' %' }, n12 = Math.round(q * 12), n60 = Math.round(q * 60);
+    if (q > 0.995) o.text = 'vollständig';
+    else if (Math.abs(q * 12 - n12) < 0.07 && n12 > 0) o.text = n12 + '/12';
+    else if (substitutiv && Math.abs(q * 60 - n60) < 0.2 && n60 > 0) o.text = n60 + '/60';
+    return o;
+  };
+
   A.VORSCHLAG = { dynamik: 'Dynamik', anpassung: 'Dynamik oder Beitragsanpassung', mehr: 'Erhöhung (Mehrbeitrag)', vollneu: 'Vollversicherung neu (mit Pflegepflicht)', bkv: 'bKV-Anmeldung',
     teilung: 'Provisions- oder Produktionsteilung?', neu: 'Neugeschäft – Antrag fehlt im Buch?', wechsel: 'Mehrbeitrag oder Tarifwechsel', storno: 'Storno / Rückbuchung', minder: 'Reduzierung',
     bestand: 'Laufende Bestandsprovision', ruecknahme: 'Kündigungsrücknahme', legacy: 'Korrektur aus dem Altsystem', manuell: 'Manuelle Buchung' };

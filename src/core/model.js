@@ -197,6 +197,9 @@
     return null;
   };
 
+  /** Provisionshaftung in Monaten nach den Provisionsrichtlinien (Stand 07/2025 bzw. Ventil 08/2025). */
+  M.HAFTUNG = { voll: 60, pflege: 60, zusatz: 12, bkv: 12, gruppe: 12, unfall: 60, leben: 60, gkv: 0 };
+
   M.vnName = function (a) {
     return (a.vn.name || '') + (a.vn.vorname ? ', ' + a.vn.vorname : '');
   };

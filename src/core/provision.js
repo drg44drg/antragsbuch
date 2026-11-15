@@ -29,6 +29,22 @@
     return r;
   };
 
+  /**
+   * Regeltabelle nach Karrierestufe und Provisionsrichtlinien (ADP 07/2025, Ventil Stuttgarter 08/2025), bankfreies Geschäft:
+   * Krankenversicherung mb Monatsbeiträge (Stufe 1: 4 MB), Pflegepflicht mit Vollversicherung 2 MB, Leben 30 ‰ der Wertungssumme
+   * (index-safe, performance+, Biometrie; classic 20 ‰), Unfall laufend 20 %, mhplus-Mitgliedschaft 100 € je Mitglied, Umstellung ohne Provision.
+   */
+  P.regelnNachStufe = function (mb) {
+    var r = {};
+    ['voll', 'zusatz', 'bkv', 'gruppe', 'pflege', 'leben', 'unfall', 'gkv'].forEach(function (b) {
+      ['neu', 'mehr', 'minder', 'umstellung', 'dynamik', 'storno'].forEach(function (v) {
+        r[b + '|' + v] = v === 'umstellung' ? { art: 'keine', wert: 0 } : b === 'leben' ? { art: 'leben', wert: 30 } : b === 'unfall' ? { art: 'unfall', wert: 20 }
+          : b === 'gkv' ? { art: 'stueck', wert: 100 } : b === 'pflege' ? { art: 'faktor', wert: 2 } : { art: 'faktor', wert: +mb };
+      });
+    });
+    return r;
+  };
+
   P.regel = function (regeln, bereich, vorgang) {
     return (regeln && regeln[bereich + '|' + vorgang]) || { art: 'keine', wert: 0 };
   };

@@ -156,7 +156,8 @@
         var bankText = function (b) {
           var zb = b.zeilen.find(function (zz) { return zz.beteil; }); if (!zb) return '';
           var f = +zb.fProv, rolle = (/als ([^)]+)\)/.exec(zb.beteil) || [])[1] || 'beteiligt', nr = (/^\d+/.exec(zb.beteil) || [''])[0];
-          var art = ksMb != null && Math.abs(f - (ksMb - 1)) < 0.01 ? ' = Bestands-Bank (freies Geschäft − 1 MB)' : Math.abs(f - 3) < 0.01 ? ' = aktive Bank' : '';
+          var gl = function (x) { return Math.abs(f - x) < 0.06; };
+          var art = ksMb != null && gl(ksMb - 1) ? ' = Bestands-Bank (freies Geschäft − 1 MB)' : gl(3) ? ' = Bank, Anschriftenvermittlung (3 MB)' : gl(2) ? ' = Bank, Antragsvermittlung (2 MB)' : gl(1.5) ? ' = Erhöhung zu mhplus-Geschäft (1,5 MB)' : ksMb != null && gl(ksMb / 2) ? ' = Teilung mit dem Bestandsinhaber (halber Satz)' : gl(10) ? ' = bankgebundener Unfallbestand (10 %)' : '';
           return ' · ' + rolle + ' ' + nr + (f ? ' · ' + U.fmtZahl(f, 1) + ' MB' + art : '');
         };
         var spn = [
@@ -193,14 +194,14 @@
         if (z.haftung) zs = erg.haftung.slice();
         var sps = [antragSp, vnrSp,
           { t: z.haftung ? 'Abgerechnet' : 'Rückbuchung', b: '112px', w: function (r) { return U.fmtDatum(z.haftung ? r.bdat : r.stDatum); }, s: function (r) { return z.haftung ? r.bdat : r.stDatum; } },
-          { t: 'Art', b: '110px', w: function (r) { return z.haftung ? h('span.marke-s', null, 'in Haftung') : r.vollStorno ? h('span.marke-s.krit', null, 'Storno') : h('span.marke-s.warn', null, 'Teil-Rückb.'); }, s: function (r) { return r.vollStorno ? 1 : 0; }, d: function (r) { return z.haftung ? 'in Haftung' : r.vollStorno ? 'Storno' : 'Teil-Rückbuchung'; } },
+          { t: 'Art', b: '110px', w: function (r) { return z.haftung ? h('span.marke-s', null, 'in Haftung') : r.verrechnung ? h('span.marke-s', { title: 'Kennzeichen X ohne Provisionswirkung: Verrechnung, z. B. Tarifwechsel, oder Ende nach Ablauf der Haftungszeit' }, r.vollStorno ? 'Beendet' : 'Verrechnung') : r.vollStorno ? h('span.marke-s.krit', null, 'Storno') : h('span.marke-s.warn', null, 'Teil-Rückb.'); }, s: function (r) { return r.vollStorno ? 1 : 0; }, d: function (r) { return z.haftung ? 'in Haftung' : r.vollStorno ? 'Storno' : 'Teil-Rückbuchung'; } },
           { t: 'Beitrag', b: '104px', r: true, w: function (r) { return z.haftung ? U.fmtEuro(r.istB) : AB.geld(r.stB, true); }, s: function (r) { return z.haftung ? r.istB : r.stB; }, d: function (r) { return U.fmtEuro(z.haftung ? r.istB : r.stB); } },
-          { t: 'Provision', b: '104px', r: true, w: function (r) { return z.haftung ? U.fmtEuro(r.istP) : AB.geld(r.stP, true); }, s: function (r) { return z.haftung ? r.istP : r.stP; }, d: function (r) { return U.fmtEuro(z.haftung ? r.istP : r.stP); } },
+          { t: 'Provision', b: '118px', r: true, k: 'zwei', w: function (r) { return z.haftung ? U.fmtEuro(r.istP) : [AB.geld(r.stP, true), r.stAnteil ? h('small', { title: 'Anteil der zurückgebuchten Provision. Nach der Provisionsrichtlinie wird je nicht mit Beitrag belegtem Monat 1/12 zurückgebucht, in der Vollversicherung 1/60 (bei Reduzierung im ersten Jahr 1/12).' }, r.stAnteil.text + ' zurück') : null]; }, s: function (r) { return z.haftung ? r.istP : r.stP; }, d: function (r) { return U.fmtEuro(z.haftung ? r.istP : r.stP); } },
           { t: 'Stornogrund', b: 'minmax(110px, 1fr)', w: function (r) { return r.stGrund || '–'; }, s: function (r) { return r.stGrund; } },
           { t: 'Stornohaftung bis', b: '132px', w: function (r) { return r.shEnde ? [U.fmtDatum(r.shEnde), r.shEnde >= erg.stand && !z.haftung ? h('span.marke-s.warn', null, 'läuft') : null] : '–'; }, s: function (r) { return r.shEnde; }, d: function (r) { return U.fmtDatum(r.shEnde); } },
           { t: '', b: '100px', w: buchBtn, d: function () { return ''; } }];
         D.anhaengen(werkzeug, [D.seg([['0', 'Rückbuchungen (' + erg.storno.length + ')'], ['1', 'In laufender Stornohaftung (' + erg.haftung.length + ')']], z.haftung ? '1' : '0', function (v) { z.haftung = v === '1'; App.zeige('abgleich'); }),
-          h('span.muted.klein', null, z.haftung ? 'Abgerechnete Verträge, deren Stornohaftung noch läuft.' : 'Rückbuchungen (X) zu abgerechneten Anträgen. Ab ' + e.stornoSchwelle + ' % des Beitrags wird der Status „Storno" gesetzt.'), h('span.frei'), exportBtn()]);
+          h('span.muted.klein', null, z.haftung ? 'Abgerechnete Verträge, deren Stornohaftung noch läuft.' : 'Rückbuchungen und Verrechnungen (X) zu abgerechneten Anträgen. Die Provision wird anteilig nach der Haftungszeit zurückgebucht (12 Monate, Vollversicherung 60). Entfallen mindestens ' + e.stornoSchwelle + ' % des Beitrags, wird der Status „Storno" gesetzt.'), h('span.frei'), exportBtn()]);
         if (z.haftung) liste = 'haftung';
         tab = AB.tabelle(box, { zeilen: zs, spalten: sps, klick: oeffne, hoehe: 50, sort: { i: z.haftung ? 7 : 2, ab: !z.haftung }, leer: z.haftung ? 'Keine Verträge in laufender Stornohaftung.' : 'Keine Rückbuchungen.',
           fuss: function (l) { var a = 0, b = 0; l.forEach(function (r) { a += z.haftung ? r.istB : r.stB; b += z.haftung ? r.istP : r.stP; }); return [l.length + ' Anträge', '', '', '', U.fmtEuro(a), U.fmtEuro(b), '', '', '']; } });

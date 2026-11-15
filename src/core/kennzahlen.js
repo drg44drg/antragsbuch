@@ -101,7 +101,7 @@
       if (neuOffen) h.push({ art: 'info', text: neuOffen + ' × abgerechnet ohne Antrag im Antragsbuch', ziel: 'abgleich', filter: 'neu' });
       var rk = p.antraege.filter(M.reklaOffen).length;
       if (rk) h.push({ art: 'info', text: rk + (rk === 1 ? ' Reklamation' : ' Reklamationen') + ' offen', ziel: 'antraege', filter: 'rekla' });
-      var st = erg.storno.length;
+      var st = erg.storno.filter(function (r) { return !r.verrechnung; }).length;
       if (st) h.push({ art: 'krit', text: st + (st === 1 ? ' Storno-Rückbuchung' : ' Storno-Rückbuchungen') + ' zu bereits abgerechneten Anträgen', ziel: 'abgleich', filter: 'storno' });
     }
     return { jahr: jahr, monate: monate, schnitt: schnitt, hinweise: h, erinnerung: K.erinnerung(p, heute) };
