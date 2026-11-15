@@ -168,6 +168,7 @@ test('Kennzahlen und Hinweise', async () => {
   assert.equal(U.runde(k.jahr.netto), U.runde(k.jahr.brutto + k.jahr.minder - 48));
   assert.ok(k.hinweise.some((h) => /1 Antrag ohne Vertragsnummer/.test(h.text)));
   assert.ok(k.hinweise.some((h) => /2 seit 60 Tagen offen/.test(h.text)));
+  assert.equal(k.jahr.voraussichtlich, U.runde(k.jahr.policiert + k.jahr.abgerechnet)); assert.ok(k.jahr.abgerechnet <= k.jahr.brutto);
   const csv = AB.kennzahlen.exportAntraege(p, erg);
   assert.equal(csv.charCodeAt(0), 0xFEFF);
   assert.equal(csv.trim().split('\r\n').length, 1 + p.antraege.reduce((s, a) => s + a.positionen.length, 0));

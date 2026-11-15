@@ -6,7 +6,7 @@
   function leer() {
     var o = { antraege: 0, brutto: 0, minder: 0, storno: 0, stornoAnz: 0, netto: 0, offen: 0, offenAnz: 0,
       policiertAnz: 0, abgerechnetAnz: 0, abgerechnet: 0, abgewiesenAnz: 0, eingereichtAnz: 0, reklamiertAnz: 0,
-      provSoll: 0, provIst: 0, provBuchung: 0, bereiche: {}, vorgaenge: {}, status: {}, kategorien: {}, beihilfeAnz: 0, beihilfe: 0 };
+      policiert: 0, voraussichtlich: 0, provSoll: 0, provIst: 0, provBuchung: 0, bereiche: {}, vorgaenge: {}, status: {}, kategorien: {}, beihilfeAnz: 0, beihilfe: 0 };
     M.BEREICHE.forEach(function (b) { o.bereiche[b.id] = { stueck: 0, beitrag: 0 }; });
     return o;
   }
@@ -20,7 +20,7 @@
     if (a.status === 'storno') { o.storno += Math.abs(b); o.stornoAnz++; }
     if (M.istOffen(a)) { o.offen += b; o.offenAnz++; }
     if (a.status === 'eingereicht') o.eingereichtAnz++;
-    if (a.status === 'policiert') o.policiertAnz++;
+    if (a.status === 'policiert') { o.policiertAnz++; o.policiert += b; }
     if (a.status === 'reklamiert') o.reklamiertAnz++;
     if (a.status === 'abgerechnet') { o.abgerechnetAnz++; o.abgerechnet += b; }
     var be = o.bereiche[a.bereich] || (o.bereiche[a.bereich] = { stueck: 0, beitrag: 0 });
@@ -41,7 +41,9 @@
   }
   function fertig(o) {
     o.netto = o.brutto + o.minder - o.storno;
-    ['brutto', 'minder', 'storno', 'netto', 'offen', 'abgerechnet', 'provSoll', 'provIst', 'provBuchung'].forEach(function (k) { o[k] = U.runde(o[k]); });
+    // Brutto = eingetragen · voraussichtlich netto = policiert + abgerechnet · netto = abgerechnet
+    o.voraussichtlich = o.policiert + o.abgerechnet;
+    ['policiert', 'voraussichtlich', 'brutto', 'minder', 'storno', 'netto', 'offen', 'abgerechnet', 'provSoll', 'provIst', 'provBuchung'].forEach(function (k) { o[k] = U.runde(o[k]); });
     o.stornoQuote = (o.abgerechnetAnz + o.stornoAnz) ? o.stornoAnz / (o.abgerechnetAnz + o.stornoAnz) : 0;
     return o;
   }

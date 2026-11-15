@@ -71,14 +71,19 @@
     var ende = { abgelehnt: 1, widerruf: 1, absage: 1, storno: 1 }, zaehlt = { neu: 1, mehr: 1, minder: 1 };
     var leerM = function () { return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; };
     var o = { stand: stand, jahr: jahr, liste: [], hatAbrechnung: np.hat,
-      monate: { gebuchtProd: np.monate.slice(), beantragtMb: leerM(), vollGebucht: leerM(), vollBeantragt: leerM(), bkvGebucht: leerM(), bkvBeantragt: leerM() } };
-    var sum = { voll: { gebucht: 0, beantragt: 0 }, bkv: { gebucht: 0, beantragt: 0 }, mbKv: 0, mbGesamt: 0 };
+      monate: { gebuchtProd: np.monate.slice(), beantragtMb: leerM(), policiertMb: leerM(), vollPoliciert: leerM(), bkvPoliciert: leerM(), vollGebucht: leerM(), vollBeantragt: leerM(), bkvGebucht: leerM(), bkvBeantragt: leerM() } };
+    var sum = { voll: { gebucht: 0, beantragt: 0, policiert: 0 }, bkv: { gebucht: 0, beantragt: 0, policiert: 0 }, mbKv: 0, mbGesamt: 0, polKv: 0, polGesamt: 0 };
     (p.antraege || []).forEach(function (a) {
       if (!a.eingang || +a.eingang.slice(0, 4) !== jahr || ende[a.status] || !zaehlt[a.vorgang]) return;
       var r = erg && erg.proAntrag ? erg.proAntrag[a.id] : null, bdat = '';
       if (r && r.buendel && r.buendel.length) r.buendel.forEach(function (b) { var d = b.bdat || (b.monat + '-01'); if (!bdat || d < bdat) bdat = d; });
       else if (a.status === 'abgerechnet') bdat = a.statusDatum || a.eingang;
-      var zustand = !bdat ? 'beantragt' : stand && bdat <= stand ? 'bestaetigt' : 'gebucht';
+      // Policiert (Veränderungsdienst): Ab der technischen Verarbeitung zählt der Antrag für den Bonus – oft Monate vor der Abrechnung.
+      var pdat = '';
+      (a.historie || []).forEach(function (hh) { if (hh.status === 'policiert' && hh.datum && (!pdat || hh.datum < pdat)) pdat = hh.datum; });
+      if (!pdat && a.status === 'policiert') pdat = a.statusDatum || '';
+      var wirksam = pdat && bdat ? (pdat < bdat ? pdat : bdat) : (pdat || bdat);
+      var zustand = !wirksam ? 'beantragt' : stand && wirksam <= stand ? 'bestaetigt' : bdat ? 'gebucht' : 'policiert';
       var voll = {}, bkv = {}, mbKv = 0, mbGes = 0, vn = M.vnName(a);
       a.positionen.forEach(function (ps, i) {
         var be = ps.bereich || a.bereich, wer = (ps.person || vn || 'Person ' + (i + 1)).trim().toLowerCase(), b = M.vorzeichen(a, +ps.beitrag || 0);
@@ -87,59 +92,64 @@
         if (be === 'leben') return;
         mbGes += b; if (be !== 'unfall') mbKv += b;
       });
-      var x = { id: a.id, nr: a.nr || '', vnr: a.vertragsnummer || '', tarife: M.tarife(a), personen: a.positionen.map(function (ps) { return ps.person; }).filter(function (v, i, l) { return v && l.indexOf(v) === i; }).join('; '), name: vn, eingang: a.eingang, beginn: a.beginn || '', bereich: a.bereich, vorgang: a.vorgang, zustand: zustand, gebuchtAm: bdat,
+      var x = { id: a.id, nr: a.nr || '', vnr: a.vertragsnummer || '', tarife: M.tarife(a), personen: a.positionen.map(function (ps) { return ps.person; }).filter(function (v, i, l) { return v && l.indexOf(v) === i; }).join('; '), name: vn, eingang: a.eingang, beginn: a.beginn || '', bereich: a.bereich, vorgang: a.vorgang, zustand: zustand, gebuchtAm: bdat, policiertAm: pdat, abgerechnet: !!bdat,
         voll: Object.keys(voll).length, bkv: Object.keys(bkv).length, mbKv: U.runde(mbKv), mb: U.runde(mbGes) };
       if (!x.voll && !x.bkv && Math.abs(x.mb) < 0.005) return;
       o.liste.push(x);
-      var mE = +a.eingang.slice(5, 7) - 1, mB = bdat && +bdat.slice(0, 4) === jahr ? +bdat.slice(5, 7) - 1 : mE;
-      if (zustand === 'beantragt') { sum.voll.beantragt += x.voll; sum.bkv.beantragt += x.bkv; sum.mbKv += x.mbKv; sum.mbGesamt += x.mb;
+      var mE = +a.eingang.slice(5, 7) - 1, mB = wirksam && +wirksam.slice(0, 4) === jahr ? +wirksam.slice(5, 7) - 1 : mE;
+      // Noch nicht abgerechnet: Der Monatsbeitrag steht noch nicht in der Abrechnung und wird deshalb geschätzt dazugezählt.
+      if (zustand === 'policiert' || (zustand === 'bestaetigt' && !bdat)) { o.monate.policiertMb[mB] += x.mb; if (zustand === 'policiert') { sum.polKv += x.mbKv; sum.polGesamt += x.mb; } }
+      if (zustand === 'policiert') { sum.voll.policiert += x.voll; sum.bkv.policiert += x.bkv; o.monate.vollPoliciert[mB] += x.voll; o.monate.bkvPoliciert[mB] += x.bkv; }
+      if (zustand === 'policiert') { /* oben gezählt */ } else if (zustand === 'beantragt') { sum.voll.beantragt += x.voll; sum.bkv.beantragt += x.bkv; sum.mbKv += x.mbKv; sum.mbGesamt += x.mb;
         o.monate.vollBeantragt[mE] += x.voll; o.monate.bkvBeantragt[mE] += x.bkv; o.monate.beantragtMb[mE] += x.mb; }
       else { o.monate.vollGebucht[mB] += x.voll; o.monate.bkvGebucht[mB] += x.bkv; if (zustand === 'gebucht') { sum.voll.gebucht += x.voll; sum.bkv.gebucht += x.bkv; } }
     });
     o.liste.sort(function (a, b) { return a.eingang < b.eingang ? -1 : a.eingang > b.eingang ? 1 : 0; });
     o.monate.beantragtMb = o.monate.beantragtMb.map(U.runde);
-    function zeile(best, geb, bean) { return { bestaetigt: best, gebucht: geb, beantragt: bean, voraussichtlich: U.runde(best + geb + bean) }; }
+    function zeile(best, geb, pol, bean) { return { bestaetigt: best, gebucht: geb, policiert: pol, beantragt: bean, voraussichtlich: U.runde(best + geb + pol + bean) }; }
+    o.monate.policiertMb = o.monate.policiertMb.map(U.runde);
     // Produktion: Die Abrechnung ist genauer und aktueller als das Reporting; „gebucht" ist der Zuwachs gegenüber dem bestätigten Wert.
     var bestGes = n(e.nettoGesamt), bestKv = n(e.nettoKv) || bestGes;
-    o.voll = zeile(n(e.neueVoll), sum.voll.gebucht, sum.voll.beantragt);
-    o.bkv = zeile(n(e.neueBkv), sum.bkv.gebucht, sum.bkv.beantragt);
-    o.nettoKv = zeile(bestKv, np.hat ? U.runde(np.kv - bestKv) : 0, U.runde(sum.mbKv));
-    o.nettoGesamt = zeile(bestGes, np.hat ? U.runde(np.gesamt - bestGes) : 0, U.runde(sum.mbGesamt));
+    o.voll = zeile(n(e.neueVoll), sum.voll.gebucht, sum.voll.policiert, sum.voll.beantragt);
+    o.bkv = zeile(n(e.neueBkv), sum.bkv.gebucht, sum.bkv.policiert, sum.bkv.beantragt);
+    o.nettoKv = zeile(bestKv, np.hat ? Math.max(0, U.runde(np.kv - bestKv)) : 0, U.runde(sum.polKv), U.runde(sum.mbKv));
+    o.nettoGesamt = zeile(bestGes, np.hat ? Math.max(0, U.runde(np.gesamt - bestGes)) : 0, U.runde(sum.polGesamt), U.runde(sum.mbGesamt));
     // Prüfung: Finden sich die vom Reporting bestätigten Personen im Antragsbuch wieder?
-    var imBuch = { voll: 0, bkv: 0 }, pos = { voll: { bestaetigt: [], gebucht: [], beantragt: [] }, bkv: { bestaetigt: [], gebucht: [], beantragt: [] } };
+    var imBuch = { voll: 0, bkv: 0 }, pos = { voll: { bestaetigt: [], gebucht: [], policiert: [], beantragt: [] }, bkv: { bestaetigt: [], gebucht: [], policiert: [], beantragt: [] } };
     o.liste.forEach(function (x) { ['voll', 'bkv'].forEach(function (f) { if (!x[f]) return; pos[f][x.zustand].push(x.nr); if (x.zustand === 'bestaetigt') imBuch[f] += x[f]; }); });
     o.voll.imBuch = imBuch.voll; o.voll.abweichung = stand ? o.voll.bestaetigt - imBuch.voll : 0; o.voll.positionen = pos.voll;
     o.bkv.imBuch = imBuch.bkv; o.bkv.abweichung = stand ? o.bkv.bestaetigt - imBuch.bkv : 0; o.bkv.positionen = pos.bkv;
     o.heute = B.rechne(e);
-    o.gebucht = B.rechne(Object.assign({}, e, { neueVoll: o.voll.bestaetigt + o.voll.gebucht, neueBkv: o.bkv.bestaetigt + o.bkv.gebucht,
-      nettoKv: o.nettoKv.bestaetigt + o.nettoKv.gebucht, nettoGesamt: o.nettoGesamt.bestaetigt + o.nettoGesamt.gebucht }));
+    // „policiert" = alles, was technisch verarbeitet ist (bestätigt + abgerechnet + policiert): das sollte der Versicherer für den Bonus schon zählen.
+    var bisPol = function (z) { return U.runde(z.bestaetigt + z.gebucht + z.policiert); };
+    o.gebucht = B.rechne(Object.assign({}, e, { neueVoll: bisPol(o.voll), neueBkv: bisPol(o.bkv), nettoKv: bisPol(o.nettoKv), nettoGesamt: bisPol(o.nettoGesamt) }));
     o.prognose = B.rechne(Object.assign({}, e, { neueVoll: o.voll.voraussichtlich, neueBkv: o.bkv.voraussichtlich, nettoKv: o.nettoKv.voraussichtlich, nettoGesamt: o.nettoGesamt.voraussichtlich }));
     return o;
   };
 
-  B.ZUSTAND = { bestaetigt: 'bestätigt (im Bonus-Reporting)', gebucht: 'gebucht – noch nicht bestätigt', beantragt: 'beantragt – nicht bestätigt' };
+  B.ZUSTAND = { bestaetigt: 'bestätigt (im Bonus-Reporting)', gebucht: 'abgerechnet – noch nicht bestätigt', policiert: 'policiert – noch nicht bestätigt', beantragt: 'beantragt – nicht bestätigt' };
   /** „Überprüfung Bonus": zwei Tabellenblätter (Zusammenfassung, Positionen) zum Abgleich mit dem Bonus-Reporting. */
   B.tabellePruefung = function (p, s) {
     var pr = s.prognose, nrn = function (l) { return l.length ? l.map(function (n) { return n || '?'; }).join(', ') : ''; };
     var unter = 'Vermittler ' + ((p.einstellungen && p.einstellungen.vermittlernummer) || '–') + ' · ' + pr.stufe.name + ' · erstellt am ' + U.fmtDatum(U.heute()) + (s.stand ? ' · Bonus-Reporting vom ' + U.fmtDatum(s.stand) : ' · ohne Stand des Bonus-Reportings');
     function zz(name, z, ziel, mitPos) {
-      return [name, ziel || '', z.bestaetigt, mitPos ? z.imBuch : '', mitPos && s.stand ? z.abweichung : '', z.gebucht, z.beantragt, z.voraussichtlich, ziel ? Math.max(0, U.runde(ziel - z.voraussichtlich)) : '',
-        mitPos ? nrn(z.positionen.bestaetigt) : '', mitPos ? nrn(z.positionen.gebucht) : '', mitPos ? nrn(z.positionen.beantragt) : ''];
+      return [name, ziel || '', z.bestaetigt, mitPos ? z.imBuch : '', mitPos && s.stand ? z.abweichung : '', z.gebucht, z.policiert, z.beantragt, z.voraussichtlich, ziel ? Math.max(0, U.runde(ziel - z.voraussichtlich)) : '',
+        mitPos ? nrn(z.positionen.bestaetigt) : '', mitPos ? nrn(z.positionen.gebucht) : '', mitPos ? nrn(z.positionen.policiert) : '', mitPos ? nrn(z.positionen.beantragt) : ''];
     }
     var sp1 = [{ t: 'Größe', b: 26 }, { t: 'Ziel', typ: 'zahl', b: 10 }, { t: 'Bestätigt laut Reporting', typ: 'zahl', b: 16 }, { t: 'davon im Antragsbuch', typ: 'zahl', b: 16 }, { t: 'Abweichung', typ: 'zahl', b: 12 },
-      { t: 'Gebucht seitdem', typ: 'zahl', b: 14 }, { t: 'Beantragt', typ: 'zahl', b: 12 }, { t: 'Voraussichtlich', typ: 'zahl', b: 14 }, { t: 'Fehlt noch', typ: 'zahl', b: 12 },
-      { t: 'Positionen bestätigt', b: 24 }, { t: 'Positionen gebucht', b: 22 }, { t: 'Positionen beantragt', b: 22 }];
+      { t: 'Abgerechnet seitdem', typ: 'zahl', b: 16 }, { t: 'Policiert', typ: 'zahl', b: 12 }, { t: 'Beantragt', typ: 'zahl', b: 12 }, { t: 'Voraussichtlich', typ: 'zahl', b: 14 }, { t: 'Fehlt noch', typ: 'zahl', b: 12 },
+      { t: 'Positionen bestätigt', b: 24 }, { t: 'Positionen abgerechnet', b: 22 }, { t: 'Positionen policiert', b: 22 }, { t: 'Positionen beantragt', b: 22 }];
     var z1 = [zz('Neue Personen KV-Voll', s.voll, pr.ziel1.soll, true), zz('Neue Personen bKV', s.bkv, pr.bkv.soll, true), zz('KV-Nettoproduktion (€ MB)', s.nettoKv, Math.round(pr.ziel2.soll)), zz('Nettoproduktion gesamt (€ MB)', s.nettoGesamt, 0)];
     var sp2 = [{ t: 'Pos.', typ: 'zahl', b: 7 }, { t: 'Kunde', b: 26 }, { t: 'Vertragsnummer', b: 15 }, { t: 'Eingereicht', typ: 'datum', b: 12 }, { t: 'Beginn', typ: 'datum', b: 12 }, { t: 'Bereich', b: 18 }, { t: 'Vorgangsart', b: 14 },
       { t: 'Tarif(e)', b: 22 }, { t: 'Versicherte Person(en)', b: 28 }, { t: 'Personen KV-Voll', typ: 'zahl', b: 10 }, { t: 'Personen bKV', typ: 'zahl', b: 10 }, { t: 'Monatsbeitrag', typ: 'euro', b: 14 },
-      { t: 'Stand', b: 30 }, { t: 'Gebucht am', typ: 'datum', b: 12 }, { t: 'Anmerkung für die SDK', b: 34 }];
+      { t: 'Stand', b: 32 }, { t: 'Policiert am', typ: 'datum', b: 12 }, { t: 'Abgerechnet am', typ: 'datum', b: 13 }, { t: 'Anmerkung für die SDK', b: 34 }];
     var z2 = s.liste.map(function (x) {
       return [x.nr || '', x.name, x.vnr, U.fmtDatum(x.eingang), x.beginn ? U.fmtDatum(x.beginn) : '', AB.model.name('bereich', x.bereich), AB.model.name('vorgang', x.vorgang), x.tarife, x.personen,
-        x.voll || '', x.bkv || '', x.mb, B.ZUSTAND[x.zustand], x.gebuchtAm ? U.fmtDatum(x.gebuchtAm) : '', ''];
+        x.voll || '', x.bkv || '', x.mb, B.ZUSTAND[x.zustand] + (x.zustand === 'bestaetigt' && !x.abgerechnet ? ' · noch nicht abgerechnet' : ''), x.policiertAm ? U.fmtDatum(x.policiertAm) : '', x.gebuchtAm ? U.fmtDatum(x.gebuchtAm) : '', ''];
     });
     return [
       { name: 'Überprüfung Bonus', titel: 'Überprüfung Bonus ' + s.jahr, unter: unter, spalten: sp1, zeilen: z1,
-        farbe: function (w, r, c) { return c === 4 && typeof w[4] === 'number' && w[4] !== 0 ? 'krit' : c === 7 ? 'akzent' : null; } },
+        farbe: function (w, r, c) { return c === 4 && typeof w[4] === 'number' && w[4] !== 0 ? 'krit' : c === 8 ? 'akzent' : null; } },
       { name: 'Positionen', titel: 'Positionen aus dem Antragsbuch ' + s.jahr, unter: unter, spalten: sp2, zeilen: z2,
         farbe: function (w, r, c) { return c !== 12 ? null : /^bestätigt/.test(w[12]) ? 'gut' : /^beantragt/.test(w[12]) ? 'warn' : 'akzent'; } }
     ];

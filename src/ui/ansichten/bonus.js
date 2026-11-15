@@ -15,27 +15,27 @@
   }
 
   // ---------- Vorschau: bestätigt (Reporting) · gebucht (Abrechnung) · beantragt (Antragsbuch) ----------
-  var ZUSTAND = { bestaetigt: ['bestätigt', 'gut', 'im Bonus-Reporting enthalten'], gebucht: ['gebucht – noch nicht bestätigt', '', 'in der Abrechnung gebucht, im Bonus-Reporting noch nicht ausgewiesen'], beantragt: ['beantragt – nicht bestätigt', 'warn', 'im Antragsbuch erfasst, noch nicht abgerechnet'] };
+  var ZUSTAND = { bestaetigt: ['bestätigt', 'gut', 'vor dem Stand des Bonus-Reportings policiert oder abgerechnet – sollte dort enthalten sein'], gebucht: ['abgerechnet – noch nicht bestätigt', '', 'in der Abrechnung gebucht, im Bonus-Reporting noch nicht ausgewiesen'], policiert: ['policiert – noch nicht bestätigt', '', 'laut Veränderungsdienst policiert, noch nicht abgerechnet – zählt für den Bonus ab der Policierung'], beantragt: ['beantragt – nicht bestätigt', 'warn', 'im Antragsbuch erfasst, noch nicht abgerechnet'] };
   function vorschau(el, p) {
     var e = p.bonus, s = B.simulation(p, App.zeilen || [], App.erg), G = AB.dia, ganz = function (v) { return U.fmtZahl(v, 0); };
     var fStand = h('input', { type: 'date', value: e.reportingStand || '', style: { width: '160px' }, onchange: function () { e.reportingStand = fStand.value; App.geaendert({ ohneRechnen: true }); } });
     function zelle(v, fmt, plus) { return h('td.num', { style: { textAlign: 'right' } }, v ? (plus && v > 0 ? '+' : '') + fmt(v) : '–'); }
     function zeile(name, z, fmt, soll, hinweis) {
       var ok = soll > 0 && z.voraussichtlich >= soll;
-      return h('tr', null, h('td', null, h('b', null, name), hinweis ? h('div.mini', null, hinweis) : null), zelle(z.bestaetigt, fmt), zelle(z.gebucht, fmt, true), zelle(z.beantragt, fmt, true),
+      return h('tr', null, h('td', null, h('b', null, name), hinweis ? h('div.mini', null, hinweis) : null), zelle(z.bestaetigt, fmt), zelle(z.gebucht, fmt, true), zelle(z.policiert, fmt, true), zelle(z.beantragt, fmt, true),
         h('td.num', { style: { textAlign: 'right', fontWeight: 700 } }, fmt(z.voraussichtlich)),
         h('td.num', { style: { textAlign: 'right' } }, soll > 0 ? fmt(soll) : '–'), h('td', null, soll > 0 ? h('span.marke-s' + (ok ? '.gut' : ''), null, ok ? 'erreicht' : 'es fehlen ' + fmt(Math.max(0, soll - z.voraussichtlich))) : null));
     }
     function pruefzeile(name, z, soll) {
       var nrn = function (l) { return l.length ? ' (Pos. ' + l.join(', ') + ')' : ''; }, ps = z.positionen;
-      if (!z.bestaetigt && !z.gebucht && !z.beantragt) return null;
+      if (!z.bestaetigt && !z.gebucht && !z.policiert && !z.beantragt) return null;
       var abw = s.stand && z.abweichung !== 0;
       return h('div.meldung' + (abw ? '.warn' : ''), { style: { marginTop: '10px' } }, h('b', null, 'Neue Personen ' + name + ': '),
-        (soll ? 'gebraucht ' + soll + ' · ' : '') + 'bestätigt ' + z.bestaetigt + (s.stand ? ', davon im Antragsbuch ' + z.imBuch + nrn(ps.bestaetigt) : '') + ' · gebucht ' + z.gebucht + nrn(ps.gebucht) + ' · beantragt ' + z.beantragt + nrn(ps.beantragt) + '. ',
-        abw ? h('b', null, z.abweichung > 0 ? 'Das Reporting weist ' + z.abweichung + ' mehr aus, als im Antragsbuch vor dem Stand gebucht ist – fehlt ein Eintrag im Antragsbuch?' : 'Im Antragsbuch sind ' + (-z.abweichung) + ' mehr gebucht, als das Reporting bestätigt – bitte bei der SDK nachfragen (Export „Überprüfung Bonus").') : null);
+        (soll ? 'gebraucht ' + soll + ' · ' : '') + 'bestätigt ' + z.bestaetigt + (s.stand ? ', davon im Antragsbuch ' + z.imBuch + nrn(ps.bestaetigt) : '') + ' · abgerechnet ' + z.gebucht + nrn(ps.gebucht) + ' · policiert ' + z.policiert + nrn(ps.policiert) + ' · beantragt ' + z.beantragt + nrn(ps.beantragt) + '. ',
+        abw ? h('b', null, z.abweichung > 0 ? 'Das Reporting weist ' + z.abweichung + ' mehr aus, als im Antragsbuch vor dem Stand policiert oder abgerechnet ist – fehlt ein Eintrag im Antragsbuch?' : 'Im Antragsbuch sind ' + (-z.abweichung) + ' mehr policiert oder abgerechnet, als das Reporting bestätigt – bitte bei der SDK nachfragen (Export „Überprüfung Bonus").') : null);
     }
-    var pr = s.prognose, kopf = ['', 'Bestätigt', 'Gebucht seitdem', 'Beantragt', 'Voraussichtlich', 'Ziel', ''];
-    var tab = h('table.einfach', null, h('thead', null, h('tr', null, kopf.map(function (t, i) { return h('th', { style: i >= 1 && i <= 5 ? { textAlign: 'right' } : null }, t); }))), h('tbody', null,
+    var pr = s.prognose, kopf = ['', 'Bestätigt', 'Abgerechnet seitdem', 'Policiert', 'Beantragt', 'Voraussichtlich', 'Ziel', ''];
+    var tab = h('table.einfach', null, h('thead', null, h('tr', null, kopf.map(function (t, i) { return h('th', { style: i >= 1 && i <= 6 ? { textAlign: 'right' } : null }, t); }))), h('tbody', null,
       zeile('Neue Personen KV-Voll', s.voll, ganz, pr.ziel1.soll, 'Ziel 1 · zählt, wenn die Person bisher keine KV-Voll hatte'),
       zeile('KV-Nettoproduktion', s.nettoKv, U.fmtEuro0, pr.ziel2.soll, 'Ziel 2 · ' + pr.stufe.ziel2 + ' € je 1.000 € Bestand'),
       zeile('Nettoproduktion gesamt', s.nettoGesamt, U.fmtEuro0, pr.grundErreicht ? 0 : pr.sonder.mindest, pr.grundErreicht ? 'Grundlage des Grundbonus' : 'Mindestproduktion der Sonderregelung'),
@@ -52,33 +52,33 @@
         h('td.num.muted', null, x.nr || ''), h('td', null, h('b', null, x.name || '–'), h('div.mini', null, AB.model.name('bereich', x.bereich) + ' · ' + AB.model.name('vorgang', x.vorgang))),
         h('td', null, U.fmtDatum(x.eingang)), h('td', null, x.beginn ? U.fmtDatum(x.beginn) : '–', spaeter && x.zustand === 'beantragt' ? h('div.mini', null, 'zählt ab Einreichung') : null),
         h('td.num', { style: { textAlign: 'right' } }, x.voll || '–'), h('td.num', { style: { textAlign: 'right' } }, x.bkv || '–'), h('td.num', { style: { textAlign: 'right' } }, U.fmtEuro(x.mb)),
-        h('td', null, h('span.marke-s' + (zu[1] ? '.' + zu[1] : ''), { title: zu[2] }, zu[0]), x.gebuchtAm ? h('div.mini', null, 'gebucht ' + U.fmtDatum(x.gebuchtAm)) : null)));
+        h('td', null, h('span.marke-s' + (zu[1] ? '.' + zu[1] : ''), { title: zu[2] }, zu[0]), x.policiertAm || x.gebuchtAm ? h('div.mini', null, [x.policiertAm ? 'policiert ' + U.fmtDatum(x.policiertAm) : '', x.gebuchtAm ? 'abgerechnet ' + U.fmtDatum(x.gebuchtAm) : ''].filter(Boolean).join(' · ')) : null)));
     });
     var druck = function () {
       var z = [['Neue Personen KV-Voll', s.voll, ganz, pr.ziel1.soll], ['KV-Nettoproduktion', s.nettoKv, U.fmtEuro0, pr.ziel2.soll], ['Nettoproduktion gesamt', s.nettoGesamt, U.fmtEuro0, 0], ['Neue Personen bKV', s.bkv, ganz, pr.bkv.soll]]
-        .map(function (r) { return [r[0], r[2](r[1].bestaetigt), r[2](r[1].gebucht), r[2](r[1].beantragt), r[2](r[1].voraussichtlich), r[3] ? r[2](r[3]) : '–']; });
-      z.push(['Prämie', U.fmtEuro0(s.heute.summe), U.fmtEuro0(s.gebucht.summe), '', U.fmtEuro0(pr.summe), U.fmtEuro0(pr.max)]);
+        .map(function (r) { return [r[0], r[2](r[1].bestaetigt), r[2](r[1].gebucht), r[2](r[1].policiert), r[2](r[1].beantragt), r[2](r[1].voraussichtlich), r[3] ? r[2](r[3]) : '–']; });
+      z.push(['Prämie', U.fmtEuro0(s.heute.summe), '', U.fmtEuro0(s.gebucht.summe), '', U.fmtEuro0(pr.summe), U.fmtEuro0(pr.max)]);
       D.drucke('Bonus-Vorschau ' + p.jahr, 'Vermittler ' + (p.einstellungen.vermittlernummer || '–') + ' · ' + pr.stufe.name + ' · Stand ' + U.fmtDatum(U.heute()) + (s.stand ? ' · bestätigt laut Bonus-Reporting vom ' + U.fmtDatum(s.stand) : '') + ' · unverbindliche Vorschau, maßgeblich ist das Bonus-Reporting des Versicherers',
-        ['', 'Bestätigt', 'Gebucht seitdem', 'Beantragt (nicht bestätigt)', 'Voraussichtlich', 'Ziel'].map(function (t, i) { return { t: t, r: i > 0 }; }), z);
+        ['', 'Bestätigt', 'Abgerechnet seitdem', 'Policiert', 'Beantragt (nicht bestätigt)', 'Voraussichtlich', 'Ziel'].map(function (t, i) { return { t: t, r: i > 0 }; }), z);
     };
     el.appendChild(h('div.karte.rein', { style: { marginTop: '16px' } },
       h('div.leiste', null, h('h3', null, 'Vorschau auf die Bonus-Abrechnung'), h('span.frei'), h('span.klein.muted', null, 'Stand des letzten Bonus-Reportings'), fStand, D.btn('Überprüfung Bonus exportieren', function () { D.excel('Ueberpruefung_Bonus_' + p.jahr + '.xlsx', B.tabellePruefung(p, s)); }, { icon: 'runter', titel: 'Excel mit Zusammenfassung und allen Positionen – zum Abgleich mit dem Bonus-Reporting und für Rückfragen an die SDK' }), D.btn('', druck, { icon: 'druck', titel: 'Vorschau drucken oder als PDF speichern' })),
-      h('div.unter', null, 'Bestätigt = Werte aus Ihrem Bonus-Reporting (links unter „Meine Werte")' + (s.stand ? ' vom ' + U.fmtDatum(s.stand) : '') + ' · Gebucht = seitdem in der Abrechnung · Beantragt = im Antragsbuch, noch nicht abgerechnet'),
-      !s.stand ? h('div.meldung', { style: { margin: '10px 0' } }, 'Tragen Sie das Datum Ihres letzten Bonus-Reportings ein. Solange es fehlt, gilt alles Abgerechnete als „gebucht – noch nicht bestätigt".') : null,
+      h('div.unter', null, 'Bestätigt = Werte aus Ihrem Bonus-Reporting (links unter „Meine Werte")' + (s.stand ? ' vom ' + U.fmtDatum(s.stand) : '') + ' · Abgerechnet = seitdem in der Abrechnung · Policiert = laut Veränderungsdienst, noch nicht abgerechnet · Beantragt = im Antragsbuch, noch nicht policiert'),
+      !s.stand ? h('div.meldung', { style: { margin: '10px 0' } }, 'Tragen Sie das Datum Ihres letzten Bonus-Reportings ein. Solange es fehlt, gilt alles Policierte und Abgerechnete als „noch nicht bestätigt".') : null,
       h('div', { style: { overflowX: 'auto' } }, tab),
       pruefzeile('KV-Voll', s.voll, pr.ziel1.soll), pruefzeile('bKV', s.bkv, pr.bkv.soll),
-      h('div.raster.r-3', { style: { marginTop: '14px' } }, stufe('Prämie bestätigt', s.heute, 'laut Bonus-Reporting'), stufe('Prämie mit Gebuchtem', s.gebucht, 'Reporting + Abrechnung'), stufe('Prämie voraussichtlich', pr, 'wenn alles Beantragte policiert wird', true)),
-      h('div.raster.r-2', { style: { marginTop: '14px' } }, h('div', null, h('h3', null, 'Neue Personen KV-Voll je Monat'), h('div.unter', null, 'gebucht nach Buchungsmonat · beantragt nach Monat der Einreichung'), dP),
-        h('div', null, h('h3', null, 'Produktion je Monat'), h('div.unter', null, 'gebuchte Nettoproduktion · beantragter Monatsbeitrag (Schätzung)'), dM)),
+      h('div.raster.r-3', { style: { marginTop: '14px' } }, stufe('Prämie bestätigt', s.heute, 'laut Bonus-Reporting'), stufe('Prämie mit Policiertem', s.gebucht, 'bestätigt + abgerechnet + policiert'), stufe('Prämie voraussichtlich', pr, 'wenn alles Beantragte policiert wird', true)),
+      h('div.raster.r-2', { style: { marginTop: '14px' } }, h('div', null, h('h3', null, 'Neue Personen KV-Voll je Monat'), h('div.unter', null, 'policiert/abgerechnet nach Monat der Verarbeitung · beantragt nach Monat der Einreichung'), dP),
+        h('div', null, h('h3', null, 'Produktion je Monat'), h('div.unter', null, 'gebuchte Nettoproduktion · Monatsbeitrag des Policierten und Beantragten (Schätzung)'), dM)),
       h('h3', { style: { marginTop: '16px' } }, 'Diese Anträge fließen ein'),
       s.liste.length ? h('div', { style: { overflowX: 'auto', maxHeight: '420px', overflowY: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Pos.', 'Antrag', 'Eingereicht', 'Beginn', 'Personen KV-Voll', 'Personen bKV', 'Monatsbeitrag', 'Stand'].map(function (t, i) { return h('th', { style: i >= 4 && i <= 6 ? { textAlign: 'right' } : null }, t); }))), liste))
         : h('p.muted', null, 'Für ' + p.jahr + ' sind noch keine Anträge im Antragsbuch erfasst. Sobald Sie einen Antrag eintragen, erscheint er hier als „beantragt – nicht bestätigt".'),
-      h('p.mini', { style: { marginTop: '10px' } }, 'So wird gerechnet: Personen stammen aus dem Antragsbuch (Vorgang „Neu", Bereich Vollversicherung bzw. bKV), weil nur dort bekannt ist, ob es eine neue Person ist. Ein Antrag zählt ab dem Tag der Einreichung als beantragt, unabhängig vom Versicherungsbeginn. Wird er in der Abrechnung gefunden, gilt er als gebucht; liegt die Buchung vor dem Stand des Bonus-Reportings, gilt er als bestätigt und wird nicht doppelt gezählt. Die Nettoproduktion stammt aus der Spalte „Produktion" der Abrechnung; für Beantragtes wird der Monatsbeitrag angesetzt, die bewertete Produktion kann niedriger ausfallen. Abgelehnte, widerrufene und stornierte Anträge zählen nicht. Unverbindliche Vorschau – maßgeblich ist das Bonus-Reporting des Versicherers.')));
+      h('p.mini', { style: { marginTop: '10px' } }, 'So wird gerechnet: Personen stammen aus dem Antragsbuch (Vorgang „Neu", Bereich Vollversicherung bzw. bKV), weil nur dort bekannt ist, ob es eine neue Person ist. Ein Antrag zählt ab dem Tag der Einreichung als beantragt, unabhängig vom Versicherungsbeginn. Meldet der Veränderungsdienst die Policierung, gilt er als policiert und zählt ab diesem Datum für den Bonus – auch wenn die Abrechnung erst Monate später kommt. Wird er in der Abrechnung gefunden, gilt er als abgerechnet. Liegt die Policierung oder Buchung vor dem Stand des Bonus-Reportings, gilt er als bestätigt und wird nicht doppelt gezählt. Die Nettoproduktion stammt aus der Spalte „Produktion" der Abrechnung; für Beantragtes wird der Monatsbeitrag angesetzt, die bewertete Produktion kann niedriger ausfallen. Abgelehnte, widerrufene und stornierte Anträge zählen nicht. Unverbindliche Vorschau – maßgeblich ist das Bonus-Reporting des Versicherers.')));
     requestAnimationFrame(function () {
       G.balken(dP, { titel: 'Neue Personen KV-Voll je Monat', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: ganz, hoehe: 200,
-        reihen: [{ name: 'gebucht', farbe: G.FARBEN[0], werte: s.monate.vollGebucht }, { name: 'beantragt', farbe: G.FARBEN[3], werte: s.monate.vollBeantragt }] });
+        reihen: [{ name: 'bestätigt/abgerechnet', farbe: G.FARBEN[0], werte: s.monate.vollGebucht }, { name: 'policiert', farbe: G.FARBEN[2], werte: s.monate.vollPoliciert }, { name: 'beantragt', farbe: G.FARBEN[3], werte: s.monate.vollBeantragt }] });
       G.balken(dM, { titel: 'Produktion je Monat', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro0, hoehe: 200,
-        reihen: [{ name: 'gebuchte Nettoproduktion', farbe: G.FARBEN[0], werte: s.monate.gebuchtProd }, { name: 'beantragt (Monatsbeitrag)', farbe: G.FARBEN[3], werte: s.monate.beantragtMb }] });
+        reihen: [{ name: 'gebuchte Nettoproduktion', farbe: G.FARBEN[0], werte: s.monate.gebuchtProd }, { name: 'policiert (Monatsbeitrag)', farbe: G.FARBEN[2], werte: s.monate.policiertMb }, { name: 'beantragt (Monatsbeitrag)', farbe: G.FARBEN[3], werte: s.monate.beantragtMb }] });
     });
   }
 

@@ -92,6 +92,7 @@ kbd { font: 11px var(--font); border: 1px solid var(--line-2); border-bottom-wid
 .r-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } .r-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .r-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .r-21 { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); } .r-12 { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
 .r-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.r-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); } @media (max-width: 1700px) { .r-7 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .r-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } @media (max-width: 1240px) { .r-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 1500px) { .r-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .leiste { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

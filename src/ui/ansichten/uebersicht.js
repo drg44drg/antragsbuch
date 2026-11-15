@@ -41,11 +41,12 @@
         }))));
       var titel = (mon == null ? 'im Jahr ' + p.jahr : 'im ' + U.MONATE[mon]) + (filter ? ' · ' + [z.bereich ? M.bereich[z.bereich].kurz : '', z.tarif, z.beihilfe === 'ja' ? 'Beihilfe' : z.beihilfe === 'nein' ? 'ohne Beihilfe' : ''].filter(Boolean).join(' · ') : '');
       var verlauf = function (f) { var w = kz.monate.map(function (m) { return m[f]; }); while (w.length > 2 && !w[w.length - 1]) w.pop(); return w; };
-      el.appendChild(h('div.raster.r-6', null,
+      el.appendChild(h('div.raster.r-7', null,
         kachel('Anträge ' + titel, k.antraege, ganz, mon == null ? 'Ø ' + U.fmtZahl(kz.schnitt.antraege, 1) + ' je Monat' : 'Jahr: ' + kz.jahr.antraege, { akzent: true, i: 0, funke: mon == null ? verlauf('antraege') : null, klick: function () { App.zeige('antraege', { monat: mon == null ? '' : String(mon), status: '', spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '', beihilfe: z.beihilfe || '' }); } }),
-        kachel('Beitrag brutto', k.brutto, euro0, 'netto ' + U.fmtEuro(k.netto) + (mon == null ? ' · Ø ' + U.fmtEuro0(kz.schnitt.brutto) : ''), { einheit: '€', i: 1 }),
+        kachel('Brutto · eingetragen', k.brutto, euro0, 'alle erfassten Anträge' + (mon == null ? ' · Ø ' + U.fmtEuro0(kz.schnitt.brutto) : ''), { einheit: '€', i: 1 }),
+        kachel('Voraussichtlich netto · policiert', k.voraussichtlich, euro0, k.policiertAnz + ' policiert, noch nicht abgerechnet (' + U.fmtEuro0(k.policiert) + ')', { einheit: '€', punkt: 'var(--s3)', i: 2 }),
+        kachel('Netto · abgerechnet', k.abgerechnet, euro0, k.abgerechnetAnz + (k.abgerechnetAnz === 1 ? ' Antrag' : ' Anträge') + ' in der Abrechnung', { einheit: '€', punkt: 'var(--good)', i: 3 }),
         kachel('Offen', k.offenAnz, ganz, U.fmtEuro(k.offen) + ' unterwegs · ' + kz.jahr.ampel.rot + ' rot, ' + kz.jahr.ampel.gelb + ' gelb', { punkt: 'var(--s6)', i: 2, klick: function () { App.zeige('antraege', { status: 'offen', monat: mon == null ? '' : String(mon), spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '' }); } }),
-        kachel('Abgerechnet', k.abgerechnetAnz, ganz, U.fmtEuro(k.abgerechnet) + ' Beitrag', { punkt: 'var(--good)', i: 3 }),
         kachel('Storno', k.stornoAnz, ganz, U.fmtEuro(k.storno) + ' · Quote ' + U.fmtZahl(k.stornoQuote * 100, 1) + ' %', { punkt: 'var(--crit)', i: 4 }),
         kachel('Provision Ist', k.provIst, euro0, 'Soll ' + U.fmtEuro(k.provSoll), { einheit: '€', i: 5 })));
 
@@ -74,8 +75,9 @@
         var ms = kz.monate;
         G.balken(dBalken, { titel: 'Anträge je Monat nach Status', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: ganz, klick: function (i) { z.monat = z.monat === i ? null : i; App.zeige('uebersicht'); },
           reihen: [{ name: 'Abgerechnet', farbe: G.FARBEN[0], werte: ms.map(function (m) { return m.abgerechnetAnz; }) },
-            { name: 'Offen', farbe: G.FARBEN[1], werte: ms.map(function (m) { return m.offenAnz; }) },
-            { name: 'Storno', farbe: G.FARBEN[2], werte: ms.map(function (m) { return m.stornoAnz; }) },
+            { name: 'Policiert', farbe: G.FARBEN[2], werte: ms.map(function (m) { return m.policiertAnz; }) },
+            { name: 'Eingereicht/Reklamiert', farbe: G.FARBEN[1], werte: ms.map(function (m) { return m.offenAnz - m.policiertAnz; }) },
+            { name: 'Storno', farbe: G.FARBEN[4], werte: ms.map(function (m) { return m.stornoAnz; }) },
             { name: 'Abgelehnt/Widerruf/Absage', farbe: G.FARBEN[3], werte: ms.map(function (m) { return m.abgewiesenAnz; }) }] });
         var bereiche = M.BEREICHE.map(function (b, i) { return { name: b.kurz, wert: k.bereiche[b.id].beitrag, stueck: k.bereiche[b.id].stueck, i: i }; });
         if (z.ring === 'kategorie') bereiche = Object.keys(k.kategorien).map(function (n) { return { name: n, wert: k.kategorien[n].beitrag, stueck: k.kategorien[n].stueck }; });

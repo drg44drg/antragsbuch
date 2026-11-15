@@ -69,7 +69,15 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D0000 · Erledigt (Version 2.0)
+## D0000 · Erledigt (Version 2.1)
+
+Policiert (Veränderungsdienst) als eigene Stufe: zählt in der Bonus-Vorschau ab dem Policierungsdatum, auch ohne Abrechnung ·
+Übersicht zeigt Brutto (eingetragen), voraussichtlich netto (policiert + abgerechnet) und Netto (abgerechnet) · Monatsdiagramm trennt Policiert von Eingereicht.
+
+Offen dazu: Veränderungsdienst bisher nur als Bildschirmfoto bekannt – echte Datei zum Testen fehlt ·
+neue Personen aus der Abrechnung (Monatsbeitrag = Differenz, Provisionsart Abschluss) als Hinweis anzeigen – an 2025 trifft das 3 bis 7 statt 3, deshalb noch nicht eingebaut.
+
+## Erledigt (Version 2.0)
 
 Bonus-Vorschau: bestätigt (Bonus-Reporting) · gebucht (Abrechnung) · beantragt (Antragsbuch, ab Einreichung, „nicht bestätigt") ·
 feste Positionsnummer je Antrag (Pos.) in Liste, Exporten und Vorschau · Hinweis bei Abweichung Reporting ↔ Antragsbuch ·
