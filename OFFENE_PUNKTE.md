@@ -331,3 +331,20 @@ Abgleich mit fünf Listen · Veränderungsdienst · Dashboard · Team/Management
 
 Liegt unter `skills/sdk-tarifschluessel/` (verpackt: `skills/sdk-tarifschluessel.skill`). Ordnet Tarifkürzel in Excel- und CSV-Dateien
 anhand des Tarifschlüssels ein. Offen: aktuelleren Tarifschlüssel und Leben-Tarife ergänzen; Auslöse-Tests für die Beschreibung.
+
+## Version 4.1 (Management-Werte, Agenturmodell)
+
+Erledigt:
+- Management: Maßstab ist die Nettoproduktion laut Monatsscheiben. Zweiter Maßstab „Gewertete Produktion lt. Abrechnung“ (Spalte Produktion, bei Hierarchie-Buchungen Provision ÷ Faktor als Näherung). Die Summe der Beitragsdifferenzen heißt jetzt „Beitragsbewegung“ und ist ausdrücklich keine Nettoproduktion.
+- Zuordnung: Hat eine Bank geschrieben und war ein ADP beteiligt, zählt die Buchung beim ADP. Gruppen ADP, Banken, Sonstige. Zeile „Übrige“ für Vermittler ohne eigenes Blatt in der Sammelmappe, damit die Summe zur Gesamtzeile passt.
+- Liste und Seite bleiben beim Abhaken an ihrer Stelle.
+- Agentur: Abrechnung des Untervermittlers getrennt einlesen, Agenturmodell je Karrierestufe (weitergegebene MB, Grundpauschale), Anspruch, Overhead, Monatstabelle, Excel. Prüfdatei wird gegen die Abrechnung des Untervermittlers geprüft, wenn sie vorliegt.
+- Starthinweis ohne Gedankenstrich.
+
+Offen, braucht eine Entscheidung oder den Agenturvertrag:
+- Bankgeschäft des Untervermittlers: anteilig (weitergegebene MB ÷ MB der Agentur, so gebaut) oder fester Abzug je Euro Produktion?
+- Laufende Provisionen: voll weitergeben (so gebaut) oder anteilig?
+- Bonus des Untervermittlers (Grundbonus, Zusatzbonus 1 bis 3) ist als Tabelle hinterlegt, wird aber noch nicht gerechnet.
+- Verfall der Grundpauschale, wenn der Untervermittler nach zwei Jahren unter 6.000 MB liegt: noch nicht geprüft.
+- Produktionsübertrag zwischen Agentur und Untervermittler (in den Beispieldaten 540 €) ist noch nicht erklärt.
+- Näherung Provision ÷ Faktor weicht je ADP im Mittel rund 6 % von den Monatsscheiben ab. Genau wird es nur mit den Abrechnungen der einzelnen ADP.

@@ -712,3 +712,18 @@ test('Unternehmeragentur: Prüfdatei des Untervermittlers und Prüfung beim Agen
   const t = G.tabelle(e); t.zeilen.forEach((row) => assert.equal(row.length, t.spalten.length)); assert.equal(t.zeilen[0][4], 'ja'); assert.equal(t.zeilen[2][4], 'nein'); assert.equal(t.farbe(t.zeilen[1], 1, 11), 'krit');
   assert.equal(G.istDatei({ format: 'antragsbuch' }), false);
 });
+
+test('Unternehmeragentur: Agenturmodell und Abrechnung aus der Abrechnung des Untervermittlers', () => {
+  const G = AB.agentur;
+  assert.equal(G.MODELL.length, 6); assert.deepEqual([G.stufe('HV').mb, G.stufe('HV').gp, G.stufe('HV').gpSdk], [5.5, 2250, 2750]);
+  const z = (o) => Object.assign({ bdat: '2026-02-10', part: 'Abschluss', bfProv: 'Ganze', fProv: 7, prod: 100, prov: 700 }, o);
+  const zeilen = [z({}), z({ bdat: '2026-03-05', prod: 50, prov: 150, fProv: 3 }), z({ bdat: '2026-03-20', part: 'Bestand', bfProv: 'Prozent', fProv: 10, prod: 0, prov: 20 }),
+    z({ bdat: '2026-03-21', prod: -100, prov: -700 }), z({ bdat: '2025-12-01' })];
+  const a = G.abrechnungUv(zeilen, 2026, { mb: 5.5, gp: 2250, gpSdk: 2750 }, 7);
+  assert.equal(a.produktion, 50); assert.equal(a.brutto, 150); assert.equal(a.laufend, 20);
+  assert.equal(a.anspruch, AB.util.runde(150 * 5.5 / 7 + 20)); assert.equal(a.overhead, AB.util.runde(170 - a.anspruch));
+  assert.equal(a.monate[1].anspruch, 550); assert.equal(a.letzter, 2);
+  assert.deepEqual(a.gp, { monate: 3, sdk: 8250, weiter: 6750, differenz: 1500, jeMonat: 500 });
+  const ohne = G.abrechnungUv(zeilen, 2026, {}, 7); assert.equal(ohne.anspruch, null); assert.equal(ohne.brutto, 150);
+  const t = G.tabelleUv(a); assert.equal(t.zeilen.length, 3); assert.equal(t.summe[1], 50);
+});

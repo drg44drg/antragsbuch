@@ -244,12 +244,41 @@
     if (z.mbd < -0.005) return (z.mb <= 0.005 || z.stgrund) ? 'storno' : 'minder';
     return 'sonst';
   };
-  /** Schreibender Vermittler aus „Beteiligte Vermittler", sonst die Vermittlernummer der Zeile. */
+  /** Bankpartner haben Vermittlernummern, die mit 91 beginnen. */
+  T.istBank = function (nr) { return /^91\d{3,5}$/.test(String(nr == null ? '' : nr).trim()); };
+  /**
+   * Der Vermittler, dem eine Buchung zugerechnet wird: wer „Geschrieben" hat. Hat eine Bank geschrieben und ist ein
+   * Außendienstpartner beteiligt, zählt die Buchung beim Außendienstpartner (so rechnen auch die Monatsscheiben).
+   * Hierarchie-Buchungen ohne beteiligte Vermittler laufen unter „ohne".
+   */
   T.schreiber = function (z) {
-    var m = /(\d{5,7})\s*\(\s*Geschrieben/i.exec(z.beteil || '');
-    if (m) return m[1];
-    m = /^\s*(\d{5,7})/.exec(z.beteil || '');
-    return m ? m[1] : (z.vm || '?');
+    var b = z.beteil || '', g = /(\d{5,7})\s*\(\s*Geschrieben/i.exec(b);
+    if (g && !T.istBank(g[1])) return g[1];
+    var alle = b.match(/\d{5,7}/g) || [];
+    for (var i = 0; i < alle.length; i++) if (!T.istBank(alle[i])) return alle[i];
+    if (g) return g[1];
+    if (alle.length) return alle[0];
+    return z.part === 'Hierarchie' ? 'ohne' : (z.vm || '?');
+  };
+  /** Gruppe eines Vermittlers in der Management-Liste: 'adp' | 'bank' | 'sonst'. */
+  T.gruppeVon = function (nr, team) {
+    if (T.istBank(nr)) return 'bank';
+    if (/^900\d{3}$/.test(String(nr))) return 'adp';
+    if (team && team.zeilen && team.zeilen.some(function (x) { return !x.gesamt && x.nr === nr; })) return 'adp';
+    return 'sonst';
+  };
+  /**
+   * Gewertete Produktion einer Buchung. Die Abrechnung eines ADP nennt sie in der Spalte „Produktion".
+   * In der Abrechnung einer Führungskraft ist diese Spalte bei Hierarchie-Buchungen leer; dort ergibt
+   * Provision ÷ Faktor die Bemessungsgrundlage der Provision. Das ist eine Näherung (geprüft an einer echten
+   * Jahresabrechnung: im Jahr rund 3 % unter den Monatsscheiben, je ADP im Mittel rund 6 % Abweichung).
+   * → { wert, naeherung }
+   */
+  T.gewertet = function (z) {
+    var v = +z.prod || 0;
+    if (v) return { wert: v, naeherung: false };
+    if (z.part === 'Hierarchie' && z.bfProv === 'Ganze' && z.fProv > 0) return { wert: z.prov / z.fProv, naeherung: true };
+    return { wert: 0, naeherung: false };
   };
 
   /**
@@ -257,7 +286,7 @@
    * → { zellen:[{adp, m, tg, kat, art, n, plus, minus, prov}], adps:[nr], gruppen:[tg], arten:[...] }
    */
   T.wuerfel = function (zeilen, jahr, eigen) {
-    var map = new Map(), adps = {}, gruppen = {}, arten = {}, tarifCache = {};
+    var map = new Map(), adps = {}, gruppen = {}, arten = {}, tarifCache = {}, naeherung = 0;
     for (var i = 0; i < zeilen.length; i++) {
       var z = zeilen[i];
       if (jahr && +z.bdat.slice(0, 4) !== +jahr) continue;
@@ -265,12 +294,12 @@
       var te = tarifCache[z.tarif] || (tarifCache[z.tarif] = AB.tarif.einordnen(z.tarif, z.tg)), sp = te.kategorie || 'Sonstige';
       var key = adp + '|' + m + '|' + z.tg + '|' + kat + '|' + z.part + '|' + sp + '|' + (te.beihilfe ? 1 : 0), c = map.get(key);
       if (!c) { c = { adp: adp, m: m, tg: z.tg, kat: kat, art: z.part, sp: sp, bh: !!te.beihilfe, n: 0, plus: 0, minus: 0, prov: 0, pr: 0, vn: new Set() }; map.set(key, c); }
-      c.pr += +z.prod || 0; c.n++; if (z.mbd > 0) c.plus += z.mbd; else c.minus += z.mbd; c.prov += z.prov; c.vn.add(z.vnr);
+      var gw = T.gewertet(z); c.pr += gw.wert; if (gw.naeherung) naeherung++; c.n++; if (z.mbd > 0) c.plus += z.mbd; else c.minus += z.mbd; c.prov += z.prov; c.vn.add(z.vnr);
       adps[adp] = (adps[adp] || 0) + 1; gruppen[z.tg] = 1; arten[z.part] = 1;
     }
     var zellen = Array.from(map.values());
     zellen.forEach(function (c) { c.vertraege = c.vn.size; delete c.vn; });
-    return { zellen: zellen, adps: Object.keys(adps).sort(function (a, b) { return adps[b] - adps[a]; }), anzahl: adps,
+    return { zellen: zellen, naeherung: naeherung, adps: Object.keys(adps).sort(function (a, b) { return adps[b] - adps[a]; }), anzahl: adps,
       gruppen: Object.keys(gruppen).sort(), arten: Object.keys(arten).sort() };
   };
 

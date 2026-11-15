@@ -51,6 +51,64 @@
     o.summe.gefordert = U.runde(o.summe.gefordert); o.summe.anspruch = U.runde(o.summe.anspruch); o.summe.differenz = U.runde(o.summe.gefordert - o.summe.anspruch);
     return o;
   };
+  /**
+   * Agenturmodell (Übersicht „ADP/Agenturpartner", 100 % freies Geschäft): was die Unternehmeragentur dem Untervermittler
+   * je Karrierestufe weitergibt. mb = freie Monatsbeiträge, gp = Grundpauschale an den Untervermittler,
+   * gpSdk = Grundpauschale, die der Versicherer der Agentur für diesen Untervermittler zahlt. Die Bonuswerte sind ein Vorschlag.
+   * Mindestens 1.500 € Grundpauschale und 4 MB müssen weitergegeben werden.
+   */
+  G.MODELL = [
+    { id: 'BV1', stufe: 1, produktion: 5000, mb: 4, gp: 1500, gpSdk: 1500, grundbonus: 0, zb1: 0, zb2: 0, zb3: 0 },
+    { id: 'BV2', stufe: 2, produktion: 6000, mb: 5, gp: 2000, gpSdk: 2250, grundbonus: 0.4, zb1: 2000, zb2: 1000, zb3: 1000 },
+    { id: 'HV', stufe: 3, produktion: 9000, mb: 5.5, gp: 2250, gpSdk: 2750, grundbonus: 0.4, zb1: 2000, zb2: 1000, zb3: 1000 },
+    { id: 'GV', stufe: 4, produktion: 12000, mb: 6, gp: 2750, gpSdk: 3000, grundbonus: 0.4, zb1: 2000, zb2: 1000, zb3: 1000 },
+    { id: 'GL', stufe: 5, produktion: 15000, mb: 6, gp: 3000, gpSdk: 3250, grundbonus: 0.5, zb1: 3000, zb2: 2000, zb3: 1500 },
+    { id: 'GD', stufe: 6, produktion: 20000, mb: 6, gp: 3000, gpSdk: 3250, grundbonus: 0.5, zb1: 4000, zb2: 2000, zb3: 1500 }
+  ];
+  G.MIN = { mb: 4, gp: 1500 };
+  G.AGENTUR_MB = 7;
+  G.stufe = function (id) { return G.MODELL.filter(function (x) { return x.id === id; })[0] || null; };
+
+  /**
+   * Abrechnung zwischen Unternehmeragentur und Untervermittler aus der Abrechnung, die der Versicherer für den
+   * Untervermittler erstellt. Dort steht die Provision zum Satz der Agentur. Weitergegeben wird der Anteil
+   * „weitergegebene MB ÷ MB der Agentur"; der Rest ist der Overhead der Agentur. Laufende Provisionen
+   * (Provisionsart Bestand, Rechnung in Prozent) werden in voller Höhe weitergegeben.
+   * uv: { mb, gp, gpSdk }, agMb: Satz der Agentur (Standard 7).
+   * → { produktion, brutto, laufend, anspruch, overhead, anteil, monate:[{…}], gp:{ sdk, weiter, differenz, monate }, n, letzter }
+   */
+  G.abrechnungUv = function (zeilen, jahr, uv, agMb) {
+    uv = uv || {}; agMb = +agMb > 0 ? +agMb : G.AGENTUR_MB;
+    var hat = uv.mb != null && uv.mb !== '', anteil = hat ? Math.max(0, Math.min(1, (+uv.mb || 0) / agMb)) : null;
+    var leer = function () { return { produktion: 0, brutto: 0, laufend: 0, anspruch: 0, overhead: 0, n: 0 }; };
+    var o = leer(); o.monate = []; for (var m = 0; m < 12; m++) o.monate.push(leer());
+    o.anteil = anteil; o.letzter = -1;
+    (zeilen || []).forEach(function (z) {
+      if (jahr && +z.bdat.slice(0, 4) !== +jahr) return;
+      var mo = +z.bdat.slice(5, 7) - 1, lauf = z.part === 'Bestand' || z.bfProv === 'Prozent', prov = +z.prov || 0;
+      var an = lauf ? prov : anteil == null ? 0 : prov * anteil;
+      [o, o.monate[mo]].forEach(function (x) {
+        x.n++; x.produktion += +z.prod || 0;
+        if (lauf) x.laufend += prov; else x.brutto += prov;
+        x.anspruch += an; x.overhead += prov - an;
+      });
+      if (mo > o.letzter) o.letzter = mo;
+    });
+    var runde = function (x) { ['produktion', 'brutto', 'laufend', 'anspruch', 'overhead'].forEach(function (k) { x[k] = U.runde(x[k]); }); };
+    runde(o); o.monate.forEach(runde);
+    if (anteil == null) { o.anspruch = null; o.overhead = null; o.monate.forEach(function (x) { x.anspruch = null; x.overhead = null; }); }
+    var mon = o.letzter + 1, sdk = +uv.gpSdk || 0, weiter = +uv.gp || 0;
+    o.gp = { monate: mon, sdk: U.runde(sdk * mon), weiter: U.runde(weiter * mon), differenz: U.runde((sdk - weiter) * mon), jeMonat: U.runde(sdk - weiter) };
+    return o;
+  };
+  /** Tabelle der Abrechnung je Monat für Excel und Druck. */
+  G.tabelleUv = function (a) {
+    var sp = [{ t: 'Monat', b: 14 }, { t: 'Gewertete Produktion', typ: 'euro', b: 18 }, { t: 'Abschlussprovision lt. Abrechnung', typ: 'euro', b: 24 }, { t: 'Laufende Provision', typ: 'euro', b: 16 },
+      { t: 'Anspruch Untervermittler', typ: 'euro', b: 20 }, { t: 'Overhead Agentur', typ: 'euro', b: 16 }, { t: 'Buchungen', typ: 'ganz', b: 10 }];
+    var z = function (n, x) { return [n, x.produktion, x.brutto, x.laufend, x.anspruch == null ? '' : x.anspruch, x.overhead == null ? '' : x.overhead, x.n]; };
+    return { spalten: sp, zeilen: a.monate.map(function (x, i) { return z(U.MONATE[i], x); }).filter(function (r, i) { return i <= a.letzter; }), summe: z('Summe', a) };
+  };
+
   G.URTEIL = { ok: 'stimmt überein', abweichung: 'Abweichung', fehlt: 'nicht in der Abrechnung', ohneNr: 'Vertragsnummer fehlt' };
 
   /** Prüftabelle für den Export. */

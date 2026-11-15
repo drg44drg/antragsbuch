@@ -114,6 +114,8 @@
   App.zeige = function (id, param) {
     if (!App.p && id !== 'start') id = 'start';
     var a = AB.ansichten[id]; if (!a) return;
+    var gleich = App.ansicht === id, rollY = document.getElementById('inhalt').scrollTop, rollen = [];
+    if (gleich) Array.prototype.forEach.call(document.querySelectorAll('#inhalt [data-rollen]'), function (e) { rollen.push([e.getAttribute('data-rollen'), e.scrollTop]); });
     App.ansicht = id;
     if (param) App.zustand[id] = Object.assign(App.zustand[id] || {}, param);
     var inhalt = D.leere(document.getElementById('inhalt')), aktionen = D.leere(document.getElementById('aktionen'));
@@ -123,6 +125,11 @@
     zeichneNav(); zeichneKopf();
     document.getElementById('tipp').classList.remove('an');
     a.zeige(inhalt, aktionen, App.zustand[id] = App.zustand[id] || {});
+    // Wird dieselbe Ansicht neu gezeichnet (Haken gesetzt, Filter geändert), bleibt die Stelle stehen, an der man war.
+    if (gleich) {
+      rollen.forEach(function (r) { var e = document.querySelector('#inhalt [data-rollen="' + r[0] + '"]'); if (e) e.scrollTop = r[1]; });
+      inhalt.scrollTop = rollY; requestAnimationFrame(function () { inhalt.scrollTop = rollY; });
+    }
   };
   function zeichneKopf() {
     var box = D.leere(document.getElementById('schalter'));
@@ -244,7 +251,7 @@
   App.HINWEIS = [
     'Das Antragsbuch ist eine Arbeitshilfe. Es soll helfen, Anträge im Blick zu behalten und Provisionen, Stornos und den Bonus nachzuvollziehen.',
     'Alle Beträge, Vorschläge und Vorschauen beruhen auf den allgemeinen Provisions- und Wettbewerbsregeln und auf Ihren eigenen Eingaben. Sie sind keine Zusage, keine Garantie und keine verbindliche Abrechnung.',
-    'Maßgeblich sind allein die Abrechnungen, Richtlinien, Verträge und Auswertungen des Versicherers. Weicht etwas ab, klären Sie es bitte dort – die App zeigt Ihnen, wo Sie hinsehen sollten.',
+    'Maßgeblich sind allein die Abrechnungen, Richtlinien, Verträge und Auswertungen des Versicherers. Weicht etwas ab, klären Sie es bitte dort. Die App zeigt Ihnen, wo Sie hinsehen sollten.',
     'Ihre Daten bleiben auf diesem Gerät. Es wird nichts ins Internet übertragen.'
   ];
   App.zeigeHinweis = function () {
@@ -267,7 +274,7 @@
   App.einleseDialog = function () {
     var d = D.dialog('Datei einlesen', { klasse: 'mittel' });
     D.anhaengen(d.rumpf, [h('p.muted', { style: { margin: 0 } }, 'Ziehen Sie die Datei auf das passende Feld oder klicken Sie darauf. Die App prüft den Inhalt und fragt nach, wenn die Datei nicht zum Feld passt.'),
-      h('div.importfelder', null, App.IMPORTARTEN.concat(App.p && AB.agentur.einstellung(App.p).modus === 'agenturist' ? [{ id: 'agentur', titel: 'Prüfdatei eines Untervermittlers', text: 'Die Datei, die Ihr Untervermittler aus seinem Antragsbuch für die Abrechnung mit Ihnen exportiert hat.', arten: ['agenturdatei'], icon: 'team', endung: '.json' }] : []).map(function (art) {
+      h('div.importfelder', null, App.IMPORTARTEN.concat(App.p && AB.agentur.einstellung(App.p).modus === 'agenturist' ? [{ id: 'agentur', titel: 'Prüfdatei eines Untervermittlers', text: 'Die Datei, die Ihr Untervermittler aus seinem Antragsbuch für die Abrechnung mit Ihnen exportiert hat.', arten: ['agenturdatei'], icon: 'team', endung: '.json' }, { id: 'uvabrechnung', titel: 'Abrechnung eines Untervermittlers', text: 'Die Provisionsabrechnung, die der Versicherer für Ihren Untervermittler erstellt. Sie ersetzt nicht Ihre eigene Abrechnung.', arten: ['abrechnung'], icon: 'abgleich', endung: '.csv,.txt,.xlsx,.xlsm' }] : []).map(function (art) {
         var wahl = h('input', { type: 'file', hidden: true, multiple: art.id !== 'projekt' && art.id !== 'altbuch', accept: art.endung, onchange: function () { var fs = Array.from(wahl.files); wahl.value = ''; nimm(fs); } });
         function nimm(dateien) { if (!dateien.length) return; d.zu(); App.importiere(dateien, { erwartet: art }); }
         var feld = h('button.importfeld', { type: 'button', 'data-art': art.id, onclick: function () { wahl.click(); },
@@ -297,7 +304,8 @@
     Sp.onstatus && Sp.onstatus({ art: 'lauf', text: 'Liest „' + name + '" …' });
     var r;
     try {
-      r = await App.lies(bytes, name, p ? { alt: p.abrechnung && p.abrechnung.zeilen && p.abrechnung.zeilen.length ? p.abrechnung : null, importNr: p.importZaehler + 1, jahr: p.jahr, vermittlernummer: p.einstellungen.vermittlernummer, nurAbrechnung: !!opt.nurAbrechnung } : {});
+      var fuerUv = !!(opt.erwartet && opt.erwartet.id === 'uvabrechnung');
+      r = await App.lies(bytes, name, p ? { alt: !fuerUv && p.abrechnung && p.abrechnung.zeilen && p.abrechnung.zeilen.length ? p.abrechnung : null, importNr: p.importZaehler + 1, jahr: p.jahr, vermittlernummer: p.einstellungen.vermittlernummer, nurAbrechnung: !!opt.nurAbrechnung } : {});
     } finally { Sp.onstatus && Sp.onstatus(Sp.status); }
     // Getrennte Felder: passt der erkannte Inhalt nicht zum gewählten Feld, wird nachgefragt statt still verwechselt
     if (opt.erwartet && opt.erwartet.arten.indexOf(r.art) < 0) {
@@ -311,6 +319,21 @@
     if (!p) throw new Error('Bitte zuerst ein Projekt öffnen oder neu anlegen.');
     if (r.art === 'altbuch') return App.uebernimmAltbuch(r, bytes, name, opt);
     if (r.art === 'abrechnung') {
+      // Unternehmeragentur: Abrechnung eines Untervermittlers getrennt von der eigenen ablegen
+      var agE = AB.agentur.einstellung(p), fremd = r.vermittler && r.vermittler.length === 1 ? r.vermittler[0] : '';
+      if (!fuerUv && agE.modus === 'agenturist' && fremd && p.einstellungen.vermittlernummer && fremd !== p.einstellungen.vermittlernummer)
+        fuerUv = await D.frage('Abrechnung eines Untervermittlers?', '„' + name + '" gehört zur Vermittlernummer ' + fremd + ', Ihre eigene ist ' + p.einstellungen.vermittlernummer + '. Soll die Datei als Abrechnung Ihres Untervermittlers abgelegt werden? Ihre eigene Abrechnung bleibt dann unverändert.', 'Als Abrechnung des Untervermittlers', { nein: 'Als meine Abrechnung' });
+      if (fuerUv) {
+        if (!fremd) throw new Error('Die Datei enthält keine eindeutige Vermittlernummer.');
+        if (fremd === p.einstellungen.vermittlernummer) throw new Error('Diese Datei ist Ihre eigene Abrechnung. Bitte im Feld „Provisionsabrechnung" ablegen.');
+        if (!p.agenturAbr) p.agenturAbr = {};
+        var schon = !!p.agenturAbr[fremd];
+        p.agenturAbr[fremd] = { gepackt: r.gepackt, datei: name, datum: new Date().toISOString(), anzahl: r.anzahl, jahre: r.jahre };
+        if (!agE.untervermittler[fremd]) agE.untervermittler[fremd] = { name: '', art: 'modell', wert: null };
+        App.agenturZeilen = null; App.zustand.agentur = { nr: fremd }; App.ansicht = 'agentur'; App.geaendert({ ohneRechnen: true });
+        D.toast('Abrechnung des Untervermittlers ' + fremd + ' abgelegt: ' + U.fmtZahl(r.anzahl, 0) + ' Zeilen' + (schon ? ' (ersetzt die frühere Datei)' : '') + '.');
+        return;
+      }
       var jahre = r.jahre || [], anderes = jahre.length === 1 && +jahre[0] !== +p.jahr ? +jahre[0] : null;
       if (anderes) {
         var umstellen = !p.antraege.length || opt.still || (await D.frage('Projektjahr umstellen?', 'Die Abrechnung enthält Buchungen aus ' + anderes + ', das Projekt ist für ' + p.jahr + ' angelegt. Soll das Projekt auf ' + anderes + ' umgestellt werden? Ihre Anträge bleiben unverändert.', 'Auf ' + anderes + ' umstellen', { nein: 'Bei ' + p.jahr + ' bleiben' }));

@@ -128,9 +128,9 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       await page.click('#schalter button:has-text("Management")');
       await page.waitForSelector('.adpliste');
       assert.ok(await zahl('.adp') >= 6);
-      const vorher = await page.textContent('.kachel.akzent .neben');
+      const vorher = await page.textContent('.kachel.akzent .wert');
       await page.click('.adp:has-text("900101") input');
-      assert.notEqual(await page.textContent('.kachel.akzent .neben'), vorher);
+      assert.notEqual(await page.textContent('.kachel.akzent .wert'), vorher);
       // ohne passende Nummer: Eingabefeld direkt im Teamvergleich
       await page.evaluate(() => { AB.app.p.einstellungen.modus = 'adp'; AB.app.p.einstellungen.vermittlernummer = ''; AB.app.zeige('team'); });
       assert.match(await page.textContent('.meldung.warn'), /sechsstellige Vermittlernummer/);

@@ -77,7 +77,7 @@
       importe: [], importZaehler: 0,
       zuordnungen: {}, ignoriert: {},
       vdienst: { zuordnungen: {}, importe: [] },
-      team: null, aktionen: [], bonus: null, ziele: {}, vorjahr: null, banken: {}, archiv: {}, agenturEingang: {},
+      team: null, aktionen: [], bonus: null, ziele: {}, vorjahr: null, banken: {}, archiv: {}, agenturEingang: {}, agenturAbr: {},
       sicherungen: []
     };
   };

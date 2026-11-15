@@ -455,7 +455,7 @@ test('Neue Werte der echten Abrechnung: Kündigungsrücknahme, Pflege-, Auslands
   assert.deepEqual(alt.einstellungen.provisionsarten, ['Abschluss', 'Kündigungsrücknahme']);
   // eigene Auswertung: alles unter „ich", auch wenn ein Partner „geschrieben" hat
   const we = AB.team.wuerfel(r.zeilen, 2026, true), wm = AB.team.wuerfel(r.zeilen, 2026);
-  assert.deepEqual(we.adps, ['ich']); assert.ok(wm.adps.includes('913095'));
+  assert.deepEqual(we.adps, ['ich']); assert.ok(wm.adps.includes('900999') && !wm.adps.includes('913095'), 'Bank hat geschrieben, ADP war beteiligt: zählt beim ADP');
   const a = AB.team.auswertung(we, {}).gesamt;
   assert.equal(U.runde(a.netto), 155); assert.equal(U.runde(a.beihilfe), 120);
   assert.equal(U.runde(a.spartenDetail['Beihilfe · Ambulant'].neu), 120); assert.equal(U.runde(a.provMonate[1]), U.runde(5 * 4.5 + 120 * 5.5));
@@ -563,4 +563,25 @@ test('Verlustfreier Import: neue Abrechnung ergänzt, löscht nichts und zählt 
   // Datei eines anderen Jahres oder Vermittlers: der alte Stand wird nicht hineingemischt
   const anders = await AB.importer.lies(csv([zeile('999', 5, '03.01.2027')]), '2027.csv', { importNr: 5, alt: r.gepackt });
   assert.deepEqual([AB.abrechnung.entpacke(anders.gepackt).length, anders.vergleich.behalten, anders.vergleich.entfallen], [1, 0, 3]);
+});
+
+test('Management: Zuordnung zum ADP statt zur Bank, Gruppen, gewertete Produktion aus Provision ÷ Faktor', () => {
+  const T = AB.team;
+  assert.equal(T.schreiber({ beteil: '900417 (Geschrieben, als Bestandsinhaber), 912188 (Mitwirkung, als Bestandsinhaber)' }), '900417');
+  assert.equal(T.schreiber({ beteil: '912139 (Geschrieben, als Bestandsinhaber), 900341 (Mitwirkung, als Bestandsinhaber)' }), '900341');
+  assert.equal(T.schreiber({ beteil: '912139 (Geschrieben, als Bestandsinhaber)' }), '912139');
+  assert.equal(T.schreiber({ beteil: '', part: 'Hierarchie', vm: '900505' }), 'ohne');
+  assert.equal(T.schreiber({ beteil: '', part: 'Bestand', vm: '900505' }), '900505');
+  assert.equal(T.gruppeVon('900341'), 'adp'); assert.equal(T.gruppeVon('912139'), 'bank'); assert.equal(T.gruppeVon('903302'), 'sonst');
+  assert.equal(T.gruppeVon('903302', { zeilen: [{ nr: '903302' }] }), 'adp');
+  // ADP-Abrechnung: Spalte Produktion gilt. FD-Abrechnung: Hierarchie ohne Produktion → Provision ÷ Faktor.
+  assert.deepEqual(T.gewertet({ prod: 80, part: 'Abschluss', prov: 400, fProv: 5, bfProv: 'Ganze' }), { wert: 80, naeherung: false });
+  assert.deepEqual(T.gewertet({ prod: 0, part: 'Hierarchie', prov: 40, fProv: 0.5, bfProv: 'Ganze' }), { wert: 80, naeherung: true });
+  assert.equal(T.gewertet({ prod: 0, part: 'Hierarchie', prov: 4, fProv: 20, bfProv: 'Prozent' }).wert, 0);
+  assert.equal(T.gewertet({ prod: 0, part: 'Bestand', prov: 4, fProv: 0.5, bfProv: 'Ganze' }).wert, 0);
+  const z = (o) => Object.assign({ vm: '900505', vnr: '1', pnr: '1', tg: 'Vollversicherung', tarif: 'A30', mb: 100, mbd: 100, prod: 0, fProv: 0.5, prov: 40, bfProv: 'Ganze', part: 'Hierarchie', st: 0, bdat: '2026-03-01', beteil: '900341 (Geschrieben, als Bestandsinhaber)' }, o);
+  const w = T.wuerfel([z({}), z({ beteil: '912139 (Geschrieben), 900341 (Mitwirkung)', prov: 10 }), z({ beteil: '912139 (Geschrieben)', prov: 5 })], 2026);
+  assert.equal(w.naeherung, 3);
+  const a = T.auswertung(w, {});
+  assert.equal(a.proAdp['900341'].produktion, 100); assert.equal(a.proAdp['900341'].netto, 200); assert.equal(a.proAdp['912139'].produktion, 10);
 });

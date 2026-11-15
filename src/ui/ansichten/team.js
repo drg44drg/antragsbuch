@@ -124,17 +124,35 @@
     if (!z.farben) z.farben = {};
     if (z.von == null) { z.von = 0; z.bis = 11; }
     if (eigen) z.mass = 'beitrag';
-    if (!z.mass) z.mass = App.zeilen.length ? 'beitrag' : 'scheiben';
+    // Maßstab: Monatsscheiben sind maßgeblich. Ohne Monatsscheiben die gewertete Produktion aus der Abrechnung.
+    if (!z.mass || (z.mass === 'scheiben' && !p.team) || (z.mass !== 'scheiben' && !App.zeilen.length)) z.mass = p.team ? 'scheiben' : 'gewertet';
+    if (!z.gruppen) z.gruppen = new Set(['adp']);
     var f = { arten: z.arten, gruppen: z.gruppe ? new Set([z.gruppe]) : null, monate: [z.von, z.bis], beihilfe: z.beihilfe || '' };
     var alle = T.auswertung(w, f), nrs = Object.keys(alle.proAdp);
+    // Gewertete Produktion zählt über alle Provisionsarten, damit sie zu den Monatsscheiben passt.
+    var alleProd = eigen ? alle : T.auswertung(w, Object.assign({}, f, { arten: null }));
+    var gruppeVon = function (nr) { return nr === 'rest' ? 'adp' : nr === 'ohne' ? 'sonst' : T.gruppeVon(nr, p.team); }, anzGruppe = { adp: 0, bank: 0, sonst: 0 };
     var scheibe = {}, vergeben = new Set();
     var merke = function (nr, t) { var s = 0; for (var m = z.von; m <= z.bis; m++) s += t.werte[m] || 0; scheibe[nr] = { summe: s, zeile: t }; vergeben.add(t); };
     nrs.forEach(function (nr) { var t = teamZeile(p, nr); if (t && !t.gesamt) merke(nr, t); });
     if (!eigen) (p.team ? p.team.zeilen : []).forEach(function (t) { if (!t.gesamt && !vergeben.has(t)) { nrs.push(t.nr); merke(t.nr, t); } });
-    var wertVon = function (nr) { return z.mass === 'scheiben' ? (scheibe[nr] ? scheibe[nr].summe : 0) : (alle.proAdp[nr] ? alle.proAdp[nr].netto : 0); };
+    // Die Gesamtzeile der Monatsscheiben enthält auch Vermittler ohne eigenes Blatt. Der Unterschied läuft als „Übrige“ mit,
+    // damit die Summe aller Zeilen mit der Gesamtzeile übereinstimmt.
+    var gesamtZeile = !eigen && p.team ? p.team.zeilen.find(function (x) { return x.gesamt; }) : null, ohneBlatt = [];
+    if (gesamtZeile && p.team.zeilen.length > 2) {
+      var restWerte = gesamtZeile.werte.map(function (v, i) { var s = v || 0; p.team.zeilen.forEach(function (t) { if (!t.gesamt) s -= t.werte[i] || 0; }); return s; });
+      if (restWerte.some(function (v) { return Math.abs(v) > 0.5; })) {
+        ohneBlatt = nrs.filter(function (nr) { return !scheibe[nr] && nr !== 'ohne' && !T.istBank(nr); });
+        nrs.push('rest'); merke('rest', { werte: restWerte, nr: 'rest' });
+      }
+    }
+    var gewertetVon = function (nr) { return alleProd.proAdp[nr] ? alleProd.proAdp[nr].produktion : 0; };
+    var wertVon = function (nr) { return z.mass === 'scheiben' ? (scheibe[nr] ? scheibe[nr].summe : 0) : z.mass === 'gewertet' ? gewertetVon(nr) : (alle.proAdp[nr] ? alle.proAdp[nr].netto : 0); };
+    if (!eigen) { nrs.forEach(function (nr) { anzGruppe[gruppeVon(nr)]++; }); nrs = nrs.filter(function (nr) { return z.gruppen.has(gruppeVon(nr)); }); }
     nrs.sort(function (a, b) { return wertVon(b) - wertVon(a); });
     if (eigen) z.wahl = new Set(nrs);
-    if (!z.wahl) z.wahl = new Set(nrs.slice(0, 5));
+    if (!z.wahl) z.wahl = new Set(nrs);
+    else z.wahl = new Set(nrs.filter(function (nr) { return z.wahl.has(nr); }));
     nrs.slice().forEach(function (nr) { if (z.wahl.has(nr) && z.farben[nr] == null) { for (var c = 0; c < 5; c++) if (Object.keys(z.farben).every(function (k) { return z.farben[k] !== c; })) { z.farben[nr] = c; break; } } });
     Object.keys(z.farben).forEach(function (nr) { if (!z.wahl.has(nr)) delete z.farben[nr]; });
     var farbe = function (nr) { return z.farben[nr] != null ? G.FARBEN[z.farben[nr]] : G.GRAU; };
@@ -151,33 +169,48 @@
     // Filterzeile
     var mOpt = U.MONATE.map(function (m, i) { return [String(i), m]; });
     el.appendChild(h('div.leiste', null,
-      eigen ? null : D.seg([['beitrag', 'Beitrag lt. Abrechnung'], ['scheiben', 'Nettoproduktion lt. Monatsscheiben']], z.mass, function (v) { z.mass = v; neu(); }),
+      eigen ? null : D.seg([].concat(p.team ? [['scheiben', 'Nettoproduktion lt. Monatsscheiben', 'Maßgeblicher Wert des Versicherers']] : [], App.zeilen.length ? [['gewertet', 'Gewertete Produktion lt. Abrechnung', 'Spalte „Produktion“; bei Hierarchie-Buchungen Provision ÷ Faktor (Näherung)'], ['beitrag', 'Beitragsbewegung lt. Abrechnung', 'Summe der Beitragsdifferenzen. Das ist nicht die Nettoproduktion.']] : []), z.mass, function (v) { z.mass = v; neu(); }),
       h('span.klein.muted', null, 'von'), D.auswahl(mOpt, String(z.von), function (v) { z.von = +v; if (z.bis < z.von) z.bis = z.von; neu(); }, { style: { width: '124px' } }),
       h('span.klein.muted', null, 'bis'), D.auswahl(mOpt, String(z.bis), function (v) { z.bis = +v; if (z.von > z.bis) z.von = z.bis; neu(); }, { style: { width: '124px' } }),
       D.auswahl([['', 'Alle Tarifgruppen']].concat(w.gruppen.map(function (g) { return [g, g]; })), z.gruppe || '', function (v) { z.gruppe = v; neu(); }, { style: { width: '210px' } }),
       D.auswahl([['', 'Beihilfe: alle'], ['ja', 'Nur Beihilfe'], ['nein', 'Ohne Beihilfe']], z.beihilfe || '', function (v) { z.beihilfe = v; neu(); }, { style: { width: '140px' }, title: 'Nach Beihilfe filtern' }),
       h('span.frei'), w.arten.map(function (a) { var an = z.arten.has(a); return h('button.chip' + (an ? '.aktiv' : ''), { type: 'button', title: 'Provisionsart ' + a, onclick: function () { if (an) z.arten.delete(a); else z.arten.add(a); neu(); } }, a); })));
 
+    if (!eigen && App.zeilen.length) el.appendChild(h('div.mini', null, z.mass === 'scheiben'
+      ? 'Maßgeblich ist die Nettoproduktion aus den Monatsscheiben (Kranken und Unfall). „Übrige“ sind Vermittler, die in der Gesamtzeile stecken, aber kein eigenes Blatt haben. Die Diagramme zu Kategorie und Sparte darunter zeigen die Beitragsbewegung aus der Abrechnung.'
+      : z.mass === 'gewertet' ? (w.naeherung ? 'Die Abrechnung einer Führungskraft nennt bei Hierarchie-Buchungen keine Produktion. Die App rechnet deshalb Provision ÷ Faktor. Das trifft die Monatsscheiben im Jahr auf wenige Prozent, je Vermittler kann es stärker abweichen. Die Vergleichstabelle unten zeigt die Abweichung.' : 'Gewertete Produktion ist die Spalte „Produktion“ der Abrechnung.')
+      : 'Beitragsbewegung ist die Summe aller Beitragsdifferenzen in der Abrechnung. Sie liegt meist deutlich über der Nettoproduktion, weil zum Beispiel Tarifwechsel und nicht gewertete Beiträge mitzählen.'));
     // ADP-Liste mit Checkboxen
-    var liste = h('div.adpliste', { style: { maxHeight: '560px' } });
+    var liste = h('div.adpliste', { 'data-rollen': 'adpliste', style: { maxHeight: '560px' } });
     nrs.forEach(function (nr) {
-      var a = alle.proAdp[nr], an = z.wahl.has(nr), nm = nameVon(p, nr);
-      liste.appendChild(h('label.adp', { title: nr + (nm ? ' ' + nm : '') }, h('input', { type: 'checkbox', checked: an, onchange: function () { if (this.checked) z.wahl.add(nr); else z.wahl.delete(nr); neu(); } }),
+      var a = alle.proAdp[nr], an = z.wahl.has(nr), nm = nr === 'rest' ? 'Übrige' : nr === 'ohne' ? 'Ohne Zuordnung' : nameVon(p, nr);
+      liste.appendChild(h('label.adp', { title: nr === 'rest' ? 'Gesamtzeile der Monatsscheiben minus alle Vermittler mit eigenem Blatt' + (ohneBlatt.length ? '. In der Abrechnung ohne eigenes Blatt: ' + ohneBlatt.join(', ') : '') : nr + (nm ? ' ' + nm : '') }, h('input', { type: 'checkbox', checked: an, onchange: function () { if (this.checked) z.wahl.add(nr); else z.wahl.delete(nr); neu(); } }),
         h('i', { style: { background: an ? farbe(nr) : 'transparent', border: an ? 'none' : '1px solid var(--line-2)' } }),
-        h('span.n', null, nm || nr, h('small', null, nm ? nr : (a ? a.n + ' Buchungen' : ''))), h('span.num', { style: { fontWeight: 600 } }, U.fmtEuro0(wertVon(nr)))));
+        h('span.n', null, nm || nr, h('small', null, nr === 'rest' ? 'ohne eigenes Blatt' : nr === 'ohne' ? 'kein beteiligter Vermittler' : nm ? nr : (a ? a.n + ' Buchungen' : ''))), h('span.num', { style: { fontWeight: 600 } }, U.fmtEuro0(wertVon(nr)))));
     });
     var links = h('div.karte.rein', { style: { padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: '8px', alignSelf: 'start' } },
-      h('div.leiste', { style: { padding: '0 8px' } }, h('h3', null, 'ADP (' + z.wahl.size + '/' + nrs.length + ')'), h('span.frei'),
-        D.btn('Alle', function () { z.wahl = new Set(nrs); neu(); }, { klasse: 'klein-btn leise' }), D.btn('Keine', function () { z.wahl = new Set(); neu(); }, { klasse: 'klein-btn leise' })), liste,
+      h('div.leiste', { style: { padding: '0 8px' } }, h('h3', null, 'Auswahl ' + z.wahl.size + '/' + nrs.length), h('span.frei'),
+        D.btn('Alle', function () { z.wahl = new Set(nrs); neu(); }, { klasse: 'klein-btn leise' }), D.btn('Keine', function () { z.wahl = new Set(); neu(); }, { klasse: 'klein-btn leise' })),
+      h('div.leiste', { style: { padding: '0 8px', gap: '6px', flexWrap: 'wrap' } }, [['adp', 'ADP'], ['bank', 'Banken'], ['sonst', 'Sonstige']].map(function (g) {
+        if (!anzGruppe[g[0]]) return null; var an = z.gruppen.has(g[0]);
+        return h('button.chip' + (an ? '.aktiv' : ''), { type: 'button', title: g[0] === 'adp' ? 'Außendienstpartner (Vermittlernummer 900…) und alle aus den Monatsscheiben' : g[0] === 'bank' ? 'Bankpartner (Vermittlernummer 91…), wenn kein ADP beteiligt war' : 'Übrige Nummern und Buchungen ohne beteiligten Vermittler',
+          onclick: function () { if (an) z.gruppen.delete(g[0]); else z.gruppen.add(g[0]); z.wahl = null; neu(); } }, g[1] + ' ' + anzGruppe[g[0]]); })), liste,
       h('div.mini', { style: { padding: '0 8px' } }, 'Bis zu fünf ausgewählte ADP erhalten eine eigene Farbe; weitere erscheinen grau.'));
 
     var storno = Math.abs(gew.kat.storno), plus = gew.plus || 0;
     // Die Nettoproduktion zählt über alle Provisionsarten (auch Legacy-Korrekturen), damit sie zu Monatsscheiben und Bonus passt.
     var prodAlle = eigen ? T.auswertung(w, Object.assign({}, f, { adps: z.wahl, arten: null })).gesamt.produktion : 0;
     var hatProd = eigen && Math.abs(prodAlle) > 0.005;
-    var kacheln = h('div.raster.' + (hatProd ? 'r-5' : 'r-4'), null,
+    var sumWahl = function (fn) { var s = 0; z.wahl.forEach(function (nr) { s += fn(nr) || 0; }); return s; };
+    var scheibeWahl = sumWahl(function (nr) { return scheibe[nr] ? scheibe[nr].summe : 0; }), gewWahl = sumWahl(gewertetVon);
+    var fdGesamt = !eigen && p.team ? p.team.zeilen.find(function (x) { return x.gesamt; }) : null, fdSumme = 0;
+    if (fdGesamt) for (var mm = z.von; mm <= z.bis; mm++) fdSumme += fdGesamt.werte[mm] || 0;
+    var kopfKachel = eigen || z.mass === 'beitrag' ? null : z.mass === 'scheiben'
+      ? kachel('Nettoproduktion (Auswahl)', scheibeWahl, euro0, (fdGesamt ? 'Gesamt ' + U.fmtEuro0(fdSumme) + ' · ' : '') + 'lt. Monatsscheiben', { akzent: true, einheit: '€' })
+      : kachel('Gewertete Produktion (Auswahl)', gewWahl, euro0, (p.team ? 'Monatsscheiben ' + U.fmtEuro0(scheibeWahl) + ' · ' : '') + (w.naeherung ? 'Näherung' : 'Spalte „Produktion“'), { akzent: true, einheit: '€' });
+    var kacheln = h('div.raster.' + (hatProd || kopfKachel ? 'r-5' : 'r-4'), null, kopfKachel,
       hatProd ? kachel('Meine Nettoproduktion', prodAlle, euro0, 'wie in Monatsscheiben und Bonus · alle Provisionsarten', { akzent: true, einheit: '€' }) : null,
-      kachel(eigen ? 'Mein Netto-Beitrag' : 'Netto-Beitrag (Auswahl)', gew.netto, euro0, U.fmtZahl(gew.n, 0) + ' Buchungen' + (hatProd ? ' · Beitragsänderung' : eigen ? ' · Provision ' + U.fmtEuro0(gew.prov) : ' · ' + z.wahl.size + ' ADP'), { akzent: !hatProd, einheit: '€' }),
+      kachel(eigen ? 'Mein Netto-Beitrag' : 'Beitragsbewegung (Auswahl)', gew.netto, euro0, U.fmtZahl(gew.n, 0) + ' Buchungen' + (hatProd ? ' · Beitragsänderung' : eigen ? ' · Provision ' + U.fmtEuro0(gew.prov) : ' · keine Nettoproduktion'), { akzent: !hatProd && !kopfKachel, einheit: '€' }),
       kachel('Neugeschäft', gew.kat.neu, euro0, U.fmtZahl(gew.katN.neu, 0) + ' Buchungen', { einheit: '€', punkt: G.FARBEN[0] }),
       kachel('Erhöhungen', gew.kat.mehr, euro0, U.fmtZahl(gew.katN.mehr, 0) + ' Buchungen', { einheit: '€', punkt: G.FARBEN[2] }),
       kachel('Storno + Reduzierung', gew.kat.storno + gew.kat.minder, euro0, 'Stornoquote ' + U.fmtZahl(plus ? storno / plus * 100 : 0, 1) + ' %', { einheit: '€', punkt: 'var(--crit)' }));
@@ -207,7 +240,7 @@
         h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Mix nach'), D.seg([['gruppe', 'Sparte'], ['kategorie', 'Kategorie']], z.ring || 'gruppe', function (v) { z.ring = v; neu(); })),
           h('div.unter', null, 'Netto-Beitrag · davon Beihilfe ' + U.fmtEuro0(gew.beihilfe)), dRing)),
       h('div.raster.r-2', null,
-        h('div.karte.rein', null, h('h3', null, eigen ? 'Beitrag und Provision je Monat' : 'ADP im Verlauf'), h('div.unter', null, eigen ? 'Netto-Beitrag und gebuchte Provision laut Abrechnung' : (z.mass === 'scheiben' ? 'Nettoproduktion lt. Monatsscheiben' : 'Netto-Beitrag lt. Abrechnung') + ' · gestrichelt: Median aller ADP'), dLin),
+        h('div.karte.rein', null, h('h3', null, eigen ? 'Beitrag und Provision je Monat' : 'ADP im Verlauf'), h('div.unter', null, eigen ? 'Netto-Beitrag und gebuchte Provision laut Abrechnung' : (z.mass === 'scheiben' ? 'Nettoproduktion lt. Monatsscheiben' : z.mass === 'gewertet' ? 'Gewertete Produktion lt. Abrechnung' : 'Beitragsbewegung lt. Abrechnung') + ' · gestrichelt: Median der angezeigten Vermittler'), dLin),
         h('div.karte.rein', null, h('h3', null, eigen ? 'Wo kommt es her?' : 'Rangfolge'), h('div.unter', null, eigen ? 'Netto-Beitrag nach Kategorie' : 'ausgewählte ADP im gewählten Zeitraum'), dQuer)));
     el.appendChild(eigen ? rechts : h('div', { style: { display: 'grid', gridTemplateColumns: '268px minmax(0, 1fr)', gap: '16px' } }, links, rechts));
 
@@ -222,7 +255,7 @@
       var quelle = z.ring === 'kategorie' ? gew.sparten : gew.gruppen;
       var gr = Object.keys(quelle).map(function (g) { return { name: z.ring === 'kategorie' ? g : kurzGruppe(g), wert: quelle[g] }; }).sort(function (a, b) { return b.wert - a.wert; });
       G.ring(dRing, { titel: 'Netto-Beitrag nach Tarifgruppe', format: U.fmtEuro, mitte: { wert: U.fmtEuro0(gew.netto), label: 'netto' }, teile: gr.map(function (g, i) { return { name: g.name, wert: g.wert, farbe: i < 5 ? G.FARBEN[i] : G.GRAU }; }) });
-      var reihe = function (nr) { return z.mass === 'scheiben' ? (scheibe[nr] ? scheibe[nr].zeile.werte : []) : (alle.proAdp[nr] ? alle.proAdp[nr].monate : []); };
+      var reihe = function (nr) { return z.mass === 'scheiben' ? (scheibe[nr] ? scheibe[nr].zeile.werte : []) : z.mass === 'gewertet' ? (alleProd.proAdp[nr] ? alleProd.proAdp[nr].prodMonate : []) : (alle.proAdp[nr] ? alle.proAdp[nr].monate : []); };
       var letzter = -1; nrs.forEach(function (nr) { reihe(nr).forEach(function (v, i) { if (v) letzter = Math.max(letzter, i); }); });
       var schnitt = function (arr) { return U.MONATE.map(function (_, i) { return i >= z.von && i <= Math.min(z.bis, letzter) ? (arr[i] || 0) : null; }); };
       var med = U.MONATE.map(function (_, i) { return i >= z.von && i <= Math.min(z.bis, letzter) ? U.median(nrs.map(function (nr) { return reihe(nr)[i] || 0; })) : null; });
@@ -236,10 +269,10 @@
         return;
       }
       G.linie(dLin, { titel: 'ADP im Verlauf', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro, hoehe: 250,
-        reihen: grau.slice(0, 20).map(function (nr) { return { name: nameVon(p, nr) || nr, farbe: G.GRAU, werte: schnitt(reihe(nr)) }; })
-          .concat(bunt.map(function (nr) { return { name: nameVon(p, nr) || nr, farbe: farbe(nr), werte: schnitt(reihe(nr)), stark: true }; }))
-          .concat([{ name: 'Median aller ADP', farbe: 'var(--text-3)', strich: true, werte: med }]) });
-      G.quer(dQuer, { format: U.fmtEuro0, zeilen: gewaehlt.slice(0, 14).map(function (nr) { var a = alle.proAdp[nr]; return { name: nameVon(p, nr) || nr, wert: wertVon(nr), farbe: farbe(nr), zusatz: a ? a.n + ' Buchungen' : '' }; }) });
+        reihen: grau.slice(0, 20).map(function (nr) { return { name: nr === 'rest' ? 'Übrige' : nameVon(p, nr) || nr, farbe: G.GRAU, werte: schnitt(reihe(nr)) }; })
+          .concat(bunt.map(function (nr) { return { name: nr === 'rest' ? 'Übrige' : nameVon(p, nr) || nr, farbe: farbe(nr), werte: schnitt(reihe(nr)), stark: true }; }))
+          .concat([{ name: 'Median', farbe: 'var(--text-3)', strich: true, werte: med }]) });
+      G.quer(dQuer, { format: U.fmtEuro0, zeilen: gewaehlt.slice(0, 14).map(function (nr) { var a = alle.proAdp[nr]; return { name: nr === 'rest' ? 'Übrige' : nameVon(p, nr) || nr, wert: wertVon(nr), farbe: farbe(nr), zusatz: a ? a.n + ' Buchungen' : '' }; }) });
     });
 
     if (eigen) {
@@ -258,10 +291,10 @@
     }
     // Vergleichstabelle
     var rang = {}; nrs.slice().sort(function (a, b) { return (scheibe[b] ? scheibe[b].summe : -1e12) - (scheibe[a] ? scheibe[a].summe : -1e12); }).forEach(function (nr, i) { if (scheibe[nr]) rang[nr] = i + 1; });
-    var kopf = ['ADP', 'Nummer', 'Neugeschäft', 'Erhöhung', 'Reduzierung', 'Storno', 'Netto-Beitrag', 'Stornoquote %', 'Buchungen', 'Provision', 'Monatsscheiben', 'Rang'];
+    var kopf = ['ADP', 'Nummer', 'Neugeschäft', 'Erhöhung', 'Reduzierung', 'Storno', 'Beitragsbewegung', 'Stornoquote %', 'Buchungen', 'Provision', 'Monatsscheiben', 'Rang', 'Gewertete Produktion', 'Abweichung'];
     var zl = nrs.filter(function (nr) { return z.wahl.has(nr); }).map(function (nr) {
       var a = alle.proAdp[nr] || { kat: {}, plus: 0, n: 0, netto: 0, prov: 0 };
-      return [nameVon(p, nr) || '–', nr, a.kat.neu || 0, a.kat.mehr || 0, a.kat.minder || 0, a.kat.storno || 0, a.netto, a.plus ? U.runde(Math.abs(a.kat.storno || 0) / a.plus * 100) : 0, a.n, a.prov, scheibe[nr] ? scheibe[nr].summe : '', rang[nr] || ''];
+      return [nr === 'rest' ? 'Übrige ohne eigenes Blatt' : nr === 'ohne' ? 'Ohne Zuordnung' : nameVon(p, nr) || '–', nr, a.kat.neu || 0, a.kat.mehr || 0, a.kat.minder || 0, a.kat.storno || 0, a.netto, a.plus ? U.runde(Math.abs(a.kat.storno || 0) / a.plus * 100) : 0, a.n, a.prov, scheibe[nr] ? scheibe[nr].summe : '', nr === 'rest' ? '' : rang[nr] || '', nr === 'rest' ? U.runde(ohneBlatt.reduce(function (s, n) { return s + gewertetVon(n); }, 0)) : App.zeilen.length ? U.runde(gewertetVon(nr)) : '', nr === 'rest' ? U.runde(ohneBlatt.reduce(function (s, n) { return s + gewertetVon(n); }, 0) - scheibe.rest.summe) : scheibe[nr] && App.zeilen.length ? U.runde(gewertetVon(nr) - scheibe[nr].summe) : ''];
     });
     var tb = h('tbody');
     zl.forEach(function (r) { var tr = h('tr'); r.forEach(function (c, i) { tr.appendChild(h('td' + (i > 1 ? '.num' : ''), { style: i > 1 ? { textAlign: 'right' } : null }, i > 1 && typeof c === 'number' ? (i === 7 ? U.fmtZahl(c, 1) : i === 8 || i === 11 ? U.fmtZahl(c, 0) : U.fmtEuro(c)) : c)); }); tb.appendChild(tr); });
@@ -273,7 +306,7 @@
       D.btn('Drucken', function () { D.drucke('ADP-Vergleich ' + p.jahr, U.MONATE[z.von] + ' bis ' + U.MONATE[z.bis] + ' · ' + Array.from(z.arten).join(', ') + ' · Stand ' + U.fmtDatum(U.heute()), kopf.map(function (t, i) { return { t: t, r: i > 1 }; }),
         zl.map(function (r) { return r.map(function (c, i) { return i > 1 && typeof c === 'number' ? U.fmtZahl(c, i === 8 || i === 11 ? 0 : 2) : c; }); })); }, { klasse: 'klein-btn', icon: 'druck' })),
       h('div', { style: { overflowX: 'auto', marginTop: '8px' } }, h('table.einfach', null, h('thead', null, h('tr', null, kopf.map(function (t, i) { return h('th', { style: i > 1 ? { textAlign: 'right' } : null }, t); }))), tb)),
-      h('p.mini', null, 'Kategorien aus der Abrechnung: Neugeschäft = Beitragsdifferenz entspricht dem Monatsbeitrag; Erhöhung = positiver Mehrbeitrag; Reduzierung = negativer Beitrag bei fortbestehendem Tarif; Storno = Tarif endet oder Stornogrund vorhanden. Der ADP ist der Vermittler mit der Rolle „Geschrieben".')));
+      h('p.mini', null, 'Kategorien aus der Abrechnung: Neugeschäft = Beitragsdifferenz entspricht dem Monatsbeitrag; Erhöhung = positiver Mehrbeitrag; Reduzierung = negativer Beitrag bei fortbestehendem Tarif; Storno = Tarif endet oder Stornogrund vorhanden. Zugerechnet wird dem Vermittler mit der Rolle „Geschrieben". Hat eine Bank geschrieben und war ein ADP beteiligt, zählt die Buchung beim ADP. „Abweichung" ist gewertete Produktion minus Monatsscheiben.')));
   }
 
   AB.ansichten.team = { icon: 'team', titel: function () { return App.modus() === 'mgmt' ? 'Management' : 'Team'; },
