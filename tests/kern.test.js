@@ -334,3 +334,26 @@ test('Aktionen: Kundenliste einlesen, Kontakte mit festem Datum, Zustände, Kenn
   const p = M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: {} });
   assert.deepEqual(p.aktionen, []);
 });
+
+test('Nettoproduktion aus der Spalte „Produktion" und Bonus-Rechner gegen ein Bonus-Reporting (Karrierestufe 3)', () => {
+  const z = (bdat, prod, tg, sparte) => ({ bdat, prod, tg, sparte: sparte || 'KVUV', mbd: 99 });
+  const n = AB.team.nettoproduktion([z('2025-01-02', 900.46, 'Vollversicherung'), z('2025-01-20', -40.28, 'Firmentarife'), z('2025-11-03', 3.08, 'Unfallversicherung'),
+    z('2025-12-01', 100, 'Rente', 'LV'), z('2025-12-05', 0, 'Vollversicherung'), z('2024-12-05', 500, 'Vollversicherung')], 2025);
+  assert.deepEqual([n.gesamt, n.kv, n.monate[0], n.monate[10], n.monate[11], n.hat], [963.26, 860.18, 860.18, 3.08, 100, true]);
+  assert.equal(AB.team.nettoproduktion([z('2025-01-02', 0, 'Vollversicherung')], 2025).hat, false);
+  const r = AB.bonus.rechne({ stufe: '3', bestandKv: 487370, neueVoll: 3, neueBkv: 35, nettoKv: 7033, nettoGesamt: 7036 });
+  assert.deepEqual([r.ziel1.soll, r.ziel1.fehlt, Math.round(r.ziel2.soll), Math.round(r.ziel2.fehlt), Math.round(r.zb1.soll), Math.round(r.zb1.fehlt)], [12, 9, 12184, 5151, 13159, 6126]);
+  assert.deepEqual([r.grundErreicht, r.sonder.mindest, r.sonder.fehlt, r.sonder.greift, r.bkv.erreicht, r.bkv.praemie, r.summe, r.maxZusatz], [false, 7200, 164, false, true, 0, 0, 7600]);
+});
+
+test('Persönliche Auswertung (ein ADP-Blatt + FD-Gesamt) wird als Teamdatei gelesen', () => {
+  const kopf = [null, '', 'Mrz../2025', '01-Mrz../2025', '', '01/2025', '02/2025', '03/2025', '04/2025', '05/2025', '06/2025'];
+  const blatt = (name, a, b, c) => ({ name, zeilen: [[null, 'Monatsscheiben Nettoproduktion'], [null, 'Stand: 31.03.2025'], kopf, [null, 'Kranken', c, a + b + c, null, a, b, c], [null, 'Vollversicherung', c / 2, 0, null, a / 2, b / 2, c / 2], [null, 'Unfall', 0, 1, null, 1, null, null]] });
+  const bl = [blatt('FDBms', 1000, 2000, 3000), blatt('GDms', 500, 500, 500), blatt('999ms', 100, 200, 300)];
+  assert.equal(AB.team.istSammelmappe(bl), true);
+  assert.equal(AB.team.istSammelmappe([blatt('999ms', 1, 2, 3)]), false);
+  const t = AB.team.liesSammelmappe(bl);
+  assert.equal(t.einzeln, true); assert.deepEqual(t.zeilen.map((z) => z.nr), ['FDB', '900999']);
+  const pos = AB.team.position(t, '900999');
+  assert.equal(pos.ytd.wert, 601); assert.equal(pos.gesamt.werte[2], 3000);
+});

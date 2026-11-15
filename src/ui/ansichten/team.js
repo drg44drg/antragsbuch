@@ -47,11 +47,14 @@
         h('span', null, 'Tragen Sie Ihre sechsstellige Vermittlernummer ein, dann sehen Sie Ihren Platz:'), nrFeld, D.btn('Übernehmen', setze, { klasse: 'klein-btn haupt-btn' })));
     }
     var y = pos.ytd || { n: 0, median: 0 }, m = lm >= 0 ? pos.monate[lm] : null, hat = y.wert != null;
+    var einzeln = !!p.team.einzeln, fd = pos.gesamt ? pos.gesamt.werte.reduce(function (a, b) { return a + (b || 0); }, 0) : 0, fdM = pos.gesamt && lm >= 0 ? pos.gesamt.werte[lm] || 0 : 0;
+    if (einzeln) el.appendChild(h('div.meldung', null, 'Diese Datei enthält nur Ihr eigenes Blatt und die Gesamtsumme der Filialdirektion. Ein Platz im Team und ein Median lassen sich daraus nicht bestimmen – dafür wird die Sammelmappe mit allen ADP-Blättern benötigt.'));
     el.appendChild(h('div.raster.r-4', null,
-      kachel('Mein Platz im Team', hat ? 'Platz ' + y.rang : '–', null, 'von ' + y.n + ' · aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–'), { akzent: true }),
+      einzeln ? kachel('Mein Anteil an der Filialdirektion', hat && fd ? U.fmtZahl(y.wert / fd * 100, 1) + ' %' : '–', null, 'aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–'), { akzent: true })
+        : kachel('Mein Platz im Team', hat ? 'Platz ' + y.rang : '–', null, 'von ' + y.n + ' · aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–'), { akzent: true }),
       kachel('Meine Nettoproduktion', hat ? y.wert : '–', euro0, 'aufgelaufen ' + p.team.jahr, { einheit: '€' }),
-      kachel('Team-Median', y.median, euro0, hat ? (Math.abs(y.wert - y.median) < 0.5 ? 'Sie liegen genau in der Mitte' : y.wert >= y.median ? 'Sie liegen ' + U.fmtEuro0(y.wert - y.median) + ' darüber' : 'Sie liegen ' + U.fmtEuro0(y.median - y.wert) + ' darunter') : 'Mitte des Teams', { einheit: '€', punkt: hat ? (y.wert >= y.median ? 'var(--good)' : 'var(--warn)') : null }),
-      kachel(lm >= 0 ? U.MONATE[lm] : 'Letzter Monat', m && m.wert != null ? m.wert : '–', euro0, m ? 'Median ' + U.fmtEuro0(m.median) + (m.rang ? ' · Platz ' + m.rang + ' von ' + m.n : '') : '', { einheit: '€' })));
+      einzeln ? kachel('Filialdirektion gesamt', fd, euro0, 'Nettoproduktion ' + p.team.jahr, { einheit: '€' }) : kachel('Team-Median', y.median, euro0, hat ? (Math.abs(y.wert - y.median) < 0.5 ? 'Sie liegen genau in der Mitte' : y.wert >= y.median ? 'Sie liegen ' + U.fmtEuro0(y.wert - y.median) + ' darüber' : 'Sie liegen ' + U.fmtEuro0(y.median - y.wert) + ' darunter') : 'Mitte des Teams', { einheit: '€', punkt: hat ? (y.wert >= y.median ? 'var(--good)' : 'var(--warn)') : null }),
+      kachel(lm >= 0 ? U.MONATE[lm] : 'Letzter Monat', m && m.wert != null ? m.wert : '–', euro0, einzeln ? (fdM ? U.fmtZahl((m && m.wert || 0) / fdM * 100, 1) + ' % der Filialdirektion' : '') : m ? 'Median ' + U.fmtEuro0(m.median) + (m.rang ? ' · Platz ' + m.rang + ' von ' + m.n : '') : '', { einheit: '€' })));
     if (pos.ziel && hat) {
       var zj = pos.ziel, gleichesJahr = zj.jahr === p.team.jahr, quoteZ = gleichesJahr ? y.wert / zj.wert : null;
       el.appendChild(h('div.karte.rein.leiste', { style: { padding: '12px 18px' } }, h('b', null, 'Mein Ziel ' + zj.jahr + ': ' + U.fmtEuro0(zj.wert)),
@@ -61,6 +64,18 @@
     var sv = T.spartenVergleich(p.team, p.einstellungen.vermittlernummer, lm >= 0 ? lm : 11);
     if (sv.length) {
       var stb = h('tbody');
+      if (einzeln) {
+        // Einzel-Auswertung: eigene Sparten gegen die Summe der Filialdirektion
+        var fdS = pos.gesamt && pos.gesamt.sparten || {}, su = function (w) { var x = 0; for (var mm = 0; mm <= lm; mm++) x += (w && w[mm]) || 0; return x; };
+        sv.forEach(function (s) {
+          var sp = T.SPARTEN.find(function (x) { return x[1] === s.name || x[0] === s.name; }), g = sp ? su(fdS[sp[0]]) : 0, ant = g > 0 ? s.wert / g * 100 : null;
+          stb.appendChild(h('tr', null, h('td', { style: { fontWeight: 600 } }, s.name), h('td.num', { style: { textAlign: 'right' } }, U.fmtEuro0(s.wert)), h('td.num.muted', { style: { textAlign: 'right' } }, g ? U.fmtEuro0(g) : '–'),
+            h('td.num', { style: { textAlign: 'right' } }, ant == null ? '–' : U.fmtZahl(ant, 1) + ' %'),
+            h('td', { style: { width: '30%' } }, h('div', { style: { position: 'relative', height: '10px', borderRadius: '99px', background: 'var(--surface-2)' } }, h('div.hb.dia', { style: { position: 'absolute', left: 0, top: 0, bottom: 0, width: Math.max(0, Math.min(100, (ant || 0) * 10)) + '%', background: 'var(--s0)', borderRadius: '99px' } })))));
+        });
+        el.appendChild(h('div.karte.rein', null, h('h3', null, 'Meine Sparten und die Filialdirektion'), h('div.unter', null, 'aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–') + ' · Balken: mein Anteil, voller Balken = 10 %'),
+          h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Sparte', 'Mein Wert', 'Filialdirektion', 'Mein Anteil', ''].map(function (t, i) { return h('th', { style: i >= 1 && i <= 3 ? { textAlign: 'right' } : null }, t); }))), stb))));
+      } else {
       sv.forEach(function (s) {
         var dreh = { 5: -90, 4: -45, 3: 0, 2: 45, 1: 90 }[s.stufe], farbe = s.stufe >= 4 ? 'var(--good-ink)' : s.stufe === 3 ? 'var(--text-2)' : s.stufe === 2 ? 'var(--warn-ink)' : 'var(--crit-ink)';
         var pfeil = D.s('svg', { viewBox: '0 0 24 24', width: 22, height: 22, fill: 'none', stroke: 'currentColor', 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', role: 'img', 'aria-label': T.STUFEN[s.stufe] },
@@ -75,19 +90,20 @@
       });
       el.appendChild(h('div.karte.rein', null, h('h3', null, 'Meine Sparten im Teamvergleich'), h('div.unter', null, 'aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–') + ' · Pfeil nach oben: oberste 20 % des Teams, schräg oben: über dem Schnitt, rechts: Mittelfeld, schräg unten: darunter, nach unten: unterste 20 %'),
         h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Sparte', '', 'Einordnung', 'Mein Wert', 'Team-Median', 'Platz', 'Ich gegen den Besten'].map(function (t, i) { return h('th', { style: i >= 3 && i <= 5 ? { textAlign: 'right' } : null }, t); }))), stb))));
+      }
     } else if (!pos.ich || !pos.ich.sparten) el.appendChild(h('div.meldung', null, 'Für den Vergleich je Sparte (Voll, Zusatz, bKV, Pflege …) wird die Sammelmappe mit den Produktscheiben je ADP benötigt – bzw. die daraus erzeugte Teamdatei Ihrer Führungskraft.'));
     var dL = h('div'), dQ = h('div');
     el.appendChild(h('div.raster.r-21', null,
-      h('div.karte.rein', null, h('h3', null, 'Mein Verlauf im Teamvergleich'), h('div.unter', null, 'Nettoproduktion je Monat · das Band zeigt die mittlere Hälfte des Teams'), dL),
-      h('div.karte.rein', null, h('h3', null, 'Rangfolge (anonym)'), h('div.unter', null, 'aufgelaufen · Ihr Balken ist hervorgehoben'), dQ)));
-    el.appendChild(h('p.mini', null, 'So entsteht die Rangfolge: Für jeden Vermittler wird die Nettoproduktion von Januar bis ' + (lm >= 0 ? U.MONATE[lm] : 'heute') + ' aufaddiert und absteigend sortiert; Platz 1 hat den höchsten Wert. Die Summenzeile des Teams' + (pos.gesamt ? ' (' + U.fmtEuro0(pos.gesamt.werte.reduce(function (s, w) { return s + (w || 0); }, 0)) + ')' : '') + ' zählt nicht mit. Der Median ist der Wert in der Mitte: die Hälfte liegt darüber, die Hälfte darunter. Quelle: Monatsscheiben Nettoproduktion' + (p.team.stand ? ', Stand ' + U.fmtDatum(p.team.stand) : '') + '. Kollegen erscheinen ohne Namen und Nummer.'));
+      h('div.karte.rein', einzeln ? { style: { gridColumn: '1 / -1' } } : null, h('h3', null, einzeln ? 'Mein Verlauf' : 'Mein Verlauf im Teamvergleich'), h('div.unter', null, 'Nettoproduktion je Monat' + (einzeln ? '' : ' · das Band zeigt die mittlere Hälfte des Teams')), dL),
+      einzeln ? null : h('div.karte.rein', null, h('h3', null, 'Rangfolge (anonym)'), h('div.unter', null, 'aufgelaufen · Ihr Balken ist hervorgehoben'), dQ)));
+    if (!einzeln) el.appendChild(h('p.mini', null, 'So entsteht die Rangfolge: Für jeden Vermittler wird die Nettoproduktion von Januar bis ' + (lm >= 0 ? U.MONATE[lm] : 'heute') + ' aufaddiert und absteigend sortiert; Platz 1 hat den höchsten Wert. Die Summenzeile des Teams' + (pos.gesamt ? ' (' + U.fmtEuro0(pos.gesamt.werte.reduce(function (s, w) { return s + (w || 0); }, 0)) + ')' : '') + ' zählt nicht mit. Der Median ist der Wert in der Mitte: die Hälfte liegt darüber, die Hälfte darunter. Quelle: Monatsscheiben Nettoproduktion' + (p.team.stand ? ', Stand ' + U.fmtDatum(p.team.stand) : '') + '. Kollegen erscheinen ohne Namen und Nummer.'));
     requestAnimationFrame(function () {
       var bis = function (f) { return pos.monate.map(function (x, i) { return x && i <= lm ? f(x) : null; }); };
       G.linie(dL, { titel: 'Nettoproduktion im Teamvergleich', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro0, hoehe: 260,
-        reihen: (hat ? [{ name: 'Ich', farbe: G.FARBEN[0], stark: true, flaeche: true, werte: bis(function (x) { return x.wert; }) }] : []).concat([{ name: 'Team-Median', farbe: G.FARBEN[1], werte: bis(function (x) { return x.median; }) }]),
-        band: { name: 'Mittlere Hälfte', unten: bis(function (x) { return x.q1; }), oben: bis(function (x) { return x.q3; }) } });
+        reihen: (hat ? [{ name: 'Ich', farbe: G.FARBEN[0], stark: true, flaeche: true, werte: bis(function (x) { return x.wert; }) }] : []).concat(einzeln ? [] : [{ name: 'Team-Median', farbe: G.FARBEN[1], werte: bis(function (x) { return x.median; }) }]),
+        band: einzeln ? null : { name: 'Mittlere Hälfte', unten: bis(function (x) { return x.q1; }), oben: bis(function (x) { return x.q3; }) } });
       var kum = p.team.zeilen.filter(function (z) { return !z.gesamt; }).map(function (z) { return { ich: pos.ich === z, wert: z.werte.reduce(function (s, w) { return s + (w || 0); }, 0) }; }).sort(function (a, b) { return b.wert - a.wert; });
-      G.quer(dQ, { format: U.fmtEuro0, zeilen: kum.map(function (k, i) { return { name: k.ich ? 'Ich' : 'Platz ' + (i + 1), wert: k.wert, farbe: k.ich ? G.FARBEN[0] : G.GRAU }; }) });
+      if (!einzeln) G.quer(dQ, { format: U.fmtEuro0, zeilen: kum.map(function (k, i) { return { name: k.ich ? 'Ich' : 'Platz ' + (i + 1), wert: k.wert, farbe: k.ich ? G.FARBEN[0] : G.GRAU }; }) });
     });
   }
 
@@ -150,8 +166,12 @@
       h('div.mini', { style: { padding: '0 8px' } }, 'Bis zu fünf ausgewählte ADP erhalten eine eigene Farbe; weitere erscheinen grau.'));
 
     var storno = Math.abs(gew.kat.storno), plus = gew.plus || 0;
-    var kacheln = h('div.raster.r-4', null,
-      kachel(eigen ? 'Mein Netto-Beitrag' : 'Netto-Beitrag (Auswahl)', gew.netto, euro0, U.fmtZahl(gew.n, 0) + ' Buchungen' + (eigen ? ' · Provision ' + U.fmtEuro0(gew.prov) : ' · ' + z.wahl.size + ' ADP'), { akzent: true, einheit: '€' }),
+    // Die Nettoproduktion zählt über alle Provisionsarten (auch Legacy-Korrekturen), damit sie zu Monatsscheiben und Bonus passt.
+    var prodAlle = eigen ? T.auswertung(w, Object.assign({}, f, { adps: z.wahl, arten: null })).gesamt.produktion : 0;
+    var hatProd = eigen && Math.abs(prodAlle) > 0.005;
+    var kacheln = h('div.raster.' + (hatProd ? 'r-5' : 'r-4'), null,
+      hatProd ? kachel('Meine Nettoproduktion', prodAlle, euro0, 'wie in Monatsscheiben und Bonus · alle Provisionsarten', { akzent: true, einheit: '€' }) : null,
+      kachel(eigen ? 'Mein Netto-Beitrag' : 'Netto-Beitrag (Auswahl)', gew.netto, euro0, U.fmtZahl(gew.n, 0) + ' Buchungen' + (hatProd ? ' · Beitragsänderung' : eigen ? ' · Provision ' + U.fmtEuro0(gew.prov) : ' · ' + z.wahl.size + ' ADP'), { akzent: !hatProd, einheit: '€' }),
       kachel('Neugeschäft', gew.kat.neu, euro0, U.fmtZahl(gew.katN.neu, 0) + ' Buchungen', { einheit: '€', punkt: G.FARBEN[0] }),
       kachel('Erhöhungen', gew.kat.mehr, euro0, U.fmtZahl(gew.katN.mehr, 0) + ' Buchungen', { einheit: '€', punkt: G.FARBEN[2] }),
       kachel('Storno + Reduzierung', gew.kat.storno + gew.kat.minder, euro0, 'Stornoquote ' + U.fmtZahl(plus ? storno / plus * 100 : 0, 1) + ' %', { einheit: '€', punkt: 'var(--crit)' }));
@@ -198,9 +218,9 @@
     });
 
     if (eigen) {
-      var ek = ['Kategorie', 'Neugeschäft', 'Erhöhung', 'Reduzierung', 'Storno', 'Netto-Beitrag', 'Buchungen', 'Provision'];
-      var ez = Object.keys(gew.spartenDetail).map(function (k) { var d = gew.spartenDetail[k]; return [k, U.runde(d.neu), U.runde(d.mehr), U.runde(d.minder), U.runde(d.storno), U.runde(d.netto), d.n, U.runde(d.prov)]; }).sort(function (a, b) { return b[5] - a[5]; });
-      var es = ['Summe', U.runde(gew.kat.neu), U.runde(gew.kat.mehr), U.runde(gew.kat.minder), U.runde(gew.kat.storno), U.runde(gew.netto), gew.n, U.runde(gew.prov)];
+      var ek = ['Kategorie', 'Neugeschäft', 'Erhöhung', 'Reduzierung', 'Storno', 'Netto-Beitrag', 'Buchungen', 'Provision', 'Nettoproduktion'];
+      var ez = Object.keys(gew.spartenDetail).map(function (k) { var d = gew.spartenDetail[k]; return [k, U.runde(d.neu), U.runde(d.mehr), U.runde(d.minder), U.runde(d.storno), U.runde(d.netto), d.n, U.runde(d.prov), U.runde(d.produktion)]; }).sort(function (a, b) { return b[5] - a[5]; });
+      var es = ['Summe', U.runde(gew.kat.neu), U.runde(gew.kat.mehr), U.runde(gew.kat.minder), U.runde(gew.kat.storno), U.runde(gew.netto), gew.n, U.runde(gew.prov), U.runde(gew.produktion)];
       var etb = h('tbody');
       ez.concat([es]).forEach(function (r, ri) { var tr = h('tr', ri === ez.length ? { style: { fontWeight: 650 } } : null); r.forEach(function (c, i) { tr.appendChild(h('td' + (i ? '.num' : ''), { style: i ? { textAlign: 'right' } : null }, i === 0 ? c : i === 6 ? U.fmtZahl(c, 0) : U.fmtEuro(c))); }); etb.appendChild(tr); });
       el.appendChild(h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Meine Produktion nach Kategorie'), h('span.muted.klein', null, U.MONATE[z.von] + ' bis ' + U.MONATE[z.bis] + ' ' + p.jahr), h('span.frei'),

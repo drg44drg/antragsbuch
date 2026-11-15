@@ -24,8 +24,12 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 
 ## B2 · Fachliche Fragen aus dem Test mit den echten Dateien
 
-- [ ] „Meine Produktion" zeigt für 900401 im Jahr 2025 rund 25.200 € Netto-Beitragsdifferenz laut Abrechnung, die Monatsscheiben 7.036 € Nettoproduktion.
-      Woher kommt der Unterschied (Bewertung, Umstellungen, Kündigungsrücknahmen)? Davon hängt ab, wie „Neugeschäft" richtig zu zählen ist.
+- [x] Geklärt (Version 1.8): Die Nettoproduktion aus Monatsscheiben und Bonus-Reporting ist die Summe der Spalte „Produktion" der Abrechnung,
+      nicht die Beitragsdifferenz. Geprüft an 900401/2025: 7.035,62 € im Jahr und jeder einzelne Monat stimmen überein (KV 7.032,54 € + Unfall 3,08 €).
+      „Meine Produktion" zeigt beide Größen; der Bonus-Reiter übernimmt Nettoproduktion gesamt und KV aus der Abrechnung.
+- [x] Bonus-Rechner gegen das Bonus-Reporting 19.12.2025 geprüft (Karrierestufe 3 = HV): Ziele, Fehlbeträge und Höchstbeträge stimmen.
+- [ ] Blätter „GDms" und „GVms" der persönlichen Auswertung werden noch nicht ausgewertet – wofür stehen sie (Gebietsdirektion / Gesamtvertrieb)?
+- [ ] Blatt „NBProd" (Neu- und Bestandsproduktion brutto, Vorjahresvergleich) auswerten
 - [ ] Altes Antragsbuch 900401: 61 von 158 Einträgen sicher zugeordnet, 36 weitere als Vorschlag. Die übrigen (v. a. Umstellungen, bKV-Sammelposten) von Hand zuordnen oder Regel verfeinern?
 - [ ] Gelten die Wettbewerbsbedingungen 2025 unverändert für 2026 (das Bonus-Reporting 2026 rechnet mit denselben Werten)?
 - [ ] Soll die Führungskraft die Ziele (Soll-Ist) der Kollegen in der Teamdatei mitgeben? Derzeit sieht jeder ADP nur sein eigenes Ziel.
@@ -59,7 +63,12 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D0000 · Erledigt (Version 1.7)
+## D0000 · Erledigt (Version 1.8)
+
+Nettoproduktion aus der Spalte „Produktion" (passt zu Monatsscheiben und Bonus) · Übernahme in den Bonus-Reiter ·
+persönliche Auswertung (ein ADP-Blatt + FD-Gesamt) einlesbar, Anteil an der Filialdirektion je Sparte.
+
+## Erledigt (Version 1.7)
 
 Reiter „Aktionen" (Kundenlisten nachhalten, Auswertung, Export).
 

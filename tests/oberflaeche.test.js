@@ -226,7 +226,7 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
     });
     await t.test('Neue Reiter: Meine Produktion, Bonus, Aktionen mit Kundenliste', async () => {
       await nav('Meine Produktion');
-      await page.waitForSelector('.kachel.akzent:has-text("Mein Netto-Beitrag")');
+      await page.waitForSelector('.kachel.akzent:has-text("Mein Netto")');
       assert.ok(await zahl('.dia svg') >= 3); assert.match(await page.textContent('#inhalt'), /Meine Produktion nach Kategorie[\s\S]*Summe/);
       await nav('Bonus');
       await page.fill('label.feld:has-text("KV-Bestand") input', '373185'); await page.keyboard.press('Tab');

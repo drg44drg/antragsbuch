@@ -25,6 +25,7 @@
         } });
         return D.feld(label, i, 's6');
       }
+      var ausAbr = App.zeilen && App.zeilen.length ? AB.team.nettoproduktion(App.zeilen, p.jahr) : null;
       var pos = p.team ? AB.team.position(p.team, p.einstellungen.vermittlernummer) : null, ausTeam = pos && pos.ytd && pos.ytd.wert != null ? pos.ytd.wert : null;
       el.appendChild(h('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(300px, 380px) minmax(0, 1fr)', gap: '16px', alignItems: 'start' } },
         h('div.karte.rein', null, h('h3', null, 'Meine Werte'), h('div.unter', null, 'Aus dem monatlichen Bonus-Reporting übernehmen' + (e.stand ? ' · zuletzt geändert ' + U.fmtDatum(e.stand) : '')),
@@ -33,7 +34,9 @@
             zahl('nettoGesamt', 'Nettoproduktion gesamt (€ MB)', 'KV/UV/Ventil'), zahl('nettoKv', 'KV-Nettoproduktion (€ MB)'),
             zahl('bestandKv', 'KV-Bestand (€)'), zahl('bestandVoll', 'Bestand KV-Voll + PPV (€)', 'sonst KV-Bestand'),
             zahl('neueVoll', 'Neue Personen KV-Voll'), zahl('neueBkv', 'Neue Personen bKV')),
-          ausTeam != null ? h('div.leiste', { style: { marginTop: '10px' } }, h('span.mini', { style: { flex: 1 } }, 'Laut Teamdaten liegt Ihre Nettoproduktion bei ' + U.fmtEuro0(ausTeam) + '.'),
+          ausAbr && ausAbr.hat ? h('div.leiste', { style: { marginTop: '10px' } }, h('span.mini', { style: { flex: 1 } }, 'Laut Abrechnung ' + p.jahr + ': Nettoproduktion ' + U.fmtEuro0(ausAbr.gesamt) + ', davon KV ' + U.fmtEuro0(ausAbr.kv) + '.'),
+            D.btn('Übernehmen', function () { e.nettoGesamt = Math.round(ausAbr.gesamt); e.nettoKv = Math.round(ausAbr.kv); e.stand = U.heute(); App.geaendert({ ohneRechnen: true }); }, { klasse: 'klein-btn' })) : null,
+          ausTeam != null && !(ausAbr && ausAbr.hat) ? h('div.leiste', { style: { marginTop: '10px' } }, h('span.mini', { style: { flex: 1 } }, 'Laut Teamdaten liegt Ihre Nettoproduktion bei ' + U.fmtEuro0(ausTeam) + '.'),
             D.btn('Übernehmen', function () { e.nettoGesamt = Math.round(ausTeam); if (e.nettoKv == null) e.nettoKv = Math.round(ausTeam); e.stand = U.heute(); App.geaendert({ ohneRechnen: true }); }, { klasse: 'klein-btn' })) : null,
           h('p.mini', { style: { marginTop: '10px' } }, 'Grundlage: Wettbewerbsbedingungen für den ADP-Wettbewerb 2025. Maßgeblich sind die Auswertungen des Versicherers; dieser Rechner zeigt nur, wo Sie stehen. Voraussetzungen der Auszahlung (u. a. 20 Stunden Weiterbildung, höchstens 5 % Dokumentationsverzicht, bestehendes Vertragsverhältnis zum Jahresende) prüft er nicht.')),
         h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 } },

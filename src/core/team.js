@@ -82,7 +82,9 @@
     ['Mitglieder Krankenversicherung', 'Mitglieder-KV'], ['Unfall', 'Unfall'], ['Leben', 'Leben']
   ];
   T.istSammelmappe = function (blaetter) {
-    return blaetter.filter(function (b) { return /^\d{3}ms$/i.test(String(b.name).trim()) && kopfzeile(b.zeilen); }).length >= 2;
+    var n = blaetter.filter(function (b) { return /^\d{3}ms$/i.test(String(b.name).trim()) && kopfzeile(b.zeilen); }).length;
+    // Persönliche Auswertung: ein ADP-Blatt plus FD-Gesamt genügt.
+    return n >= 2 || (n === 1 && blaetter.some(function (b) { return /^FDBms$/i.test(String(b.name).trim()); }));
   };
   T.liesSammelmappe = function (blaetter) {
     var team = { jahr: 0, stand: '', zeilen: [], produkte: [], pseudonym: false, sammelmappe: true, importiert: new Date().toISOString() };
@@ -133,7 +135,9 @@
         return;
       }
     });
-    if (team.zeilen.filter(function (z) { return !z.gesamt; }).length < 2) throw new Error('In der Sammelmappe wurden keine ADP-Blätter (z. B. „401ms") gefunden.');
+    var nAdp = team.zeilen.filter(function (z) { return !z.gesamt; }).length;
+    team.einzeln = nAdp === 1;
+    if (!nAdp) throw new Error('In der Sammelmappe wurden keine ADP-Blätter (z. B. „401ms") gefunden.');
     return team;
   };
 
@@ -199,7 +203,10 @@
     if (!team || !nr) return null;
     nr = String(nr).trim();
     var ps = T.pseudo(nr);
-    return team.zeilen.find(function (z) { return z.nr === nr || z.nr === ps; }) || null;
+    var z = team.zeilen.find(function (z) { return z.nr === nr || z.nr === ps; });
+    // Persönliche Auswertung: Das einzige ADP-Blatt ist das eigene.
+    if (!z && team.einzeln) z = team.zeilen.find(function (x) { return !x.gesamt; });
+    return z || null;
   };
 
   /** Eigene Position im Team je Monat und kumuliert. */
@@ -257,8 +264,8 @@
       var adp = eigen ? 'ich' : T.schreiber(z), kat = T.kategorie(z), m = +z.bdat.slice(5, 7) - 1;
       var te = tarifCache[z.tarif] || (tarifCache[z.tarif] = AB.tarif.einordnen(z.tarif, z.tg)), sp = te.kategorie || 'Sonstige';
       var key = adp + '|' + m + '|' + z.tg + '|' + kat + '|' + z.part + '|' + sp + '|' + (te.beihilfe ? 1 : 0), c = map.get(key);
-      if (!c) { c = { adp: adp, m: m, tg: z.tg, kat: kat, art: z.part, sp: sp, bh: !!te.beihilfe, n: 0, plus: 0, minus: 0, prov: 0, vn: new Set() }; map.set(key, c); }
-      c.n++; if (z.mbd > 0) c.plus += z.mbd; else c.minus += z.mbd; c.prov += z.prov; c.vn.add(z.vnr);
+      if (!c) { c = { adp: adp, m: m, tg: z.tg, kat: kat, art: z.part, sp: sp, bh: !!te.beihilfe, n: 0, plus: 0, minus: 0, prov: 0, pr: 0, vn: new Set() }; map.set(key, c); }
+      c.pr += +z.prod || 0; c.n++; if (z.mbd > 0) c.plus += z.mbd; else c.minus += z.mbd; c.prov += z.prov; c.vn.add(z.vnr);
       adps[adp] = (adps[adp] || 0) + 1; gruppen[z.tg] = 1; arten[z.part] = 1;
     }
     var zellen = Array.from(map.values());
@@ -270,7 +277,7 @@
   /** Würfel filtern und je ADP sowie je Monat summieren. f: { adps:Set|null, arten:Set|null, gruppen:Set|null, monate:[von,bis] } */
   T.auswertung = function (w, f) {
     f = f || {};
-    function neu() { return { n: 0, plus: 0, minus: 0, netto: 0, prov: 0, kat: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, katN: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, gruppen: {}, sparten: {}, spartenDetail: {}, provMonate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], beihilfe: 0, monate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }; }
+    function neu() { return { n: 0, plus: 0, minus: 0, netto: 0, prov: 0, produktion: 0, prodMonate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], kat: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, katN: { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0 }, gruppen: {}, sparten: {}, spartenDetail: {}, provMonate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], beihilfe: 0, monate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }; }
     var proAdp = {}, gesamt = neu(), von = f.monate ? f.monate[0] : 0, bis = f.monate ? f.monate[1] : 11;
     w.zellen.forEach(function (c) {
       if (f.arten && !f.arten.has(c.art)) return;
@@ -284,11 +291,29 @@
         x.gruppen[c.tg] = (x.gruppen[c.tg] || 0) + c.plus + c.minus;
         var spn = (c.bh ? 'Beihilfe · ' : '') + c.sp; x.sparten[spn] = (x.sparten[spn] || 0) + c.plus + c.minus;
         if (c.bh) x.beihilfe += c.plus + c.minus;
-        var sd = x.spartenDetail[spn] || (x.spartenDetail[spn] = { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0, netto: 0, n: 0, prov: 0 });
+        var sd = x.spartenDetail[spn] || (x.spartenDetail[spn] = { neu: 0, mehr: 0, minder: 0, storno: 0, sonst: 0, netto: 0, n: 0, prov: 0, produktion: 0 });
+        x.produktion += c.pr || 0; x.prodMonate[c.m] += c.pr || 0; sd.produktion += c.pr || 0;
         sd[c.kat] += c.plus + c.minus; sd.netto += c.plus + c.minus; sd.n += c.n; sd.prov += c.prov; x.provMonate[c.m] += c.prov;
         x.monate[c.m] += c.plus + c.minus;
       });
     });
     return { proAdp: proAdp, gesamt: gesamt };
+  };
+
+  /**
+   * Nettoproduktion wie in Monatsscheiben und Bonus-Reporting: Summe der Spalte „Produktion" der Abrechnung.
+   * (Geprüft an einer echten Jahresabrechnung: stimmt je Monat und im Jahr mit den Monatsscheiben überein.)
+   * kv = ohne Unfall und ohne Leben.
+   */
+  T.nettoproduktion = function (zeilen, jahr) {
+    var o = { gesamt: 0, kv: 0, monate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], hat: false };
+    zeilen.forEach(function (z) {
+      if (jahr && +z.bdat.slice(0, 4) !== +jahr) return;
+      var v = +z.prod || 0; if (!v) return;
+      o.hat = true; o.gesamt += v; o.monate[+z.bdat.slice(5, 7) - 1] += v;
+      if (!/unfall/i.test(z.tg || '') && !/^LV$/i.test(String(z.sparte || '').trim())) o.kv += v;
+    });
+    o.gesamt = U.runde(o.gesamt); o.kv = U.runde(o.kv); o.monate = o.monate.map(U.runde);
+    return o;
   };
 })(globalThis.AB = globalThis.AB || {});
