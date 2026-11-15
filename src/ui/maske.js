@@ -64,6 +64,17 @@
       return z;
     }
     a.positionen.forEach(function (ps) { posBox.appendChild(posZeile(ps)); });
+    // Weitere versicherte Person: nächste Personennummer, dieselben Tarife wie die erste Person (Beiträge bleiben leer) – so wie die Abrechnung bucht: je Person und Tarif eine Zeile
+    function neuePerson(rolle) {
+      var alle = Array.from(posBox.children).map(function (z) { return z._lies(); }), nrn = alle.map(function (x) { return +x.personennummer || 1; }), neuNr = Math.max.apply(null, nrn.concat([1])) + 1;
+      var erste = alle.filter(function (x) { return (+x.personennummer || 1) === 1 && x.tarif; });
+      if (alle[0] && !alle[0].personennummer) { posBox.children[0].children[1].value = '1'; }
+      (erste.length ? erste : [{ tarif: '' }]).forEach(function (x, i) {
+        var ps = M.neuePosition(); ps.personennummer = String(neuNr); ps.person = rolle; ps.tarif = x.tarif; ps.bereich = x.bereich || '';
+        var z = posZeile(ps); posBox.appendChild(z); if (i === 0) z.children[0].select();
+      });
+      aktualisiere();
+    }
     function neuePos() { var z = posZeile(M.neuePosition()); posBox.appendChild(z); z.children[2].focus(); aktualisiere(); }
 
     function sammle() {
@@ -181,7 +192,9 @@
       h('div', null,
         h('div.pos-kopf', null, h('span', null, 'Versicherte Person'), h('span', null, 'Pers.-Nr.'), h('span', null, 'Tarif *'), h('span', { style: { textAlign: 'right' } }, 'Monatsbeitrag € *'), h('span', null, 'Bereich'), h('span')),
         posBox,
-        h('div.leiste', { style: { marginTop: '8px' } }, D.btn('Position hinzufügen', neuePos, { klasse: 'klein-btn', icon: 'plus', taste: 'Alt+P' }), sollText)),
+        h('div.leiste', { style: { marginTop: '8px' } }, D.btn('Position hinzufügen', neuePos, { klasse: 'klein-btn', icon: 'plus', taste: 'Alt+P' }),
+          D.btn('Partner/in', function () { neuePerson('Partner/in'); }, { klasse: 'klein-btn', icon: 'plus', titel: 'Weitere versicherte Person mit denselben Tarifen wie die erste Person anlegen' }),
+          D.btn('Kind', function () { neuePerson('Kind'); }, { klasse: 'klein-btn', icon: 'plus', titel: 'Kind als weitere versicherte Person anlegen – in der Abrechnung hat jede Person eine eigene Personennummer' }), sollText)),
       h('div.formraster', null, D.feld('Bemerkung', fBem, 's8'), D.feld('Provision manuell überschreiben (€)', fProv, 's4'),
         D.feld('Nachbearbeitung', fNb, 's2'), D.feld('Was ist offen / was ging an den Kunden', fNbText, 's7'), D.feld('seit', fNbDatum, 's3'),
         h('div.mini.s12', null, 'Bitte keine Diagnosen oder Gesundheitsangaben in Bemerkung und Nachbearbeitung eintragen.')),

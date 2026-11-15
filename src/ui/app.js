@@ -4,7 +4,7 @@
   var D = AB.dom, h = D.h, U = AB.util, M = AB.model, Sp = AB.speicher;
   var App = AB.app = { p: null, zeilen: [], erg: null, kz: null, ansicht: 'uebersicht', zustand: {}, wuerfel: null };
   AB.ansichten = AB.ansichten || {};
-  var REIHENFOLGE = ['uebersicht', 'antraege', 'abgleich', 'vdienst', 'aktionen', 'produktion', 'team', 'bonus', 'einstellungen', 'hilfe'];
+  var REIHENFOLGE = ['uebersicht', 'antraege', 'abgleich', 'vdienst', 'aktionen', 'analyse', 'produktion', 'team', 'bonus', 'einstellungen', 'hilfe'];
 
   // ---------- Worker ----------
   var worker = null, offen = {}, zaehler = 0;

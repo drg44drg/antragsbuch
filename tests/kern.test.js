@@ -516,3 +516,23 @@ test('Akzentfarbe: Fassungen sind in Hell und Dunkel lesbar, Multicolor würfelt
   assert.notDeepEqual(A.wuerfle(zufall), A.wuerfle(zufall));
   assert.equal(globalThis.AB, merk);
 });
+
+test('Analyse für Verkäufer: Größe der Anträge, Familien, Beitragsentlastung, Was-wäre-wenn; Tipps nach Kalender', () => {
+  const p = M.neuesProjekt(2026), Y = AB.analyse;
+  const an = (b, pos, o) => { const a = Object.assign(M.neuerAntrag(), { eingang: '2026-03-01', bereich: b, vorgang: 'neu', herkunft: 'neu', vn: { name: 'Kunde' + p.antraege.length, vorname: 'X' } }, o || {}); a.positionen = pos.map((x) => Object.assign(M.neuePosition(), { tarif: x[0], beitrag: x[1], personennummer: x[2] || '1' })); p.antraege.push(a); return a; };
+  an('zusatz', [['ZP7', 20]]); an('zusatz', [['ZP9', 40]]); an('voll', [['AM13', 400], ['S1', 100]]); an('voll', [['AM13', 300, '1'], ['AM13', 150, '2'], ['AM13', 150, '3'], ['BE/500', 100, '1']]);
+  an('voll', [['AM13', 999]], { status: 'absage' }); an('zusatz', [['ZP7', 30]], { vorgang: 'minder' }); an('zusatz', [['ZP7', 77]], { eingang: '2025-05-05' });
+  const o = Y.rechne(p, 2026);
+  assert.deepEqual([o.n, o.summe, o.schnitt, o.median, o.kleinster, o.groesster], [4, 1260, 315, 270, 20, 700]);
+  assert.deepEqual(o.klassen.map((k) => k.n), [1, 1, 0, 0, 1, 1]);
+  assert.deepEqual(o.bereiche.map((b) => [b.id, b.n, b.summe, b.max, b.min]), [['voll', 2, 1200, 700, 500], ['zusatz', 2, 60, 40, 20]]);
+  assert.deepEqual([o.familien.n, o.familien.gross, o.familien.schnitt, o.be.voll, o.be.mit], [1, 1, 700, 2, 1]);
+  assert.equal(o.top[0].beitrag, 700); assert.equal(o.klein.beitrag, 20);
+  assert.equal(o.wenn[0].beitrag, 40); assert.equal(o.wenn[1].beitrag, 480, 'kleinere Hälfte auf den mittleren Antrag gehoben'); assert.ok(o.wenn[0].provision > 0);
+  assert.match(o.wenn[o.wenn.length - 1].text, /1 Vollversicherungen ohne Beitragsentlastung/);
+  assert.equal(Y.rechne(M.neuesProjekt(2026), 2026).n, 0);
+  const h = Y.heute('2026-09-20');
+  assert.deepEqual([h.tag.name, h.tag.inTagen], ['Weltkindertag', 0]); assert.equal(Y.heute('2026-09-21', 3).tag.name, 'Welt-Alzheimertag'); assert.equal(Y.heute('2026-09-22', 3).tag.name, 'Tag der Zahngesundheit');
+  assert.equal(Y.heute('2026-07-10').tag, null); assert.equal(Y.heute('2026-04-10').monat.titel, 'An den September denken'); assert.ok(Y.heute('2026-12-31').woche.length > 20);
+  assert.equal(Y.MONAT.length, 12);
+});

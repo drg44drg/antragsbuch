@@ -36,6 +36,15 @@
         D.auswahl([['', 'Alle Tarife']].concat(Object.keys(tarife).sort(function (a, b) { return a.localeCompare(b, 'de', { numeric: true }); }).map(function (t) { return [t, t]; })), z.tarif || '', function (v) { z.tarif = v; App.zeige('uebersicht'); }, { style: { width: '150px' }, title: 'Nach Tarif filtern' }),
         D.auswahl([['', 'Beihilfe: alle'], ['ja', 'Nur Beihilfe'], ['nein', 'Ohne Beihilfe']], z.beihilfe || '', function (v) { z.beihilfe = v; App.zeige('uebersicht'); }, { style: { width: '142px' }, title: 'Nach Beihilfe filtern' }),
         filter ? D.btn('Filter aufheben', function () { z.bereich = z.tarif = z.beihilfe = ''; App.zeige('uebersicht'); }, { klasse: 'klein-btn leise', icon: 'x' }) : null));
+      var th = AB.analyse.heute(U.heute()), tippAus = false; try { tippAus = localStorage.getItem('antragsbuch-tipp-aus') === U.heute(); } catch (e0) { /* privat */ }
+      if (!tippAus) {
+        var tipp = h('div.tipp.rein', null, D.icon('funke'), h('div', null,
+          th.tag ? h('div', null, h('b', null, (th.tag.inTagen === 0 ? 'Heute: ' : th.tag.inTagen === 1 ? 'Morgen: ' : 'In ' + th.tag.inTagen + ' Tagen: ') + th.tag.name), ' – ' + th.tag.idee + '.') : null,
+          h('div', null, h('b', null, U.MONATE[+U.heute().slice(5, 7) - 1] + ': ' + th.monat.titel), ' – ' + th.monat.text),
+          h('div.muted', null, 'Tipp der Woche: ' + th.woche)),
+          D.btn('', function () { try { localStorage.setItem('antragsbuch-tipp-aus', U.heute()); } catch (e1) { /* privat */ } tipp.remove(); }, { icon: 'x', klasse: 'leise klein-btn', titel: 'Für heute ausblenden' }));
+        el.appendChild(tipp);
+      }
       el.appendChild(h('div.leiste', null, h('div.hinweise', null, App.kz.hinweise.map(function (hw) {
           return h('button.hinweis.' + hw.art, { type: 'button', onclick: function () { App.zeige(hw.ziel, hw.ziel === 'abgleich' ? { reiter: hw.filter } : { spezial: hw.filter }); } }, hw.text);
         }))));

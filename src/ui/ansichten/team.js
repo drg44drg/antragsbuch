@@ -51,7 +51,13 @@
     if (einzeln) el.appendChild(h('div.meldung', null, 'Diese Datei enthält nur Ihr eigenes Blatt und die Gesamtsumme der Filialdirektion. Ein Platz im Team und ein Median lassen sich daraus nicht bestimmen – dafür wird die Sammelmappe mit allen ADP-Blättern benötigt.'));
     el.appendChild(h('div.raster.r-4', null,
       einzeln ? kachel('Mein Anteil an der Filialdirektion', hat && fd ? U.fmtZahl(y.wert / fd * 100, 1) + ' %' : '–', null, 'aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–'), { akzent: true })
-        : kachel('Mein Platz im Team', hat ? 'Platz ' + y.rang : '–', null, 'von ' + y.n + ' · aufgelaufen bis ' + (lm >= 0 ? U.MONATE[lm] : '–'), { akzent: true }),
+        : (function () {
+            // Vordere Hälfte: Platz zeigen. Hintere Hälfte: zeigen, wie nah das Mittelfeld und der nächste Platz sind.
+            var summen = p.team.zeilen.filter(function (zz) { return !zz.gesamt; }).map(function (zz) { var s = 0; for (var mm = 0; mm <= Math.max(lm, 0); mm++) s += zz.werte[mm] || 0; return s; }).sort(function (a, b) { return b - a; });
+            var naechster = hat ? summen.filter(function (s) { return s > y.wert + 0.005; }).pop() : null, bisNaechster = naechster != null ? naechster - y.wert : 0;
+            if (hat && y.rang > Math.ceil(y.n / 2)) return kachel('Bis zum Mittelfeld', Math.max(0, y.median - y.wert), euro0, (bisNaechster > 0 ? 'nächster Platz: noch ' + U.fmtEuro0(bisNaechster) + ' · ' : '') + 'heute Platz ' + y.rang + ' von ' + y.n, { akzent: true, einheit: '€' });
+            return kachel('Mein Platz im Team', hat ? 'Platz ' + y.rang : '–', null, 'von ' + y.n + (bisNaechster > 0 ? ' · nächster Platz: noch ' + U.fmtEuro0(bisNaechster) : y.rang === 1 && hat ? ' · vorn' : '') + ' · bis ' + (lm >= 0 ? U.MONATE[lm] : '–'), { akzent: true });
+          })(),
       kachel('Meine Nettoproduktion', hat ? y.wert : '–', euro0, 'aufgelaufen ' + p.team.jahr, { einheit: '€' }),
       einzeln ? kachel('Filialdirektion gesamt', fd, euro0, 'Nettoproduktion ' + p.team.jahr, { einheit: '€' }) : kachel('Team-Median', y.median, euro0, hat ? (Math.abs(y.wert - y.median) < 0.5 ? 'Sie liegen genau in der Mitte' : y.wert >= y.median ? 'Sie liegen ' + U.fmtEuro0(y.wert - y.median) + ' darüber' : 'Sie liegen ' + U.fmtEuro0(y.median - y.wert) + ' darunter') : 'Mitte des Teams', { einheit: '€', punkt: hat ? (y.wert >= y.median ? 'var(--good)' : 'var(--warn)') : null }),
       kachel(lm >= 0 ? U.MONATE[lm] : 'Letzter Monat', m && m.wert != null ? m.wert : '–', euro0, einzeln ? (fdM ? U.fmtZahl((m && m.wert || 0) / fdM * 100, 1) + ' % der Filialdirektion' : '') : m ? 'Median ' + U.fmtEuro0(m.median) + (m.rang ? ' · Platz ' + m.rang + ' von ' + m.n : '') : '', { einheit: '€' })));

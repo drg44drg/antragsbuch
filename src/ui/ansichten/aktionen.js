@@ -114,7 +114,7 @@
     filtere();
   }
 
-  AB.ansichten.aktionen = { icon: 'ziel', nav: 'Aktionen', titel: function () { var z = App.zustand.aktionen || {}, a = App.p && App.p.aktionen && App.p.aktionen.find(function (x) { return x.id === z.id; }); return a ? a.name : 'Aktionen'; },
+  AB.ansichten.aktionen = { icon: 'funke', nav: 'Aktionen', titel: function () { var z = App.zustand.aktionen || {}, a = App.p && App.p.aktionen && App.p.aktionen.find(function (x) { return x.id === z.id; }); return a ? a.name : 'Aktionen'; },
     unter: function () { return 'Kundenlisten nachhalten: wer wurde wie erreicht, was wurde daraus'; },
     zeige: function (el, aktionen, z) {
       var p = App.p; if (!p.aktionen) p.aktionen = [];

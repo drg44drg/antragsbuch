@@ -80,7 +80,27 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Rückmeldung: wofür stehen die Blätter „GDms" und „GVms"?
 - [ ] Altersvorsorgedepot: Regeln und Vergütung erst ab Januar 2027 verlässlich – dann nachliefern und einbauen
 
-## D0000 · Erledigt (Version 3.0)
+## D0000 · Erledigt (Version 3.1)
+
+Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je Produktklasse, Familien, Beitragsentlastung, „Da ist mehr zu holen", zehn größte Anträge ·
+Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
+Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
+
+## Vertriebs-Pakete (Vorschlag, Reihenfolge nach Nutzen; Auswahl steht aus)
+
+- V1 Wiedervorlagen: Datum + Anlass je Antrag oder Kunde, Liste „Heute fällig", Zähler im Menü
+- V2 Kontaktplan nach Abschluss: 30 Tage Zufriedenheitsanruf, Jahresgespräch (Voll jährlich, Zusatz alle zwei Jahre), automatisch als Wiedervorlage
+- V3 Empfehlungen: je Kunde „Empfehlung erfragt / erhalten / Abschluss", Quote, Kette Empfehlungsgeber → neuer Kunde
+- V4 Ansprache-Listen: Zusatzkunden ohne Zahn/Stationär/Pflege, Vollversicherte ohne Beitragsentlastung, „letzte 10" je Produkt, direkt als Aktion anlegen
+- V5 Textbausteine für E-Mail/Brief (Welcome, Zufriedenheit, Jahresgespräch) zum Kopieren; Versand nur über das eigene E-Mail-Programm
+- V6 Vorjahresdatei einlesen für Jahresgespräche und Vorjahresvergleich
+- V7 Ziele setzen (Monat/Jahr) mit Fortschritt; Rangliste mit Auszeichnung für vordere Plätze
+- V8 Tipps pflegbar machen (eigene Tipps der Führungskraft, Datei zum Verteilen)
+
+Datenschutz dazu: keine Geburtsdaten, keine Gesundheitsangaben; Notizfeld mit kurzem Hinweis; Löschfunktion für Kunden ohne Vertrag.
+Zu prüfen: Gesundheitstage in der Tipp-Leiste (feste Liste, nicht gegengeprüft).
+
+## Erledigt (Version 3.0)
 
 Hinweis bei jedem Programmstart: Arbeitshilfe, keine Zusage oder Garantie, maßgeblich sind Abrechnungen und Richtlinien des Versicherers (auch in der Hilfe).
 
