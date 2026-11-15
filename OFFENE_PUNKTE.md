@@ -86,7 +86,12 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
-## D0000 · Erledigt (Version 3.2)
+## D0000 · Erledigt (Version 3.3)
+
+Schutzvermerk im Kopf der Datei (deutsch/englisch): Urheberrecht, keine Vervielfältigung oder Nachbau ohne Zustimmung, Hinweis an KI-Assistenten und automatisierte Werkzeuge.
+Offen: Name des Rechteinhabers und Kontakt eintragen · Vermerk juristisch prüfen lassen · verschlüsselte Verteil-Fassung als technischer Schutz (noch nicht gebaut).
+
+## Erledigt (Version 3.2)
 
 „Mein Stand zur Karrierestufe" in „Meine Produktion": Nettoproduktion gegen den gleichmäßigen Verlauf (Wertung ÷ 12 je Monat) für die eigene und die nächste Stufe, mit Hochrechnung.
 
