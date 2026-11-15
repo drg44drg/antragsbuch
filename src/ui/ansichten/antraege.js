@@ -51,6 +51,12 @@
       D.anhaengen(leiste, [anzahl, h('span.klein', null, 'ausgewählt · Prioritätenliste exportieren:'),
         D.btn('Excel', function () { AB.prioListe(gewaehlt(), 'excel'); }, { klasse: 'klein-btn haupt-btn', icon: 'runter' }),
         D.btn('Drucken / PDF', function () { AB.prioListe(gewaehlt(), 'druck'); }, { klasse: 'klein-btn', icon: 'druck' }),
+        AB.agentur.einstellung(p).modus === 'untervermittler' ? D.btn('An Agenturist senden', function () {
+          var l = gewaehlt(), ohne = l.filter(function (a) { return !U.normVnr(a.vertragsnummer); }).length;
+          if (!p.einstellungen.vermittlernummer) { D.toast('Bitte zuerst Ihre Vermittlernummer in den Einstellungen eintragen.', { krit: true }); return; }
+          D.lade('Pruefdatei_' + p.einstellungen.vermittlernummer + '_' + U.heute() + '.json', JSON.stringify(AB.agentur.erzeuge(p, l)), 'application/json');
+          D.toast(l.length + (l.length === 1 ? ' Antrag' : ' Anträge') + ' als Prüfdatei gespeichert' + (ohne ? ' – ' + ohne + ' ohne Vertragsnummer kann der Agenturist nicht zuordnen' : '') + '. Senden Sie die Datei an Ihren Agenturisten.');
+        }, { klasse: 'klein-btn haupt-btn', icon: 'runter', titel: 'Prüfdatei mit den ausgewählten Anträgen für den Agenturisten erzeugen: Position, Vertragsnummer, Kunde, Tarife, Beitrag, geforderte Provision' }) : null,
         D.btn('Reklamation …', function () { AB.reklamation.oeffne(gewaehlt()); }, { klasse: 'klein-btn', titel: 'Provisionsreklamation für die ausgewählten Anträge vorbereiten' }),
         D.btn('Nachbearbeitung offen setzen', function () { gewaehlt().forEach(function (a) { a.nachbearbeitung = { status: 'offen', text: a.nachbearbeitung.text || '', datum: a.nachbearbeitung.datum || U.heute() }; a.geaendert = new Date().toISOString(); }); z.wahl.clear(); App.geaendert(); }, { klasse: 'klein-btn' }),
         h('span.frei'), D.btn('Auswahl aufheben', function () { z.wahl.clear(); tab.zeichne(); zeigeLeiste(); }, { klasse: 'klein-btn leise' })]);

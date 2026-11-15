@@ -690,3 +690,25 @@ test('Zweites Einlesen eines Antragsbuchs: vorhandene Einträge werden erkannt, 
   assert.equal(M.trenneDubletten(teil1, [A('2026-01-10', 'ZP7', 36), A('2026-01-11', 'ZP7', 35)]).doppelt.length, 0);
   assert.equal(M.trenneDubletten([], teil1).neu.length, 3);
 });
+
+test('Unternehmeragentur: Prüfdatei des Untervermittlers und Prüfung beim Agenturisten', async () => {
+  const G = AB.agentur, p = M.neuesProjekt(2026); p.einstellungen.vermittlernummer = '900385'; p.einstellungen.name = 'UV Test';
+  const A = (vnr, tarif, beitrag, name) => { const a = Object.assign(M.neuerAntrag(), { eingang: '2026-02-01', bereich: 'zusatz', vorgang: 'neu', vertragsnummer: vnr, bemerkung: 'geheim', vn: { name, vorname: 'X' } }); a.positionen = [Object.assign(M.neuePosition(), { tarif, beitrag })]; p.antraege.push(a); return a; };
+  A('111', 'ZP7', 40, 'Alpha'); A('222', 'AP5', 20, 'Beta'); A('333', 'SP2', 30, 'Gamma'); A('', 'ZP9', 50, 'Delta'); A('555', 'ZP1', 10, 'Epsilon');
+  M.vergibNummern(p); p.regeln = AB.provision.regelnNachStufe(4);
+  const d = G.erzeuge(p, p.antraege);
+  assert.deepEqual([d.format, d.von, d.jahr, d.posten.length, d.posten[0].provision, d.posten[0].pos], ['antragsbuch-agentur', '900385', 2026, 5, 160, 1]);
+  assert.ok(!JSON.stringify(d).includes('geheim'), 'Bemerkungen gehen nicht mit');
+  const r = await AB.importer.lies(new TextEncoder().encode(JSON.stringify(d)), 'pruef.json', {}); assert.equal(r.art, 'agenturdatei');
+  // Abrechnung des Agenturisten: 111 passt, 222 mit kleinerem Beitrag, 333 fehlt, 555 nur mit anderem Tarif
+  const z = (vnr, tarif, mbd, prov, o) => Object.assign({ vnr, tarif, mbd, prov, bdat: '2026-03-10', st: 0, pnr: '1', tg: 'Zusatzversicherung (Art Leben)' }, o || {});
+  const zl = [z('111', 'ZP7', 40, 220), z('222', 'AP5', 15, 82.5), z('555', 'ZP3', 10, 55), z('111', 'ZP7', 99, 999, { bdat: '2025-03-10' })];
+  const e = G.pruefe(r.datei, zl, { art: 'mb', wert: 4 });
+  assert.deepEqual(e.zeilen.map((x) => [x.kunde, x.urteil, x.inAbrechnung, x.anspruch, x.differenz]), [['Alpha, X', 'ok', true, 160, 0], ['Beta, X', 'abweichung', true, 60, 20], ['Gamma, X', 'fehlt', false, null, null], ['Delta, X', 'ohneNr', false, null, null], ['Epsilon, X', 'fehlt', false, null, null]]);
+  assert.equal(e.zeilen[4].andereTarife, true);
+  assert.deepEqual(e.summe, { gefordert: 600, anspruch: 220, differenz: 380, ok: 1, abweichung: 1, fehlt: 2, ohneNr: 1 });
+  // Anspruch als Prozent der Provision des Agenturisten
+  assert.deepEqual(G.pruefe(r.datei, zl, { art: 'prozent', wert: 80 }).zeilen.slice(0, 2).map((x) => [x.anspruch, x.urteil]), [[176, 'abweichung'], [66, 'abweichung']]);
+  const t = G.tabelle(e); t.zeilen.forEach((row) => assert.equal(row.length, t.spalten.length)); assert.equal(t.zeilen[0][4], 'ja'); assert.equal(t.zeilen[2][4], 'nein'); assert.equal(t.farbe(t.zeilen[1], 1, 11), 'krit');
+  assert.equal(G.istDatei({ format: 'antragsbuch' }), false);
+});

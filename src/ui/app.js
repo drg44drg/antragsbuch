@@ -4,7 +4,7 @@
   var D = AB.dom, h = D.h, U = AB.util, M = AB.model, Sp = AB.speicher;
   var App = AB.app = { p: null, zeilen: [], erg: null, kz: null, ansicht: 'uebersicht', zustand: {}, wuerfel: null };
   AB.ansichten = AB.ansichten || {};
-  var REIHENFOLGE = ['uebersicht', 'antraege', 'abgleich', 'vdienst', 'aktionen', 'analyse', 'produktion', 'banken', 'team', 'bonus', 'einstellungen', 'hilfe'];
+  var REIHENFOLGE = ['uebersicht', 'antraege', 'abgleich', 'vdienst', 'aktionen', 'analyse', 'produktion', 'banken', 'agentur', 'team', 'bonus', 'einstellungen', 'hilfe'];
 
   // ---------- Worker ----------
   var worker = null, offen = {}, zaehler = 0;
@@ -263,11 +263,11 @@
     { id: 'team', titel: 'Team und Auswertung', text: 'Monatsscheiben, Sammelmappe, persönliche Auswertung oder die Teamdatei Ihrer Führungskraft.', arten: ['monatsscheiben', 'teamdatei'], icon: 'team', endung: '.xlsx,.xlsm,.json' },
     { id: 'projekt', titel: 'Antragsbuch-Projektdatei', text: 'Eine gespeicherte Projektdatei dieser App (.json) öffnen, zum Beispiel eine Sicherung.', arten: ['projekt'], icon: 'einstellungen', endung: '.json' }
   ];
-  App.ARTNAME = { abrechnung: 'eine Provisionsabrechnung', altbuch: 'ein bisheriges Excel-Antragsbuch', tabelle: 'eine einfache Liste (z. B. Veränderungsdienst)', monatsscheiben: 'eine Team-Auswertung (Monatsscheiben)', teamdatei: 'eine Teamdatei', projekt: 'eine Antragsbuch-Projektdatei' };
+  App.ARTNAME = { abrechnung: 'eine Provisionsabrechnung', altbuch: 'ein bisheriges Excel-Antragsbuch', tabelle: 'eine einfache Liste (z. B. Veränderungsdienst)', monatsscheiben: 'eine Team-Auswertung (Monatsscheiben)', teamdatei: 'eine Teamdatei', agenturdatei: 'die Prüfdatei eines Untervermittlers', projekt: 'eine Antragsbuch-Projektdatei' };
   App.einleseDialog = function () {
     var d = D.dialog('Datei einlesen', { klasse: 'mittel' });
     D.anhaengen(d.rumpf, [h('p.muted', { style: { margin: 0 } }, 'Ziehen Sie die Datei auf das passende Feld oder klicken Sie darauf. Die App prüft den Inhalt und fragt nach, wenn die Datei nicht zum Feld passt.'),
-      h('div.importfelder', null, App.IMPORTARTEN.map(function (art) {
+      h('div.importfelder', null, App.IMPORTARTEN.concat(App.p && AB.agentur.einstellung(App.p).modus === 'agenturist' ? [{ id: 'agentur', titel: 'Prüfdatei eines Untervermittlers', text: 'Die Datei, die Ihr Untervermittler aus seinem Antragsbuch für die Abrechnung mit Ihnen exportiert hat.', arten: ['agenturdatei'], icon: 'team', endung: '.json' }] : []).map(function (art) {
         var wahl = h('input', { type: 'file', hidden: true, multiple: art.id !== 'projekt' && art.id !== 'altbuch', accept: art.endung, onchange: function () { var fs = Array.from(wahl.files); wahl.value = ''; nimm(fs); } });
         function nimm(dateien) { if (!dateien.length) return; d.zu(); App.importiere(dateien, { erwartet: art }); }
         var feld = h('button.importfeld', { type: 'button', 'data-art': art.id, onclick: function () { wahl.click(); },
@@ -329,6 +329,17 @@
       D.toast('Abrechnung eingelesen: ' + U.fmtZahl(r.anzahl, 0) + ' Zeilen, davon ' + U.fmtZahl(r.vergleich.neu, 0) + ' neu' +
         (r.vergleich.behalten ? ', ' + r.vergleich.behalten + ' aus früheren Importen behalten (fehlen in der neuen Datei)' : '') + (r.vergleich.entfallen ? ', ' + r.vergleich.entfallen + ' entfallen' : '') + (neueTarife ? ' · ' + neueTarife + ' neue Tarife' : '') + '.');
       r.warnungen.forEach(function (w) { D.toast(w, { krit: true }); });
+    } else if (r.art === 'agenturdatei') {
+      var ag = AB.agentur.einstellung(p), dt = r.datei;
+      if (ag.modus !== 'agenturist' && !(await D.frage('Prüfdatei eines Untervermittlers', '„' + name + '" ist eine Prüfdatei von ' + (dt.name || dt.von || 'einem Untervermittler') + '. Soll dieses Projekt als Agenturist geführt werden (Unternehmeragentur)?', 'Als Agenturist einlesen'))) return;
+      if (!dt.von) throw new Error('In der Prüfdatei fehlt die Vermittlernummer des Untervermittlers.');
+      ag.modus = 'agenturist';
+      if (!p.agenturEingang) p.agenturEingang = {};
+      var ersetzt = !!p.agenturEingang[dt.von];
+      p.agenturEingang[dt.von] = dt;
+      if (!ag.untervermittler[dt.von]) ag.untervermittler[dt.von] = { name: dt.name || '', art: 'mb', wert: null };
+      App.zustand.agentur = { nr: dt.von }; App.ansicht = 'agentur'; App.geaendert();
+      D.toast('Prüfdatei von ' + dt.von + ' eingelesen: ' + dt.posten.length + ' Posten' + (ersetzt ? ' (ersetzt die frühere Datei)' : '') + '.');
     } else if (r.art === 'monatsscheiben' || r.art === 'teamdatei') {
       M.sichere(p, 'Vor Import „' + name + '"');
       var team = r.team;

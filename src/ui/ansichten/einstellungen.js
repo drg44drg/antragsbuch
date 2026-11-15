@@ -37,6 +37,31 @@
         slaTb.appendChild(h('tr', null, h('td', null, b.name), h('td', { style: { width: '110px' } }, zahl(s.gelb, function (n) { s.gelb = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } })),
           h('td', { style: { width: '110px' } }, zahl(s.rot, function (n) { s.rot = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } }))));
       });
+      // Unternehmeragentur: Agenturist mit Untervermittlern
+      (function () {
+        var ag = AB.agentur.einstellung(p), uvBox = h('div');
+        var zahlF = function (wert, setze, ph) { var i = h('input', { type: 'text', inputMode: 'decimal', value: wert == null ? '' : U.fmtZahl(+wert, 2), placeholder: ph || '', style: { textAlign: 'right', padding: '5px 8px' }, onchange: function () { var v = i.value.trim() === '' ? null : U.parseZahl(i.value); if (v != null && (isNaN(v) || v < 0)) { i.classList.add('fehler'); return; } setze(v); App.geaendert({ still: true }); } }); return i; };
+        function zeichneUv() {
+          D.leere(uvBox); if (ag.modus !== 'agenturist') return;
+          var tb = h('tbody');
+          Object.keys(ag.untervermittler).forEach(function (nr) {
+            var u = ag.untervermittler[nr];
+            tb.appendChild(h('tr', null, h('td', null, h('b', null, nr)), h('td', null, text(u.name, function (v) { u.name = v; }, { placeholder: 'Name', style: { padding: '5px 8px' } })),
+              h('td', null, D.auswahl([['mb', 'Monatsbeiträge je Euro Beitrag'], ['prozent', 'Prozent meiner Provision']], u.art || 'mb', function (v) { u.art = v; App.geaendert({ still: true }); }, { style: { padding: '5px 8px' } })),
+              h('td', { style: { width: '120px' } }, zahlF(u.wert, function (v) { u.wert = v; }, 'Satz')),
+              h('td', { style: { width: '44px' } }, D.btn('', function () { delete ag.untervermittler[nr]; App.geaendert({ still: true }); zeichneUv(); }, { icon: 'x', klasse: 'leise klein-btn', titel: 'Untervermittler entfernen' }))));
+          });
+          var neuNr = h('input', { type: 'text', inputMode: 'numeric', placeholder: 'Vermittlernummer, z. B. 900385', style: { width: '240px' } });
+          D.anhaengen(uvBox, [h('div', { style: { overflowX: 'auto', marginTop: '10px' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Nummer', 'Name', 'Anspruch gerechnet als', 'Satz', ''].map(function (t) { return h('th', null, t); }))), tb)),
+            h('div.leiste', { style: { marginTop: '8px' } }, neuNr, D.btn('Untervermittler hinzufügen', function () { var n = neuNr.value.replace(/\D/g, ''); if (n.length < 5) { neuNr.classList.add('fehler'); return; } if (!ag.untervermittler[n]) ag.untervermittler[n] = { name: '', art: 'mb', wert: null }; App.geaendert({ still: true }); zeichneUv(); }, { klasse: 'klein-btn', icon: 'plus' }))]);
+        }
+        el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Unternehmeragentur'), h('span.frei'), h('span.marke-s' + (ag.modus ? '.gut' : ''), null, ag.modus === 'agenturist' ? 'Agenturist' : ag.modus === 'untervermittler' ? 'Untervermittler' : 'aus')),
+          h('div.unter', null, 'Für Agenturen, in denen der Agenturist die Gesamtabrechnung erhält und seine Untervermittler mit ihm abrechnen.'),
+          h('div.formraster', { style: { marginTop: '10px' } }, D.feld('Meine Rolle', D.auswahl(Object.keys(AB.agentur.MODI).map(function (k) { return [k, AB.agentur.MODI[k]]; }), ag.modus || '', function (v) { ag.modus = v; App.geaendert(); }), 's7')),
+          ag.modus === 'untervermittler' ? h('p.klein.muted', { style: { marginTop: '8px' } }, 'In der Antragsliste Anträge anhaken und „An Agenturist senden" wählen. Die Prüfdatei enthält Position, Vertragsnummer, Kunde, Tarife, Beitrag und die geforderte Provision nach Ihren Provisionsregeln – keine Bemerkungen.') : null,
+          ag.modus === 'agenturist' ? h('p.klein.muted', { style: { marginTop: '8px' } }, 'Legen Sie fest, was jedem Untervermittler laut Vertrag zusteht. Die Prüfdateien lesen Sie über „Einlesen" ein; das Ergebnis steht im Reiter „Agentur".') : null, uvBox));
+        zeichneUv();
+      })();
       // Jahreswechsel in derselben Datei und Produktionsschluss
       (function () {
         var arch = AB.model.archivJahre(p), naechstes = +p.jahr + 1, schluss = AB.model.produktionsschluss(p, p.jahr);

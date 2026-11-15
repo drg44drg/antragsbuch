@@ -18,6 +18,7 @@
       try { obj = JSON.parse(AB.csv.dekodiere(bytes).text); } catch (e) { throw new Error('Die Datei ist beschädigt und kann nicht gelesen werden.'); }
       if (obj && obj.format === 'antragsbuch') return { art: 'projekt', projekt: obj };
       if (obj && obj.format === 'antragsbuch-team') return { art: 'teamdatei', team: obj.team };
+      if (AB.agentur && AB.agentur.istDatei(obj)) return { art: 'agenturdatei', datei: obj };
       throw new Error('Diese JSON-Datei gehört nicht zum Antragsbuch.');
     }
     var t = await AB.xlsx.liesTabelle(bytes, dateiname);
