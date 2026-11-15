@@ -31,8 +31,8 @@
     o.ziel2.fehlt = Math.max(0, U.runde(o.ziel2.soll - kv)); o.ziel2.erreicht = n(e.bestandKv) > 0 && o.ziel2.fehlt === 0;
     o.grundErreicht = o.ziel1.erreicht || o.ziel2.erreicht;
     o.grundVoll = U.runde(gesamt * s.jeMB);
-    // Sonderregelung: 50 % des Grundbonus, wenn nur die Mindestproduktion erreicht ist
-    o.sonder = { mindest: s.mindest, fehlt: Math.max(0, U.runde(s.mindest - gesamt)), greift: !o.grundErreicht && gesamt >= s.mindest };
+    // Sonderregelung: 50 % des Grundbonus, wenn die Mindestproduktion überschritten ist (Bedingungen: „> 7.200")
+    o.sonder = { mindest: s.mindest, fehlt: Math.max(0, U.runde(s.mindest - gesamt)), greift: !o.grundErreicht && gesamt > s.mindest };
     o.grund = o.grundErreicht ? o.grundVoll : o.sonder.greift ? U.runde(o.grundVoll / 2) : 0;
     // Zusatzboni setzen den Grundbonus voraus
     var zb1Soll = U.runde(s.zb1Schwelle * n(e.bestandKv) / 1000);

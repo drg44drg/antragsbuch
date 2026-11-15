@@ -357,3 +357,12 @@ test('Persönliche Auswertung (ein ADP-Blatt + FD-Gesamt) wird als Teamdatei gel
   const pos = AB.team.position(t, '900999');
   assert.equal(pos.ytd.wert, 601); assert.equal(pos.gesamt.werte[2], 3000);
 });
+
+test('Bonus: Fehlbeträge mit ungerundeter Produktion wie im Reporting; Mindestproduktion muss überschritten werden', () => {
+  const r = AB.bonus.rechne({ stufe: '3', bestandKv: 487370, neueVoll: 3, neueBkv: 35, nettoKv: 7032.54, nettoGesamt: 7035.62 });
+  assert.deepEqual([Math.round(r.ziel2.fehlt), Math.round(r.zb1.fehlt), Math.round(r.sonder.fehlt)], [5152, 6126, 164]);
+  assert.equal(AB.bonus.rechne({ stufe: '3', nettoGesamt: 7200 }).sonder.greift, false);
+  assert.equal(AB.bonus.rechne({ stufe: '3', nettoGesamt: 7200.01 }).sonder.greift, true);
+  const r26 = AB.bonus.rechne({ stufe: '1+2', bestandKv: 373185, neueVoll: 4, neueBkv: 38, nettoKv: 4485, nettoGesamt: 4607 });
+  assert.deepEqual([r26.ziel1.soll, r26.ziel1.fehlt, Math.round(r26.ziel2.soll), Math.round(r26.zb1.soll), r26.sonder.fehlt, r26.maxZusatz, r26.summe], [9, 5, 8210, 9330, 1393, 4250, 0]);
+});

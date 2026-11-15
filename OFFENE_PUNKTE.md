@@ -28,6 +28,12 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
       nicht die Beitragsdifferenz. Geprüft an 900401/2025: 7.035,62 € im Jahr und jeder einzelne Monat stimmen überein (KV 7.032,54 € + Unfall 3,08 €).
       „Meine Produktion" zeigt beide Größen; der Bonus-Reiter übernimmt Nettoproduktion gesamt und KV aus der Abrechnung.
 - [x] Bonus-Rechner gegen das Bonus-Reporting 19.12.2025 geprüft (Karrierestufe 3 = HV): Ziele, Fehlbeträge und Höchstbeträge stimmen.
+- [x] Querprüfung Bonus 2025/2026 (Version 1.9): Nettoproduktion, KV-Anteil, Ziele, Fehlbeträge, Höchstbeträge stimmen mit beiden Reportings überein.
+      Korrigiert: Mindestproduktion der Sonderregelung muss überschritten (nicht nur erreicht) sein; Übernahme aus der Abrechnung ungerundet.
+- [ ] Nicht aus der Abrechnung ableitbar, weiter von Hand aus dem Reporting: Bestand, neue Personen KV-Voll, neue Personen bKV, Karrierestufe.
+- [ ] Rückfrage an den Versicherer: Bestands-Stichtag (Bedingungen: 01.01., Reporting: 01.10.); Reporting 31.10.2026 weist KV 4.485 + UV 120 − LV 2 = 4.603 aus, Wertung aber 4.607;
+      im selben Reporting steht „Grundbonus erreicht: ja", obwohl beide Kriterien „nein" sind.
+- [ ] LV-Ventil (10.000 € Bewertungssumme = 30 € KV-Wertung) und UV-Jahresprämie ÷ 12: prüfen, ob die Spalte „Produktion" das schon enthält (2025 war beides 0 bzw. stimmig)
 - [ ] Blätter „GDms" und „GVms" der persönlichen Auswertung werden noch nicht ausgewertet – wofür stehen sie (Gebietsdirektion / Gesamtvertrieb)?
 - [ ] Blatt „NBProd" (Neu- und Bestandsproduktion brutto, Vorjahresvergleich) auswerten
 - [ ] Altes Antragsbuch 900401: 61 von 158 Einträgen sicher zugeordnet, 36 weitere als Vorschlag. Die übrigen (v. a. Umstellungen, bKV-Sammelposten) von Hand zuordnen oder Regel verfeinern?

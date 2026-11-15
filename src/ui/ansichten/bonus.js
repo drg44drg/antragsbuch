@@ -35,7 +35,7 @@
             zahl('bestandKv', 'KV-Bestand (€)'), zahl('bestandVoll', 'Bestand KV-Voll + PPV (€)', 'sonst KV-Bestand'),
             zahl('neueVoll', 'Neue Personen KV-Voll'), zahl('neueBkv', 'Neue Personen bKV')),
           ausAbr && ausAbr.hat ? h('div.leiste', { style: { marginTop: '10px' } }, h('span.mini', { style: { flex: 1 } }, 'Laut Abrechnung ' + p.jahr + ': Nettoproduktion ' + U.fmtEuro0(ausAbr.gesamt) + ', davon KV ' + U.fmtEuro0(ausAbr.kv) + '.'),
-            D.btn('Übernehmen', function () { e.nettoGesamt = Math.round(ausAbr.gesamt); e.nettoKv = Math.round(ausAbr.kv); e.stand = U.heute(); App.geaendert({ ohneRechnen: true }); }, { klasse: 'klein-btn' })) : null,
+            D.btn('Übernehmen', function () { e.nettoGesamt = ausAbr.gesamt; e.nettoKv = ausAbr.kv; e.stand = U.heute(); App.geaendert({ ohneRechnen: true }); }, { klasse: 'klein-btn' })) : null,
           ausTeam != null && !(ausAbr && ausAbr.hat) ? h('div.leiste', { style: { marginTop: '10px' } }, h('span.mini', { style: { flex: 1 } }, 'Laut Teamdaten liegt Ihre Nettoproduktion bei ' + U.fmtEuro0(ausTeam) + '.'),
             D.btn('Übernehmen', function () { e.nettoGesamt = Math.round(ausTeam); if (e.nettoKv == null) e.nettoKv = Math.round(ausTeam); e.stand = U.heute(); App.geaendert({ ohneRechnen: true }); }, { klasse: 'klein-btn' })) : null,
           h('p.mini', { style: { marginTop: '10px' } }, 'Grundlage: Wettbewerbsbedingungen für den ADP-Wettbewerb 2025. Maßgeblich sind die Auswertungen des Versicherers; dieser Rechner zeigt nur, wo Sie stehen. Voraussetzungen der Auszahlung (u. a. 20 Stunden Weiterbildung, höchstens 5 % Dokumentationsverzicht, bestehendes Vertragsverhältnis zum Jahresende) prüft er nicht.')),
