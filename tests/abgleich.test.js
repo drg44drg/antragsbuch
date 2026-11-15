@@ -293,8 +293,8 @@ test('Excel-Export: formatierte Arbeitsmappe ist lesbar und enthält Farben und 
   assert.deepEqual([...bytes.subarray(0, 2)], [0x50, 0x4B]);
   const zurueck = await AB.xlsx.lies(bytes);
   assert.deepEqual(zurueck.map((b) => b.name), ['Anträge', 'Prioritätenliste']);
-  const kopf = zurueck[0].zeilen.findIndex((z) => z[0] === 'Eingang'), z1 = zurueck[0].zeilen[kopf + 1];
-  assert.equal(z1[0], '2026-01-05', 'Datum als echtes Excel-Datum'); assert.equal(z1[1], 'Muster'); assert.equal(typeof z1[9], 'number');
+  const kopf = zurueck[0].zeilen.findIndex((z) => z[1] === 'Eingang'), z1 = zurueck[0].zeilen[kopf + 1];
+  assert.equal(z1[1], '2026-01-05', 'Datum als echtes Excel-Datum'); assert.equal(z1[2], 'Muster'); assert.equal(typeof z1[10], 'number');
   assert.equal(zurueck[0].zeilen.length, kopf + 1 + t.zeilen.length);
   assert.equal(zurueck[1].zeilen[1].length, pr.spalten.length);
   const roh = Buffer.from(bytes).toString('latin1');

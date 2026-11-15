@@ -62,6 +62,7 @@
         klick: function (a) { AB.maske.oeffne(a); },
         spalten: [
           { t: '', kopf: alle, b: '22px', w: function (a) { return h('input', { type: 'checkbox', checked: z.wahl.has(a.id), title: 'Für die Prioritätenliste auswählen', onchange: function () { if (this.checked) z.wahl.add(a.id); else z.wahl.delete(a.id); zeigeLeiste(); } }); } },
+          { t: 'Pos.', b: '52px', titel: 'Feste Positionsnummer des Antrags – bleibt für immer gleich, auch in Exporten', r: true, w: function (a) { return h('span.num.muted', null, a.nr || ''); }, s: function (a) { return +a.nr || 0; } },
           { t: 'Ampel', b: '74px', titel: 'Bearbeitungsampel: Werktage seit Einreichung', w: function (a) { var am = ampel[a.id]; return am.stufe ? [AB.ampelPunkt(am), h('span.mini', { title: am.grund }, am.wt + ' WT')] : ''; }, s: function (a) { var am = ampel[a.id]; return rangA[am.stufe] * 10000 - am.wt; } },
           { t: 'Eingang', b: '88px', w: function (a) { return U.fmtDatum(a.eingang); }, s: function (a) { return a.eingang; }, absteigend: true },
           { t: 'Versicherungsnehmer', b: 'minmax(140px, 1.5fr)', k: 'zwei', w: function (a) { var nb = a.nachbearbeitung; return [h('span', { style: { fontWeight: 600 } }, M.vnName(a)), h('small', null, nb.status === 'offen' ? 'Nachbearbeitung: ' + (nb.text || 'offen') : a.bemerkung || (a.firma || ''))]; }, s: function (a) { return M.vnName(a); } },

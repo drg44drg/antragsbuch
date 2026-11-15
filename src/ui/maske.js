@@ -122,7 +122,7 @@
     }
 
     var gespeichert = false;
-    var dlg = D.dialog(neu ? (opt.vorlage ? 'Antrag duplizieren' : 'Neuer Antrag') : 'Antrag bearbeiten', {
+    var dlg = D.dialog(neu ? (opt.vorlage ? 'Antrag duplizieren' : 'Neuer Antrag') : 'Antrag bearbeiten' + (antrag && antrag.nr ? ' · Position ' + antrag.nr : ''), {
       vorSchliessen: function () { return gespeichert || JSON.stringify(sammle()) === JSON.stringify(Object.assign(JSON.parse(ursprung), {})) || bestaetigeVerwerfen(); }
     });
     function bestaetigeVerwerfen() { return JSON.stringify(sammle().vn) === JSON.stringify(JSON.parse(ursprung).vn) && !fName.value ? true : window.confirm('Eingaben verwerfen?'); }

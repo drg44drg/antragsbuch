@@ -78,6 +78,7 @@
   App.schliesse = function () { App.nurLesen = false; App.letzterStand = null; document.getElementById('lizenzleiste').hidden = true; App.p = null; App.zeilen = []; App.erg = null; Sp.schliesse(); document.body.classList.remove('offen'); App.zeige('start'); };
   App.rechne = function () {
     var p = App.p; if (!p) return;
+    AB.model.vergibNummern(p);
     App.erg = AB.abgleich.rechne(p, App.zeilen);
     if (AB.abgleich.wendeStatusAn(p, App.erg)) App.erg = AB.abgleich.rechne(p, App.zeilen);
     var geschlossen = AB.abgleich.schliesseReklamationen(p, App.erg);

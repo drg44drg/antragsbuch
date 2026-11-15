@@ -69,7 +69,16 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D0000 · Erledigt (Version 1.8)
+## D0000 · Erledigt (Version 2.0)
+
+Bonus-Vorschau: bestätigt (Bonus-Reporting) · gebucht (Abrechnung) · beantragt (Antragsbuch, ab Einreichung, „nicht bestätigt") ·
+feste Positionsnummer je Antrag (Pos.) in Liste, Exporten und Vorschau · Hinweis bei Abweichung Reporting ↔ Antragsbuch ·
+Export „Überprüfung Bonus" (Excel: Zusammenfassung + Positionen) und Druck/PDF.
+
+Offen dazu: Bonus-Reporting (PDF) direkt einlesen statt abtippen · Personenzahl aus der Abrechnung ableiten (an 2025 geprüft: nicht verlässlich möglich,
+deshalb zählt das Antragsbuch) · bewertete Produktion für Beantragtes genauer schätzen (derzeit Monatsbeitrag).
+
+## Erledigt (Version 1.8)
 
 Nettoproduktion aus der Spalte „Produktion" (passt zu Monatsscheiben und Bonus) · Übernahme in den Bonus-Reiter ·
 persönliche Auswertung (ein ADP-Blatt + FD-Gesamt) einlesbar, Anteil an der Filialdirektion je Sparte.

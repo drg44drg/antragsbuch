@@ -141,6 +141,20 @@
     return a;
   };
 
+  /**
+   * Feste Positionsnummer je Antrag (wie die Zeilennummer im Excel-Antragsbuch). Einmal vergeben, bleibt sie für immer;
+   * gelöschte Nummern werden nicht neu vergeben. Fehlende Nummern werden in der Reihenfolge des Eingangs ergänzt.
+   */
+  M.vergibNummern = function (p) {
+    var max = +p.naechsteNr > 0 ? +p.naechsteNr - 1 : 0, ohne = [];
+    (p.antraege || []).forEach(function (a) { if (+a.nr > 0) max = Math.max(max, +a.nr); else ohne.push(a); });
+    if (!ohne.length && p.naechsteNr === max + 1) return false;
+    ohne.sort(function (a, b) { return (a.eingang || '') < (b.eingang || '') ? -1 : (a.eingang || '') > (b.eingang || '') ? 1 : (a.erstellt || '') < (b.erstellt || '') ? -1 : 1; });
+    ohne.forEach(function (a) { a.nr = ++max; });
+    p.naechsteNr = max + 1;
+    return ohne.length > 0;
+  };
+
   M.vnName = function (a) {
     return (a.vn.name || '') + (a.vn.vorname ? ', ' + a.vn.vorname : '');
   };

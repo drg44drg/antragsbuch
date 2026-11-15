@@ -145,14 +145,14 @@
   };
 
   function antraegeDaten(p, erg, liste) {
-    var kopf = ['Eingang', 'Name', 'Vorname', 'Bereich', 'Vorgangsart', 'Vertragsnummer', 'Versicherte Person', 'Personennummer', 'Tarif',
+    var kopf = ['Pos.', 'Eingang', 'Name', 'Vorname', 'Bereich', 'Vorgangsart', 'Vertragsnummer', 'Versicherte Person', 'Personennummer', 'Tarif',
       'Beitrag Position', 'Beitrag Antrag', 'Status', 'Status seit', 'Beginn', 'Provision Soll', 'Provision Ist', 'Buchungsmonat',
       'E-Antrag', 'Bank-Teilung %', 'Gruppenvertrag', 'Firma', 'Laufzeit', 'Bemerkung'];
     var zeilen = [];
     (liste || p.antraege).forEach(function (a) {
       var r = erg ? erg.proAntrag[a.id] : null;
       a.positionen.forEach(function (ps, i) {
-        zeilen.push([U.fmtDatum(a.eingang), a.vn.name, a.vn.vorname, M.name('bereich', ps.bereich || a.bereich), M.name('vorgang', a.vorgang),
+        zeilen.push([a.nr || '', U.fmtDatum(a.eingang), a.vn.name, a.vn.vorname, M.name('bereich', ps.bereich || a.bereich), M.name('vorgang', a.vorgang),
           a.vertragsnummer, ps.person, ps.personennummer, ps.tarif, M.vorzeichen(a, +ps.beitrag || 0),
           i === 0 ? M.beitrag(a) : '', M.name('status', a.status), U.fmtDatum(a.statusDatum), U.fmtDatum(a.beginn),
           i === 0 && r ? r.sollP : '', i === 0 && r && r.buendel.length ? r.istP : '', i === 0 && r ? r.monat : '',
