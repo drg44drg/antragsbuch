@@ -77,7 +77,7 @@
       importe: [], importZaehler: 0,
       zuordnungen: {}, ignoriert: {},
       vdienst: { zuordnungen: {}, importe: [] },
-      team: null, aktionen: [], bonus: null,
+      team: null, aktionen: [], bonus: null, ziele: {},
       sicherungen: []
     };
   };
@@ -210,6 +210,33 @@
       quote: soll > 0 ? ist / soll : null, hochrechnung: U.runde(ist / monate * 12), restJeMonat: monate < 12 ? U.runde(Math.max(0, k.wert - ist) / (12 - monate)) : null }; };
     return { monate: monate, ist: U.runde(ist), eigene: zeile(M.KARRIERE[i]), naechste: M.KARRIERE[i + 1] ? zeile(M.KARRIERE[i + 1]) : null };
   };
+
+  /**
+   * Eigene Jahresziele je Produkt (Monatsbeitrag) gegen den Stand. p.ziele = { '2026': { voll: 3000, zusatz: 800, …, gesamt: 9000 } }.
+   * Ist = Nettoproduktion laut Abrechnung je Bereich (Spalte „Produktion"); ohne Abrechnung der eingetragene Beitrag aus dem Antragsbuch.
+   * Soll = Ziel × vergangene Monate ÷ 12 (gleichmäßiger Verlauf).
+   */
+  M.zieleStand = function (p, zeilen, heute) {
+    var jahr = +p.jahr, h = heute || U.heute(), hj = +h.slice(0, 4), monate = jahr < hj ? 12 : jahr > hj ? 0 : +h.slice(5, 7);
+    var z = (p.ziele && p.ziele[jahr]) || {}, ist = {}, ein = {}, hatAbr = false, raus = { abgelehnt: 1, widerruf: 1, absage: 1, storno: 1 }, zaehlt = { neu: 1, mehr: 1, minder: 1 };
+    (zeilen || []).forEach(function (x) { if (+x.bdat.slice(0, 4) !== jahr || !(+x.prod)) return; hatAbr = true; var b = M.bereichAusGruppe(x.tg); ist[b] = (ist[b] || 0) + +x.prod; });
+    (p.antraege || []).forEach(function (a) {
+      if (!a.eingang || +a.eingang.slice(0, 4) !== jahr || raus[a.status] || !zaehlt[a.vorgang]) return;
+      a.positionen.forEach(function (ps) { var b = ps.bereich || a.bereich; if (b === 'pflege') b = 'voll'; ein[b] = (ein[b] || 0) + M.vorzeichen(a, +ps.beitrag || 0); });
+    });
+    var zeile = function (id, name, ziel, i, e) {
+      var wert = hatAbr ? i : e, soll = ziel != null ? ziel * monate / 12 : null;
+      return { id: id, name: name, ziel: ziel, ist: hatAbr ? U.runde(i) : null, eingetragen: U.runde(e), wert: U.runde(wert), soll: soll != null ? U.runde(soll) : null,
+        diff: soll != null ? U.runde(wert - soll) : null, quote: ziel > 0 ? wert / ziel : null, fehlt: ziel > 0 ? U.runde(Math.max(0, ziel - wert)) : null,
+        restJeMonat: ziel > 0 && monate < 12 ? U.runde(Math.max(0, ziel - wert) / (12 - monate)) : null };
+    };
+    var ber = M.BEREICHE.filter(function (b) { return b.id !== 'pflege' && b.id !== 'gkv'; }), sumI = 0, sumE = 0;
+    Object.keys(ist).forEach(function (k) { sumI += ist[k]; }); Object.keys(ein).forEach(function (k) { if (k !== 'gkv') sumE += ein[k]; });
+    var zeilenO = ber.map(function (b) { return zeile(b.id, b.name, z[b.id] != null && z[b.id] !== '' ? +z[b.id] : null, ist[b.id] || 0, ein[b.id] || 0); });
+    var sumZ = zeilenO.reduce(function (s, x) { return s + (x.ziel || 0); }, 0), gesamtZiel = z.gesamt != null && z.gesamt !== '' ? +z.gesamt : (sumZ > 0 ? sumZ : null);
+    return { jahr: jahr, monate: monate, hatAbrechnung: hatAbr, zeilen: zeilenO, gesamt: zeile('gesamt', 'Gesamt', gesamtZiel, sumI, sumE), gesamtAusSumme: !(z.gesamt != null && z.gesamt !== '') && sumZ > 0 };
+  };
+  M.setzeZiel = function (p, id, wert) { if (!p.ziele) p.ziele = {}; var j = p.ziele[p.jahr] || (p.ziele[p.jahr] = {}); if (wert == null || wert === '' || isNaN(wert)) delete j[id]; else j[id] = +wert; };
 
   M.vnName = function (a) {
     return (a.vn.name || '') + (a.vn.vorname ? ', ' + a.vn.vorname : '');

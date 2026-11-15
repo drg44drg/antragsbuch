@@ -7,6 +7,7 @@
   AB.ansichten.analyse = { titel: 'Analyse', icon: 'ziel', unter: function () { return 'Meine Anträge ' + App.p.jahr + ': Wie groß sind sie, und wo ist mehr zu holen?'; },
     zeige: function (el) {
       var p = App.p, o = AB.analyse.rechne(p, p.jahr);
+      el.appendChild(AB.zieleKarte());
       if (!o.n) { el.appendChild(h('div.karte.rein', { style: { textAlign: 'center', padding: '46px 20px' } }, h('h2', null, 'Noch keine Anträge zum Auswerten'), h('p.muted', { style: { maxWidth: '560px', margin: '8px auto 0' } }, 'Sobald Sie Neugeschäft oder Mehrbeiträge für ' + p.jahr + ' eingetragen haben, sehen Sie hier Ihren größten und kleinsten Antrag, den Schnitt je Produkt und was ein etwas größerer Antrag bringen würde.'))); return; }
       el.appendChild(h('div.raster.r-4', null,
         kachel('Mein mittlerer Antrag', U.fmtEuro0(o.median), o.n + ' Anträge · Schnitt ' + U.fmtEuro0(o.schnitt), true),

@@ -236,6 +236,11 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       await nav('Einstellungen'); await page.selectOption('label.feld:has-text("Meine Karrierestufe") select', '2');
       await nav('Meine Produktion');
       assert.match(await page.textContent('.karte:has(h3:has-text("Mein Stand zur Karrierestufe"))'), /Meine Stufe: BV2[\s\S]*6\.000 € im Jahr = 500 € je Monat[\s\S]*Nächste Stufe: HV/);
+      // Ziele je Produkt: eintragen, wird gespeichert und verglichen
+      await page.fill('.karte:has(h3:has-text("Meine Ziele")) input[aria-label="Jahresziel Vollversicherung"]', '6000'); await page.keyboard.press('Tab');
+      assert.match(await page.textContent('.karte:has(h3:has-text("Meine Ziele")) tr:has-text("Vollversicherung")'), /(darunter|darüber)/);
+      assert.equal(await page.evaluate(() => AB.app.p.ziele[AB.app.p.jahr].voll), 6000);
+      await nav('Analyse'); assert.equal(await page.inputValue('.karte:has(h3:has-text("Meine Ziele")) input[aria-label="Jahresziel Vollversicherung"]'), '6.000');
       await nav('Bonus');
       await page.fill('label.feld:has-text("KV-Bestand") input', '373185'); await page.keyboard.press('Tab');
       await page.fill('label.feld:has-text("KV-Nettoproduktion") input', '4485'); await page.keyboard.press('Tab');

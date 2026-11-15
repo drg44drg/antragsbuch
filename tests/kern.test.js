@@ -545,3 +545,24 @@ test('Stand zur Karrierestufe: linear gegen Wertung ÷ 12, eigene und nächste S
   assert.deepEqual([M.stufenStand('1', 100, 2).eigene.wertung, M.stufenStand('1', 100, 2).naechste.kurz], [0, 'BV2']);
   assert.equal(M.stufenStand('', 100, 2), null); assert.equal(M.stufenStand('3', 100, 0), null);
 });
+
+test('Meine Ziele je Produkt: speichern, Soll bei gleichmäßigem Verlauf, Stand aus Abrechnung oder Antragsbuch', () => {
+  const p = M.neuesProjekt(2026);
+  M.setzeZiel(p, 'voll', 6000); M.setzeZiel(p, 'zusatz', 1200);
+  assert.deepEqual(p.ziele[2026], { voll: 6000, zusatz: 1200 });
+  const a = Object.assign(M.neuerAntrag(), { eingang: '2026-02-01', bereich: 'voll', vorgang: 'neu', herkunft: 'neu', vn: { name: 'M', vorname: 'A' } });
+  a.positionen = [Object.assign(M.neuePosition(), { tarif: 'AM13', beitrag: 400 }), Object.assign(M.neuePosition(), { tarif: 'PPN', beitrag: 60, bereich: 'pflege' }), Object.assign(M.neuePosition(), { tarif: 'ZP7', beitrag: 30, bereich: 'zusatz' })];
+  p.antraege.push(a);
+  let s = M.zieleStand(p, [], '2026-06-15');
+  const voll = (x) => x.zeilen.find((z) => z.id === 'voll'), zus = (x) => x.zeilen.find((z) => z.id === 'zusatz');
+  assert.deepEqual([s.monate, s.hatAbrechnung, voll(s).ziel, voll(s).soll, voll(s).wert, voll(s).diff, voll(s).restJeMonat], [6, false, 6000, 3000, 460, -2540, 923.33]);
+  assert.deepEqual([zus(s).wert, zus(s).soll, zus(s).diff], [30, 600, -570]);
+  assert.deepEqual([s.gesamt.ziel, s.gesamtAusSumme, s.gesamt.wert, s.gesamt.soll], [7200, true, 490, 3600]);
+  // mit Abrechnung zählt die Nettoproduktion
+  const zl = [{ bdat: '2026-03-01', prod: 3500, tg: 'Vollversicherung' }, { bdat: '2026-03-02', prod: 60, tg: 'Pflegeversicherung' }, { bdat: '2026-04-01', prod: 700, tg: 'Zusatzversicherung (Art Leben)' }, { bdat: '2025-04-01', prod: 999, tg: 'Vollversicherung' }];
+  s = M.zieleStand(p, zl, '2026-06-15');
+  assert.deepEqual([s.hatAbrechnung, voll(s).wert, voll(s).diff, zus(s).wert, zus(s).diff, s.gesamt.wert], [true, 3560, 560, 700, 100, 4260]);
+  M.setzeZiel(p, 'gesamt', 9000); s = M.zieleStand(p, zl, '2026-06-15'); assert.deepEqual([s.gesamt.ziel, s.gesamtAusSumme, s.gesamt.soll], [9000, false, 4500]);
+  M.setzeZiel(p, 'zusatz', null); assert.equal(p.ziele[2026].zusatz, undefined); assert.equal(zus(M.zieleStand(p, zl, '2026-06-15')).ziel, null);
+  assert.deepEqual(M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: {} }).ziele, {});
+});

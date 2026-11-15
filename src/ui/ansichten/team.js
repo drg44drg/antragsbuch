@@ -201,7 +201,7 @@
           h('div', { style: { display: 'grid', gridTemplateColumns: st.naechste ? 'repeat(auto-fit, minmax(280px, 1fr))' : '1fr', gap: '18px', marginTop: '8px' } }, zeileS(st.eigene, 'Meine Stufe'), st.naechste ? zeileS(st.naechste, 'Nächste Stufe') : null));
       } else if (!(gvS && gvS.stufe)) stufenKarte = h('div.meldung', null, 'Wählen Sie in den Einstellungen Ihre Karrierestufe, dann sehen Sie hier, ob Sie über oder unter dem gleichmäßigen Verlauf zur Wertung Ihrer Stufe liegen. ', D.btn('Zu den Einstellungen', function () { App.zeige('einstellungen'); }, { klasse: 'klein-btn' }));
     }
-    var rechts = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 } }, kacheln, stufenKarte,
+    var rechts = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 } }, kacheln, stufenKarte, eigen ? AB.zieleKarte() : null,
       h('div.raster.r-21', null,
         h('div.karte.rein', null, h('h3', null, 'Beitrag je Monat nach Kategorie'), h('div.unter', null, (eigen ? 'laut Abrechnung' : 'ausgewählte ADP') + ' · Zugänge nach oben, Abgänge nach unten'), dKat),
         h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Mix nach'), D.seg([['gruppe', 'Sparte'], ['kategorie', 'Kategorie']], z.ring || 'gruppe', function (v) { z.ring = v; neu(); })),

@@ -170,6 +170,37 @@
   }
   document.addEventListener('click', function () { var k = document.querySelector('.kurz.auf'); if (k) k.classList.remove('auf'); });
 
+  // ---------- Meine Ziele je Produkt: eingeben, speichern, mit dem Stand vergleichen ----------
+  AB.zieleKarte = function () {
+    var p = App.p, G = AB.dia, karte = h('div.karte.rein');
+    function zeichne() {
+      D.leere(karte);
+      var s = M.zieleStand(p, App.zeilen), tb = h('tbody'), euro = U.fmtEuro0;
+      var zeile = function (x, gesamt) {
+        var f = h('input', { type: 'text', inputMode: 'decimal', value: x.ziel == null || (gesamt && s.gesamtAusSumme) ? '' : U.fmtZahl(x.ziel, 0), placeholder: gesamt && s.gesamtAusSumme ? U.fmtZahl(x.ziel, 0) + ' (Summe)' : 'Ziel', style: { textAlign: 'right', padding: '5px 8px', width: '120px' }, 'aria-label': 'Jahresziel ' + x.name,
+          onchange: function () { var v = f.value.trim() === '' ? null : U.parseZahl(f.value); if (v != null && (isNaN(v) || v < 0)) { f.classList.add('fehler'); return; } if (App.gesperrt()) return; M.setzeZiel(p, x.id, v); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); } });
+        var q = x.quote != null ? Math.max(0, Math.min(1, x.quote)) : 0, sollQ = Math.min(1, s.monate / 12);
+        tb.appendChild(h('tr', gesamt ? { style: { fontWeight: 650 } } : null,
+          h('td', null, gesamt ? null : h('span', { style: { display: 'inline-block', width: '10px', height: '10px', borderRadius: '3px', background: G.bereichFarbe(x.id), marginRight: '8px' } }), x.name),
+          h('td', { style: { textAlign: 'right' } }, f),
+          h('td.num', { style: { textAlign: 'right' } }, x.soll != null ? euro(x.soll) : '–'),
+          h('td.num', { style: { textAlign: 'right', fontWeight: 700 } }, euro(x.wert)),
+          h('td', null, x.diff == null ? h('span.muted', null, '–') : h('span.marke-s' + (x.diff >= 0 ? '.gut' : '.warn'), null, x.diff >= 0 ? euro(x.diff) + ' darüber' : euro(-x.diff) + ' darunter')),
+          h('td', { style: { width: '24%', minWidth: '120px' } }, x.ziel > 0 ? h('div', { title: U.fmtZahl(q * 100, 0) + ' % des Jahresziels · Strich: gleichmäßiger Verlauf', style: { position: 'relative', height: '10px', borderRadius: '99px', background: 'var(--surface-2)' } },
+            h('div.hb.dia', { style: { position: 'absolute', left: 0, top: 0, bottom: 0, width: (q * 100) + '%', borderRadius: '99px', background: x.diff >= 0 ? 'var(--good)' : gesamt ? 'var(--accent)' : G.bereichFarbe(x.id) } }),
+            h('div', { style: { position: 'absolute', left: (sollQ * 100) + '%', top: '-3px', bottom: '-3px', width: '2px', background: 'var(--text)' } })) : null),
+          h('td.num.muted', { style: { textAlign: 'right' } }, x.restJeMonat != null && x.fehlt > 0 ? euro(x.restJeMonat) + ' je Monat' : x.ziel > 0 && x.fehlt === 0 ? 'erreicht' : '')));
+      };
+      s.zeilen.forEach(function (x) { zeile(x, false); }); zeile(s.gesamt, true);
+      D.anhaengen(karte, [h('div.leiste', null, h('h3', null, 'Meine Ziele ' + s.jahr), h('span.frei'), h('span.muted.klein', null, s.hatAbrechnung ? 'Stand: Nettoproduktion laut Abrechnung' : 'Stand: eingetragener Beitrag im Antragsbuch')),
+        h('div.unter', null, 'Jahresziel je Produkt in Euro Monatsbeitrag eintragen – es wird gespeichert und mit dem Stand verglichen. Soll = Ziel bei gleichmäßigem Verlauf bis ' + (s.monate ? U.MONATE[s.monate - 1] : 'Januar') + '.'),
+        h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Produkt', 'Jahresziel', 'Soll bis heute', 'Stand', 'Abstand', 'Fortschritt', 'Noch nötig'].map(function (t, i) { return h('th', { style: i >= 1 && i <= 3 || i === 6 ? { textAlign: 'right' } : null }, t); }))), tb)),
+        h('p.mini', { style: { marginTop: '8px' } }, 'Pflegepflicht zählt zur Vollversicherung. Ohne eigenes Gesamtziel gilt die Summe der Produktziele. ' + (s.hatAbrechnung ? '' : 'Sobald eine Abrechnung eingelesen ist, wird mit der Nettoproduktion verglichen.'))]);
+    }
+    zeichne();
+    return karte;
+  };
+
   // ---------- Hinweis bei jedem Programmstart: Arbeitshilfe, keine Zusage ----------
   App.HINWEIS = [
     'Das Antragsbuch ist eine Arbeitshilfe. Es soll helfen, Anträge im Blick zu behalten und Provisionen, Stornos und den Bonus nachzuvollziehen.',

@@ -86,7 +86,14 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
-## D0000 · Erledigt (Version 3.3)
+## D0000 · Erledigt (Version 3.4)
+
+„Meine Ziele": Jahresziel je Produkt und gesamt eintragen (in der Projektdatei gespeichert), Vergleich mit dem Stand (Nettoproduktion laut Abrechnung, sonst eingetragener Beitrag),
+Soll bei gleichmäßigem Verlauf, Abstand, Fortschritt, „noch nötig je Monat" – in „Meine Produktion" und „Analyse".
+
+Offen dazu: Ziele aus einer Datei der SDK übernehmen (Muster fehlt) · Ziele der ADP im Management-Cockpit anzeigen · Monatsziele statt nur Jahresziel.
+
+## Erledigt (Version 3.3)
 
 Schutzvermerk im Kopf der Datei (deutsch/englisch): Urheberrecht, keine Vervielfältigung oder Nachbau ohne Zustimmung, Hinweis an KI-Assistenten und automatisierte Werkzeuge.
 Offen: Name des Rechteinhabers und Kontakt eintragen · Vermerk juristisch prüfen lassen · verschlüsselte Verteil-Fassung als technischer Schutz (noch nicht gebaut).
