@@ -86,7 +86,14 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
-## D0000 · Erledigt (Version 3.6)
+## D0000 · Erledigt (Version 3.7)
+
+Ziele: Knopf „Rest gleichmäßig verteilen" (selbst gesetzte Monate bleiben) · Vorjahreswerte für die Planung: Abrechnung oder Projektdatei des Vorjahres einlesen,
+Spalte „Vorjahr" je Produkt, Vorjahresanteile je Monat, Knopf „Verteilung wie im Vorjahr". Gespeichert wird nur die Zusammenfassung.
+
+Offen dazu: Vorjahr auch aus Monatsscheiben/Sammelmappe übernehmen · Vorjahresvergleich im Verlauf („über/unter Vorjahr") in Meine Produktion und Team.
+
+## Erledigt (Version 3.6)
 
 Ziele: Verteilung auf die Monate in Prozent (Standard 100 ÷ 12, je Monat änderbar, Knopf „Gleichmäßig"); das Soll folgt der Verteilung.
 

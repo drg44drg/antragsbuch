@@ -589,3 +589,22 @@ test('Ziele: Verteilung auf die Monate in Prozent, Soll folgt der Verteilung', (
   assert.equal(M.zielVerteilung(p).summe, 120); assert.equal(voll(M.zieleStand(p, [], '2026-06-15')).soll, 6000);
   M.setzeVerteilung(p, null); assert.equal(M.zielVerteilung(p).eigen, false); assert.equal(p.ziele[2026].voll, 12000);
 });
+
+test('Ziele: Rest gleichmäßig verteilen und Vorjahreswerte für die Planung', () => {
+  const p = M.neuesProjekt(2026);
+  M.setzeVerteilung(p, [100 / 12, 100 / 12, 100 / 12, 100 / 12, 100 / 12, 100 / 12, 100 / 12, 4, 100 / 12, 100 / 12, 100 / 12, 16], [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1]);
+  assert.deepEqual(M.verteilungFest(p).map(Number), [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1]);
+  assert.equal(M.verteileRest(p), true);
+  const v = M.zielVerteilung(p); assert.equal(v.summe, 100); assert.equal(v.prozent[7], 4); assert.equal(v.prozent[11], 16); assert.equal(v.prozent[0], 8);
+  M.setzeVerteilung(p, [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], Array(12).fill(true)); assert.equal(M.verteileRest(p), false, 'sind alle Monate fest, bleibt alles stehen');
+  M.setzeVerteilung(p, null); assert.deepEqual(M.verteilungFest(p).some(Boolean), false);
+  const zl = [{ bdat: '2025-02-10', prod: 3000, tg: 'Firmentarife' }, { bdat: '2025-02-11', prod: 500, tg: 'Vollversicherung' }, { bdat: '2025-08-01', prod: -100, tg: 'Vollversicherung' }, { bdat: '2025-12-01', prod: 1500, tg: 'Vollversicherung' }, { bdat: '2026-01-05', prod: 999, tg: 'Vollversicherung' }];
+  p.vorjahr = M.vorjahrAus(zl, 2025, 'abr2025.csv');
+  assert.deepEqual([p.vorjahr.gesamt, p.vorjahr.bereiche, p.vorjahr.monate[1], p.vorjahr.monate[7], p.vorjahr.monate[11]], [4900, { bkv: 3000, voll: 1900 }, 3500, -100, 1500]);
+  assert.deepEqual(M.vorjahrVerteilung(p.vorjahr).filter(Boolean), [70, 30]); assert.equal(M.vorjahrVerteilung(null), null);
+  M.setzeZiel(p, 'voll', 2400);
+  const s = M.zieleStand(p, [], '2026-06-15');
+  assert.deepEqual([s.zeilen.find((x) => x.id === 'voll').vorjahr, s.zeilen.find((x) => x.id === 'bkv').vorjahr, s.zeilen.find((x) => x.id === 'leben').vorjahr, s.gesamt.vorjahr], [1900, 3000, 0, 4900]);
+  assert.equal(M.zieleStand(M.neuesProjekt(2026), [], '2026-06-15').gesamt.vorjahr, null);
+  assert.equal(M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: {} }).vorjahr == null, true);
+});

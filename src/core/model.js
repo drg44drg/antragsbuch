@@ -77,7 +77,7 @@
       importe: [], importZaehler: 0,
       zuordnungen: {}, ignoriert: {},
       vdienst: { zuordnungen: {}, importe: [] },
-      team: null, aktionen: [], bonus: null, ziele: {},
+      team: null, aktionen: [], bonus: null, ziele: {}, vorjahr: null,
       sicherungen: []
     };
   };
@@ -92,7 +92,7 @@
     // Schritte für künftige Versionen: if (p.schema === 1) { …; p.schema = 2; }
     if (!p.schema) p.schema = 1;
     var leer = M.neuesProjekt(p.jahr);
-    Object.keys(leer).forEach(function (k) { if (p[k] == null && k !== 'team' && k !== 'bonus') p[k] = leer[k]; });
+    Object.keys(leer).forEach(function (k) { if (p[k] == null && k !== 'team' && k !== 'bonus' && k !== 'vorjahr') p[k] = leer[k]; });
     var std = M.standardEinstellungen();
     if (Array.isArray(p.einstellungen.provisionsarten) && !(p.einstellungen.artenStand >= 2)) { if (p.einstellungen.provisionsarten.indexOf('Kündigungsrücknahme') < 0) p.einstellungen.provisionsarten.push('Kündigungsrücknahme'); p.einstellungen.artenStand = 2; }
     Object.keys(std).forEach(function (k) { if (p.einstellungen[k] == null) p.einstellungen[k] = std[k]; });
@@ -227,7 +227,7 @@
     });
     var zeile = function (id, name, ziel, i, e) {
       var wert = hatAbr ? i : e, soll = ziel != null ? ziel * anteil : null;
-      return { id: id, name: name, ziel: ziel, ist: hatAbr ? U.runde(i) : null, eingetragen: U.runde(e), wert: U.runde(wert), soll: soll != null ? U.runde(soll) : null,
+      return { id: id, name: name, ziel: ziel, vorjahr: p.vorjahr ? (id === 'gesamt' ? p.vorjahr.gesamt : p.vorjahr.bereiche[id] || 0) : null, ist: hatAbr ? U.runde(i) : null, eingetragen: U.runde(e), wert: U.runde(wert), soll: soll != null ? U.runde(soll) : null,
         diff: soll != null ? U.runde(wert - soll) : null, quote: ziel > 0 ? wert / ziel : null, fehlt: ziel > 0 ? U.runde(Math.max(0, ziel - wert)) : null,
         restJeMonat: ziel > 0 && monate < 12 ? U.runde(Math.max(0, ziel - wert) / (12 - monate)) : null };
     };
@@ -247,7 +247,35 @@
     if (!roh || summe <= 0) { roh = []; for (var i = 0; i < 12; i++) roh.push(100 / 12); summe = 100; return { prozent: roh, summe: 100, anteile: roh.map(function (v) { return v / 100; }), eigen: false }; }
     return { prozent: roh, summe: U.runde(summe), anteile: roh.map(function (v) { return v / summe; }), eigen: true };
   };
-  M.setzeVerteilung = function (p, prozent) { if (!p.ziele) p.ziele = {}; var j = p.ziele[p.jahr] || (p.ziele[p.jahr] = {}); if (!prozent) delete j.verteilung; else j.verteilung = prozent.map(function (v) { return Math.max(0, +v || 0); }); };
+  /** fest = Monate, die der ADP selbst gesetzt hat (bleiben bei „Rest verteilen" stehen). */
+  M.setzeVerteilung = function (p, prozent, fest) {
+    if (!p.ziele) p.ziele = {}; var j = p.ziele[p.jahr] || (p.ziele[p.jahr] = {});
+    if (!prozent) { delete j.verteilung; delete j.verteilungFest; return; }
+    j.verteilung = prozent.map(function (v) { return Math.max(0, +v || 0); });
+    if (fest) j.verteilungFest = fest.map(function (x) { return !!x; });
+  };
+  M.verteilungFest = function (p) { var z = (p.ziele && p.ziele[p.jahr]) || {}; return Array.isArray(z.verteilungFest) && z.verteilungFest.length === 12 ? z.verteilungFest.slice() : [false, false, false, false, false, false, false, false, false, false, false, false]; };
+  /** Rest gleichmäßig verteilen: Die selbst gesetzten Monate bleiben, die übrigen teilen sich, was bis 100 % fehlt. */
+  M.verteileRest = function (p) {
+    var vt = M.zielVerteilung(p), fest = M.verteilungFest(p), summeFest = 0, frei = 0;
+    fest.forEach(function (f, i) { if (f) summeFest += vt.prozent[i]; else frei++; });
+    if (!frei) return false;
+    var je = Math.max(0, 100 - summeFest) / frei;
+    M.setzeVerteilung(p, vt.prozent.map(function (v, i) { return fest[i] ? v : je; }), fest);
+    return true;
+  };
+  /** Vorjahreswerte für die Planung aus einer Abrechnung: Nettoproduktion je Produkt und Monat. Gespeichert wird nur diese Zusammenfassung. */
+  M.vorjahrAus = function (zeilen, jahr, quelle) {
+    var o = { jahr: +jahr, quelle: quelle || '', gesamt: 0, bereiche: {}, monate: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], am: U.heute() };
+    (zeilen || []).forEach(function (x) { if (+x.bdat.slice(0, 4) !== +jahr || !(+x.prod)) return; var b = M.bereichAusGruppe(x.tg); o.bereiche[b] = (o.bereiche[b] || 0) + +x.prod; o.gesamt += +x.prod; o.monate[+x.bdat.slice(5, 7) - 1] += +x.prod; });
+    Object.keys(o.bereiche).forEach(function (k) { o.bereiche[k] = U.runde(o.bereiche[k]); }); o.gesamt = U.runde(o.gesamt); o.monate = o.monate.map(U.runde);
+    return o;
+  };
+  /** Monatsverteilung des Vorjahres in Prozent (negative Monate zählen als 0). */
+  M.vorjahrVerteilung = function (vj) {
+    if (!vj) return null; var pos = vj.monate.map(function (v) { return Math.max(0, v); }), s = pos.reduce(function (a, b) { return a + b; }, 0);
+    return s > 0 ? pos.map(function (v) { return U.runde(v / s * 100 * 10) / 10; }) : null;
+  };
   M.setzeZiel = function (p, id, wert) { if (!p.ziele) p.ziele = {}; var j = p.ziele[p.jahr] || (p.ziele[p.jahr] = {}); if (wert == null || wert === '' || isNaN(wert)) delete j[id]; else j[id] = +wert; };
 
   M.vnName = function (a) {

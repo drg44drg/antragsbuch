@@ -175,13 +175,14 @@
     var p = App.p, G = AB.dia, karte = h('div.karte.rein');
     function zeichne() {
       D.leere(karte);
-      var s = M.zieleStand(p, App.zeilen), tb = h('tbody'), euro = U.fmtEuro0;
+      var s = M.zieleStand(p, App.zeilen), tb = h('tbody'), euro = U.fmtEuro0, hatVj = !!p.vorjahr;
       var zeile = function (x, gesamt) {
         var f = h('input', { type: 'text', inputMode: 'decimal', value: x.ziel == null || (gesamt && s.gesamtAusSumme) ? '' : U.fmtZahl(x.ziel, 0), placeholder: gesamt && s.gesamtAusSumme ? U.fmtZahl(x.ziel, 0) + ' (Summe)' : 'Ziel', style: { textAlign: 'right', padding: '5px 8px', width: '120px' }, 'aria-label': 'Jahresziel ' + x.name,
           onchange: function () { var v = f.value.trim() === '' ? null : U.parseZahl(f.value); if (v != null && (isNaN(v) || v < 0)) { f.classList.add('fehler'); return; } if (App.gesperrt()) return; M.setzeZiel(p, x.id, v); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); } });
         var q = x.quote != null ? Math.max(0, Math.min(1, x.quote)) : 0, sollQ = Math.min(1, s.anteil);
         tb.appendChild(h('tr', gesamt ? { style: { fontWeight: 650 } } : null,
           h('td', null, gesamt ? null : h('span', { style: { display: 'inline-block', width: '10px', height: '10px', borderRadius: '3px', background: G.bereichFarbe(x.id), marginRight: '8px' } }), x.name),
+          hatVj ? h('td.num.muted', { style: { textAlign: 'right' }, title: x.vorjahr && x.ziel ? 'Ziel = ' + U.fmtZahl(x.ziel / x.vorjahr * 100, 0) + ' % des Vorjahres' : '' }, euro(x.vorjahr || 0)) : null,
           h('td', { style: { textAlign: 'right' } }, f),
           h('td.num', { style: { textAlign: 'right' } }, x.soll != null ? euro(x.soll) : '–'),
           h('td.num', { style: { textAlign: 'right', fontWeight: 700 } }, euro(x.wert)),
@@ -192,18 +193,44 @@
           h('td.num.muted', { style: { textAlign: 'right' } }, x.restJeMonat != null && x.fehlt > 0 ? euro(x.restJeMonat) + ' je Monat' : x.ziel > 0 && x.fehlt === 0 ? 'erreicht' : '')));
       };
       s.zeilen.forEach(function (x) { zeile(x, false); }); zeile(s.gesamt, true);
+      // Vorjahreswerte für die Planung: aus einer Abrechnung oder Projektdatei des Vorjahres; gespeichert wird nur die Zusammenfassung
+      function vorjahrLeiste() {
+        var wahl = h('input', { type: 'file', hidden: true, accept: '.csv,.txt,.xlsx,.xlsm,.json', onchange: async function () {
+          var fl = wahl.files[0]; wahl.value = ''; if (!fl || App.gesperrt()) return;
+          try {
+            var r = await App.lies(new Uint8Array(await fl.arrayBuffer()), fl.name, {}), zl = null;
+            if (r.art === 'abrechnung') zl = AB.abrechnung.entpacke(r.gepackt);
+            else if (r.art === 'projekt' && r.projekt && r.projekt.abrechnung) zl = AB.abrechnung.entpacke(r.projekt.abrechnung);
+            if (!zl || !zl.length) throw new Error('Für die Vorjahreswerte wird eine Provisionsabrechnung oder die Projektdatei des Vorjahres benötigt.');
+            var jahre = {}; zl.forEach(function (x) { var j = +x.bdat.slice(0, 4); if (+x.prod) jahre[j] = (jahre[j] || 0) + 1; });
+            var kand = Object.keys(jahre).map(Number).filter(function (j) { return j < +p.jahr; }).sort(function (x, y) { return y - x; })[0];
+            if (!kand) throw new Error('Die Datei enthält keine Produktion aus einem Jahr vor ' + p.jahr + '.');
+            p.vorjahr = M.vorjahrAus(zl, kand, fl.name); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); D.toast('Vorjahreswerte ' + kand + ' übernommen: ' + euro(p.vorjahr.gesamt) + ' Nettoproduktion.');
+          } catch (e) { D.toast(e.message || String(e), { krit: true }); }
+        } });
+        var vjV = M.vorjahrVerteilung(p.vorjahr);
+        return h('div.leiste', { style: { marginTop: '10px' } }, wahl,
+          hatVj ? h('span.klein.muted', null, 'Vorjahr ' + p.vorjahr.jahr + ': ' + euro(p.vorjahr.gesamt) + ' Nettoproduktion' + (p.vorjahr.quelle ? ' · aus „' + p.vorjahr.quelle + '"' : '')) : h('span.klein.muted', null, 'Zum Planen können Sie die Werte des Vorjahres daneben stellen.'),
+          h('span.frei'),
+          hatVj && vjV ? D.btn('Verteilung wie im Vorjahr', function () { if (App.gesperrt()) return; M.setzeVerteilung(p, vjV, [false, false, false, false, false, false, false, false, false, false, false, false]); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); }, { klasse: 'klein-btn', titel: 'Die Monatsanteile des Vorjahres als Vorschlag übernehmen – danach je Monat änderbar' }) : null,
+          D.btn(hatVj ? 'Vorjahr ersetzen' : 'Vorjahr einlesen', function () { wahl.click(); }, { klasse: 'klein-btn', icon: 'hoch', titel: 'Abrechnung oder Projektdatei des Vorjahres wählen. Gespeichert wird nur die Zusammenfassung je Produkt und Monat.' }),
+          hatVj ? D.btn('', function () { if (App.gesperrt()) return; p.vorjahr = null; App.geaendert({ still: true, ohneRechnen: true }); zeichne(); }, { klasse: 'klein-btn leise', icon: 'x', titel: 'Vorjahreswerte entfernen' }) : null);
+      }
       D.anhaengen(karte, [h('div.leiste', null, h('h3', null, 'Meine Ziele ' + s.jahr), h('span.frei'), h('span.muted.klein', null, s.hatAbrechnung ? 'Stand: Nettoproduktion laut Abrechnung' : 'Stand: eingetragener Beitrag im Antragsbuch')),
         h('div.unter', null, 'Jahresziel je Produkt in Euro Monatsbeitrag eintragen – es wird gespeichert und mit dem Stand verglichen. Soll = Anteil des Ziels bis ' + (s.monate ? U.MONATE[s.monate - 1] : 'Januar') + ' nach der Monatsverteilung (' + U.fmtZahl(s.anteil * 100, 0) + ' %).'),
-        h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Produkt', 'Jahresziel', 'Soll bis heute', 'Stand', 'Abstand', 'Fortschritt', 'Noch nötig'].map(function (t, i) { return h('th', { style: i >= 1 && i <= 3 || i === 6 ? { textAlign: 'right' } : null }, t); }))), tb)),
+        h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Produkt'].concat(hatVj ? ['Vorjahr ' + p.vorjahr.jahr] : [], ['Jahresziel', 'Soll bis heute', 'Stand', 'Abstand', 'Fortschritt', 'Noch nötig']).map(function (t) { return h('th', { style: /Vorjahr|Jahresziel|Soll|Stand|Noch/.test(t) ? { textAlign: 'right' } : null }, t); }))), tb)),
+        vorjahrLeiste(),
         (function () {
           // Verteilung auf die Monate: Standard 100 ÷ 12, je Monat änderbar
-          var vt = s.verteilung, zeileV = h('div.monatsverteilung'), sumEl = h('span.marke-s' + (Math.abs(vt.summe - 100) < 0.05 ? '.gut' : '.warn'), null, 'Summe ' + U.fmtZahl(vt.summe, 1) + ' %');
+          var vt = s.verteilung, festM = M.verteilungFest(p), vjP = M.vorjahrVerteilung(p.vorjahr), zeileV = h('div.monatsverteilung'), sumEl = h('span.marke-s' + (Math.abs(vt.summe - 100) < 0.05 ? '.gut' : '.warn'), null, 'Summe ' + U.fmtZahl(vt.summe, 1) + ' %');
           vt.prozent.forEach(function (v, i) {
             var f = h('input', { type: 'text', inputMode: 'decimal', value: U.fmtZahl(v, 1), 'aria-label': 'Anteil ' + U.MONATE[i] + ' in Prozent', style: { textAlign: 'right', padding: '4px 6px' },
-              onchange: function () { var x = U.parseZahl(f.value); if (isNaN(x) || x < 0) { f.classList.add('fehler'); return; } if (App.gesperrt()) return; var neu = vt.prozent.slice(); neu[i] = x; M.setzeVerteilung(p, neu); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); } });
-            zeileV.appendChild(h('label', { title: s.gesamt.ziel ? U.MONATE[i] + ': ' + euro(s.gesamt.ziel * vt.anteile[i]) + ' vom Gesamtziel' : U.MONATE[i] }, h('span' + (i < s.monate ? '.vorbei' : ''), null, U.MONATE_KURZ[i]), f));
+              onchange: function () { var x = U.parseZahl(f.value); if (isNaN(x) || x < 0) { f.classList.add('fehler'); return; } if (App.gesperrt()) return; var neu = vt.prozent.slice(), fest = M.verteilungFest(p); neu[i] = x; fest[i] = true; M.setzeVerteilung(p, neu, fest); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); } });
+            if (festM[i]) f.classList.add('fest');
+            zeileV.appendChild(h('label', { title: (s.gesamt.ziel ? U.MONATE[i] + ': ' + euro(s.gesamt.ziel * vt.anteile[i]) + ' vom Gesamtziel' : U.MONATE[i]) + (festM[i] ? ' · selbst gesetzt' : '') + (vjP ? ' · Vorjahr ' + U.fmtZahl(vjP[i], 1) + ' %' : '') }, h('span' + (i < s.monate ? '.vorbei' : ''), null, U.MONATE_KURZ[i]), f, vjP ? h('small', null, 'Vj. ' + U.fmtZahl(vjP[i], 1)) : null));
           });
           return h('div', { style: { marginTop: '12px' } }, h('div.leiste', null, h('b', null, 'Verteilung auf die Monate (%)'), sumEl, h('span.frei'),
+            vt.eigen && festM.some(Boolean) && !festM.every(Boolean) && Math.abs(vt.summe - 100) >= 0.05 ? D.btn('Rest gleichmäßig verteilen', function () { if (App.gesperrt()) return; M.verteileRest(p); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); }, { klasse: 'klein-btn haupt-btn', titel: 'Ihre selbst gesetzten Monate bleiben stehen; die übrigen teilen sich, was bis 100 % fehlt' }) : null,
             vt.eigen ? D.btn('Gleichmäßig', function () { if (App.gesperrt()) return; M.setzeVerteilung(p, null); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); }, { klasse: 'klein-btn leise', titel: 'Zurück auf 100 ÷ 12 je Monat' }) : h('span.muted.klein', null, 'gleichmäßig: 8,3 % je Monat')),
             zeileV, Math.abs(vt.summe - 100) >= 0.05 ? h('div.klein.muted', { style: { marginTop: '4px' } }, 'Die Summe ist nicht 100 %. Gerechnet wird mit den Anteilen im Verhältnis zueinander.') : null);
         })(),
