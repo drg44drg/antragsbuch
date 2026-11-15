@@ -250,8 +250,8 @@ test('Korrektur im Folgemonat (z. B. nach Reklamation) wird nachgezogen: Abweich
   assert.deepEqual(ids(e2.abweichung), []);
   assert.equal(e2.proAntrag['a-3'].istP, 120); assert.equal(e2.proAntrag['a-3'].nachbuchung, true);
   assert.equal(e2.proAntrag['a-2'].istB, 35); assert.equal(e2.proAntrag['a-2'].buendel.length, 2);
-  assert.ok(!e2.neu.some((b) => b.monat === '2026-04'), 'Korrekturen landen nicht unter „Buchung ohne Eintrag"');
-  // eine nicht passende Buchung bleibt unter „Buchung ohne Eintrag"
+  assert.ok(!e2.neu.some((b) => b.monat === '2026-04'), 'Korrekturen landen nicht unter „Abgerechnet ohne Antrag"');
+  // eine nicht passende Buchung bleibt unter „Abgerechnet ohne Antrag"
   const fremd = kopie('250250', { mbd: 0, prov: 7, bdat: '2026-04-09', part: 'Manuell', imp: 4 });
   const e3 = A.rechne(p, zeilen.concat([fremd]), HEUTE);
   assert.deepEqual(ids(e3.abweichung), ['a-2', 'a-3']);
@@ -494,4 +494,27 @@ test('Sammelmappe: Produktscheiben je ADP, Ziele, Sparten-Vergleich in fünf Stu
   assert.ok(!JSON.stringify(ps).includes('TESTER') && !JSON.stringify(ps).includes('900103'));
   assert.equal(T.spartenVergleich(ps, '900106', 2).find((s) => s.id === 'Vollversicherung').stufe, 5);
   assert.equal(T.position(ps, '900103').ziel.wert, 5000);
+});
+
+test('Vorschläge für „Abgerechnet ohne Antrag": Dynamik eindeutig, übrige zum Prüfen; Antrag entsteht nach Vorschlag', () => {
+  const zl = (o) => Object.assign({ vnr: '777', pnr: '1', tg: 'Zusatzversicherung (Art Leben)', tarif: 'PG3AD', mb: 30, mbd: 0.8, prov: 4.4, part: 'Erhöhung', st: 0, bdat: '2026-09-10', vbeg: '2026-10-01', vnName: 'MUSTER, ANNA', vpName: 'MUSTER, ANNA', lz: 0 }, o);
+  const bd = (rows, tg) => ({ key: 'k' + Math.random(), vnr: '777', pnr: '1', tg: tg || rows[0].tg, monat: '2026-09', bdat: '2026-09-10', vbeg: '2026-10-01', vnName: 'MUSTER, ANNA', zeilen: rows, mbd: rows.reduce((s, z) => s + z.mbd, 0), hatStorno: rows.some((z) => z.st), gvnr: '' });
+  const V = (rows, tg) => AB.abgleich.vorschlagFuer(bd(rows, tg));
+  assert.deepEqual([V([zl({}), zl({ tarif: 'PG4SD' })]).id, V([zl({})]).sicher, V([zl({})]).vorgang], ['dynamik', true, 'dynamik']);
+  assert.deepEqual([V([zl({ tarif: 'BEu', mbd: 2 })]).id, V([zl({ tarif: 'BEu', mbd: 2 })]).sicher], ['anpassung', false]);
+  assert.equal(V([zl({ tarif: 'BEu', mbd: 150 })]).id, 'mehr');
+  assert.deepEqual((({ id, bereich, herkunft }) => [id, bereich, herkunft])(V([zl({ part: 'Abschluss', tarif: 'AM13', tg: 'Vollversicherung', mb: 400, mbd: 400 }), zl({ part: 'Abschluss', tarif: 'PPN', tg: 'Pflegeversicherung', mb: 60, mbd: 60 })])), ['vollneu', 'voll', 'neu']);
+  assert.equal(V([zl({ part: 'Abschluss', tarif: 'BFRO', tg: 'Firmentarife', mb: 20, mbd: 20 })]).id, 'bkv');
+  assert.equal(V([zl({ part: 'Abschluss', tarif: 'ZP7', mb: 35, mbd: 35 })]).id, 'neu'); assert.equal(V([zl({ part: 'Abschluss', tarif: 'ZP7', mb: 60, mbd: 25 })]).id, 'wechsel');
+  assert.equal(V([zl({ part: 'Abschluss', tarif: 'ZP7', mb: 0, mbd: -35, st: 1 })]).id, 'storno'); assert.equal(V([zl({ part: 'Kündigungsrücknahme', mbd: 60 })]).abhaken, true);
+  assert.equal(V([zl({ part: 'Legacy', mbd: -5 })]).id, 'legacy');
+  const p = M.neuesProjekt(2026), a = AB.abgleich.antragAusBuendel(p, [bd([zl({}), zl({ tarif: 'PG4SD' })])]);
+  assert.deepEqual([a.vorgang, a.herkunft, a.bereich, a.positionen.length, /^Aus Dynamik/.test(a.bemerkung)], ['dynamik', '', 'zusatz', 2, true]);
+  const v = AB.abgleich.antragAusBuendel(p, [bd([zl({ part: 'Abschluss', tarif: 'AM13', tg: 'Vollversicherung', mb: 400, mbd: 400 }), zl({ part: 'Abschluss', tarif: 'PPN', tg: 'Vollversicherung', mb: 60, mbd: 60 })], 'Vollversicherung')]);
+  assert.deepEqual([v.vorgang, v.herkunft, v.bereich], ['neu', 'neu', 'voll']);
+});
+
+test('Vorschlag: laufende Bestandsprovision braucht keinen Antrag', () => {
+  const b = { mbd: 3.08, tg: 'Unfallversicherung', zeilen: [{ part: 'Bestand', tarif: 'UT', mb: 3.08, mbd: 3.08 }] };
+  assert.deepEqual((({ id, abhaken, sicher }) => [id, abhaken, sicher])(AB.abgleich.vorschlagFuer(b)), ['bestand', true, true]);
 });

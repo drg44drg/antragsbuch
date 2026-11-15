@@ -450,4 +450,13 @@ test('Grundvergütung: Betrag nach Karrierestufe, von Hand überschreibbar, Jahr
   assert.deepEqual((({ jeMonat, ausStufe, manuell }) => [jeMonat, ausStufe, manuell])(M.grundverguetung(p, 0, '2026-05-10')), [2150.5, 2000, true]);
   const alt = M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: {} });
   assert.equal(alt.einstellungen.grundverguetung.stufe, '');
+  // Karrieresystem: sechs Stufen mit Fixum; ohne eigene Eingabe gilt das Fixum der Stufe
+  assert.deepEqual(M.KARRIERE.map((k) => [k.kurz, k.fixum, k.mb]), [['BV1', 1500, 4], ['BV2', 2000, 5], ['HV', 2250, 5.5], ['GV', 2750, 6], ['GL', 3300, 7], ['GD', 4400, 7]]);
+  alt.einstellungen.grundverguetung.stufe = '3';
+  assert.deepEqual((({ jeMonat, kurz, manuell }) => [jeMonat, kurz, manuell])(M.grundverguetung(alt, 0, '2026-05-10')), [2250, 'HV', false]);
+  alt.einstellungen.grundverguetung.tabelle['3'] = 2300; assert.equal(M.grundverguetung(alt, 0, '2026-05-10').jeMonat, 2300);
+  // Kindernachversicherung zählt als neue Person, auch ohne Pflegepflicht
+  const pk = M.neuesProjekt(2026), ak = Object.assign(M.neuerAntrag(), { eingang: '2026-02-01', bereich: 'voll', vorgang: 'neu', herkunft: 'kind', vn: { name: 'Muster', vorname: 'Anna' } });
+  ak.positionen = [Object.assign(M.neuePosition(), { person: 'Baby Muster', tarif: 'A20u', beitrag: 45 })]; pk.antraege.push(ak);
+  assert.equal(AB.bonus.simulation(pk, [], null).voll.beantragt, 1); assert.deepEqual(M.pruefeAntrag(ak), []);
 });

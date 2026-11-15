@@ -204,7 +204,7 @@
     // 5) Buchungen ohne Antrag
     B.liste.forEach(function (b) {
       if (!frei.has(b.key)) return;
-      b.ignoriert = !!(p.ignoriert && p.ignoriert[b.key]);
+      b.ignoriert = !!(p.ignoriert && p.ignoriert[b.key]); b.vorschlag = A.vorschlagFuer(b);
       erg.neu.push(b);
     });
     erg.neu.sort(function (x, y) { return x.monat < y.monat ? 1 : x.monat > y.monat ? -1 : (x.vn < y.vn ? -1 : 1); });
@@ -345,7 +345,35 @@
   };
 
   /** Aus einer Buchung ohne Antrag einen Antrag erzeugen (bereits zugeordnet). */
-  A.antragAusBuendel = function (p, buendel) {
+  /**
+   * Vorschlag, was eine abgerechnete Position ohne Antrag vermutlich ist. sicher = darf gesammelt übernommen werden.
+   * An einer echten Jahresabrechnung abgelesen: Dynamik erscheint als Provisionsart „Erhöhung" auf Pflegetarifen mit Dynamik (PG…D), meist zum 01.10.
+   */
+  A.VORSCHLAG = { dynamik: 'Dynamik', anpassung: 'Dynamik oder Beitragsanpassung', mehr: 'Erhöhung (Mehrbeitrag)', vollneu: 'Vollversicherung neu (mit Pflegepflicht)', bkv: 'bKV-Anmeldung',
+    neu: 'Neugeschäft – Antrag fehlt im Buch?', wechsel: 'Mehrbeitrag oder Tarifwechsel', storno: 'Storno / Rückbuchung', minder: 'Reduzierung',
+    bestand: 'Laufende Bestandsprovision', ruecknahme: 'Kündigungsrücknahme', legacy: 'Korrektur aus dem Altsystem', manuell: 'Manuelle Buchung' };
+  A.vorschlagFuer = function (b) {
+    var zl = b.zeilen || [], arten = {}, alleNeu = true, pp = false, dynTarif = zl.length > 0, klein = zl.length > 0;
+    zl.forEach(function (z) {
+      arten[z.part] = 1;
+      if (Math.abs(z.mb - z.mbd) > 0.005) alleNeu = false;
+      if (M.istPflegepflicht(z.tarif)) pp = true;
+      if (!/^PG.*D$/i.test(String(z.tarif || '').trim())) dynTarif = false;
+      if (Math.abs(z.mbd) >= 5) klein = false;
+    });
+    var nur = function (x) { return Object.keys(arten).length === 1 && arten[x]; }, v = function (id, vorgang, sicher, extra) { return Object.assign({ id: id, text: A.VORSCHLAG[id], vorgang: vorgang, sicher: !!sicher }, extra || {}); };
+    if (nur('Bestand')) return v('bestand', '', true, { abhaken: true });
+    if (nur('Kündigungsrücknahme')) return v('ruecknahme', '', false, { abhaken: true });
+    if (nur('Legacy')) return v('legacy', '', false, { abhaken: true });
+    if (nur('Manuell')) return v('manuell', b.mbd < 0 ? 'minder' : 'mehr', false);
+    if (b.mbd < -0.005) return b.hatStorno ? v('storno', 'storno', false) : v('minder', 'minder', false);
+    if (nur('Erhöhung')) return dynTarif ? v('dynamik', 'dynamik', true) : klein ? v('anpassung', 'dynamik', false) : v('mehr', 'mehr', false);
+    if (arten.Abschluss && pp) return v('vollneu', 'neu', false, { bereich: 'voll', herkunft: 'neu' });
+    if (arten.Abschluss && b.tg === 'Firmentarife') return v('bkv', 'neu', false, { bereich: 'bkv' });
+    return alleNeu ? v('neu', 'neu', false) : v('wechsel', 'mehr', false);
+  };
+
+  A.antragAusBuendel = function (p, buendel, vorschlag) {
     var b0 = buendel[0], a = M.neuerAntrag();
     var name = String(b0.vnName || b0.vpName || '').trim(), teil = name.split(',');
     if (teil.length > 1) { a.vn.name = teil[0].trim(); a.vn.vorname = teil.slice(1).join(',').trim(); }
@@ -363,10 +391,13 @@
         pos.push(ps);
       });
     });
-    a.vorgang = mbd < 0 ? (st ? 'storno' : 'minder') : erh ? 'dynamik' : alleNeu ? 'neu' : 'mehr';
+    var vs = vorschlag || A.vorschlagFuer(b0);
+    a.vorgang = vs.vorgang || (mbd < 0 ? (st ? 'storno' : 'minder') : erh ? 'dynamik' : alleNeu ? 'neu' : 'mehr');
+    if (vs.bereich) a.bereich = vs.bereich;
+    a.herkunft = M.brauchtHerkunft(a) ? (vs.herkunft || '') : '';
     if (mbd < 0) pos.forEach(function (ps) { ps.beitrag = Math.abs(ps.beitrag); });
     a.positionen = pos;
-    a.bemerkung = 'Aus Abrechnung übernommen (' + U.monatName(b0.monat) + ')';
+    a.bemerkung = (a.vorgang === 'dynamik' ? 'Aus Dynamik' : 'Aus Abrechnung übernommen') + ' (' + U.monatName(b0.monat) + ')';
     a.historie = [{ status: 'eingereicht', datum: a.eingang, am: a.erstellt, quelle: 'manuell', notiz: 'aus Abrechnung übernommen' }];
     a.statusDatum = a.eingang;
     p.antraege.push(a);

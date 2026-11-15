@@ -121,7 +121,7 @@
       gespeichert = true; dlg.zu();
       App.geaendert();
       D.toast(neu ? 'Antrag gespeichert: ' + M.vnName(x) : 'Änderungen gespeichert.');
-      if (naechster) Mk.oeffne(null, { start: { eingang: x.eingang, bereich: x.bereich, vorgang: x.vorgang } });
+      if (naechster) Mk.oeffne(null, { start: { eingang: x.eingang, bereich: x.bereich, vorgang: x.vorgang, herkunft: x.herkunft } });
     }
 
     var gespeichert = false;

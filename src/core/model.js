@@ -59,7 +59,7 @@
     return {
       vermittlernummer: '', name: '',
       toleranzBeitrag: 0.05, toleranzProvision: 0.5, pruefeProvision: true,
-      offenTage: 60, stornoSchwelle: 90, grundverguetung: { stufe: '', betrag: null, tabelle: { '1+2': null, '3': null, '4': null, '5': null, '6': null } },
+      offenTage: 60, stornoSchwelle: 90, grundverguetung: { stufe: '', betrag: null, tabelle: {} },
       provisionsarten: ['Abschluss', 'Erhöhung', 'Manuell', 'Bestand', 'Kündigungsrücknahme'], artenStand: 2,
       sla: M.standardSla(), abrechnungTag: 6
     };
@@ -161,10 +161,11 @@
    */
   M.grundverguetung = function (p, monat, heute) {
     var g = (p.einstellungen && p.einstellungen.grundverguetung) || {}, tab = g.tabelle || {};
-    var ausStufe = +tab[g.stufe] || 0, hand = g.betrag != null && g.betrag !== '' && !isNaN(+g.betrag);
+    var ks = M.KARRIERE.find(function (x) { return x.id === g.stufe; });
+    var ausStufe = tab[g.stufe] != null && tab[g.stufe] !== '' ? +tab[g.stufe] || 0 : ks ? ks.fixum : 0, hand = g.betrag != null && g.betrag !== '' && !isNaN(+g.betrag);
     var je = hand ? +g.betrag : ausStufe, h = heute || U.heute(), hj = +h.slice(0, 4), jahr = +p.jahr;
     var monate = monat != null ? 1 : jahr < hj ? 12 : jahr > hj ? 0 : +h.slice(5, 7);
-    return { stufe: g.stufe || '', jeMonat: U.runde(je), ausStufe: U.runde(ausStufe), manuell: hand, monate: monate, summe: U.runde(je * monate), gesetzt: je > 0 };
+    return { stufe: ks ? ks.id : '', kurz: ks ? ks.kurz : '', jeMonat: U.runde(je), ausStufe: U.runde(ausStufe), manuell: hand, monate: monate, summe: U.runde(je * monate), gesetzt: je > 0 };
   };
 
   /**
@@ -172,7 +173,16 @@
    * Für den Bonus zählen nur neue Personen: komplett neu abgeschlossene Vollversicherung (mit Pflegepflicht), auch neugeborene Kinder;
    * in der bKV Personen, die bisher nicht versichert waren. Veränderungen im Bestand zählen nicht.
    */
-  M.HERKUNFT = { neu: 'Neuversicherung – neue Person', bestand: 'aus Bestand – Veränderung' };
+  M.HERKUNFT = { neu: 'Neuversicherung – neue Person', kind: 'Kindernachversicherung – neue Person', bestand: 'aus Bestand – Veränderung' };
+  /** Karrieresystem „Gesundprofi im Außendienst": Stufe, Fixum je Monat, Wertung, Monatsbeiträge Provision im freien Geschäft. */
+  M.KARRIERE = [
+    { id: '1', kurz: 'BV1', name: 'Bezirksvertreter 1', fixum: 1500, wertung: 'bis 6.000', mb: 4, bonus: '1+2' },
+    { id: '2', kurz: 'BV2', name: 'Bezirksvertreter 2', fixum: 2000, wertung: '6.000', mb: 5, bonus: '1+2' },
+    { id: '3', kurz: 'HV', name: 'Hauptvertreter', fixum: 2250, wertung: '9.000', mb: 5.5, bonus: '3' },
+    { id: '4', kurz: 'GV', name: 'Generalvertreter', fixum: 2750, wertung: '12.000', mb: 6, bonus: '4' },
+    { id: '5', kurz: 'GL', name: 'Gebietsleiter', fixum: 3300, wertung: '15.000', mb: 7, bonus: '5' },
+    { id: '6', kurz: 'GD', name: 'Gebietsdirektor', fixum: 4400, wertung: '20.000', mb: 7, bonus: '6' }
+  ];
   M.brauchtHerkunft = function (a) { return a.vorgang === 'neu' && (a.bereich === 'voll' || a.bereich === 'bkv'); };
   M.istPflegepflicht = function (tarif) { var e = tarif ? AB.tarif.einordnen(tarif) : null; return !!(e && e.kategorie === 'Pflegepflicht'); };
 

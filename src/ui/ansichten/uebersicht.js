@@ -44,13 +44,13 @@
       var gv = M.grundverguetung(p, mon);
       el.appendChild(h('div.raster.r-4', null,
         kachel('Anträge ' + titel, k.antraege, ganz, mon == null ? 'Ø ' + U.fmtZahl(kz.schnitt.antraege, 1) + ' je Monat' : 'Jahr: ' + kz.jahr.antraege, { akzent: true, i: 0, funke: mon == null ? verlauf('antraege') : null, klick: function () { App.zeige('antraege', { monat: mon == null ? '' : String(mon), status: '', spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '', beihilfe: z.beihilfe || '' }); } }),
-        kachel('Brutto · eingetragen', k.brutto, euro0, 'alle erfassten Anträge' + (mon == null ? ' · Ø ' + U.fmtEuro0(kz.schnitt.brutto) : ''), { einheit: '€', i: 1 }),
+        kachel('Brutto · eingetragen', k.brutto, euro0, k.dynamikAnz ? 'davon aus Dynamik ' + U.fmtEuro0(k.dynamik) + ' (' + U.fmtZahl(k.brutto ? k.dynamik / k.brutto * 100 : 0, 0) + ' %)' : 'alle erfassten Anträge' + (mon == null ? ' · Ø ' + U.fmtEuro0(kz.schnitt.brutto) : ''), { einheit: '€', i: 1 }),
         kachel('Voraussichtlich netto · policiert', k.voraussichtlich, euro0, k.policiertAnz + ' policiert, noch nicht abgerechnet (' + U.fmtEuro0(k.policiert) + ')', { einheit: '€', punkt: 'var(--s3)', i: 2 }),
         kachel('Netto · abgerechnet', k.abgerechnet, euro0, k.abgerechnetAnz + (k.abgerechnetAnz === 1 ? ' Antrag' : ' Anträge') + ' in der Abrechnung', { einheit: '€', punkt: 'var(--good)', i: 3 }),
         kachel('Offen', k.offenAnz, ganz, U.fmtEuro(k.offen) + ' unterwegs · ' + kz.jahr.ampel.rot + ' rot, ' + kz.jahr.ampel.gelb + ' gelb', { punkt: 'var(--s6)', i: 2, klick: function () { App.zeige('antraege', { status: 'offen', monat: mon == null ? '' : String(mon), spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '' }); } }),
         kachel('Storno', k.stornoAnz, ganz, U.fmtEuro(k.storno) + ' · Quote ' + U.fmtZahl(k.stornoQuote * 100, 1) + ' %', { punkt: 'var(--crit)', i: 4 }),
         kachel('Provision Ist', k.provIst, euro0, 'Soll ' + U.fmtEuro(k.provSoll), { einheit: '€', i: 5 }),
-        kachel('Auszahlung gesamt', gv.summe + k.provIst, euro0, gv.gesetzt ? 'Grundvergütung ' + U.fmtEuro0(gv.jeMonat) + (gv.monate === 1 ? '' : ' × ' + gv.monate + ' Monate') + ' + Provision ' + U.fmtEuro0(k.provIst) : 'Grundvergütung noch nicht hinterlegt – hier klicken', { einheit: '€', punkt: 'var(--s1)', i: 6, klick: function () { App.zeige('einstellungen'); } })));
+        kachel('Auszahlung abgerechneter Fälle', gv.summe + k.provIst, euro0, (gv.gesetzt ? 'Fixum ' + U.fmtEuro0(gv.jeMonat) + (gv.monate === 1 ? '' : ' × ' + gv.monate) + ' + abgerechnete Provision ' + U.fmtEuro0(k.provIst) : 'Karrierestufe in den Einstellungen wählen – hier klicken') + (k.provOffen > 0.005 ? ' · voraussichtlich noch ' + U.fmtEuro0(k.provOffen) + ' aus offenen Anträgen' : ''), { einheit: '€', punkt: 'var(--s1)', i: 6, klick: function () { App.zeige('einstellungen'); } })));
 
       // Diagramme
       var dBalken = h('div'), dRing = h('div'), dLinie = h('div'), dQuer = h('div');
@@ -81,7 +81,9 @@
             { name: 'Eingereicht/Reklamiert', farbe: G.FARBEN[1], werte: ms.map(function (m) { return m.offenAnz - m.policiertAnz; }) },
             { name: 'Storno', farbe: G.FARBEN[4], werte: ms.map(function (m) { return m.stornoAnz; }) },
             { name: 'Abgelehnt/Widerruf/Absage', farbe: G.FARBEN[3], werte: ms.map(function (m) { return m.abgewiesenAnz; }) }] });
-        var bereiche = M.BEREICHE.map(function (b, i) { return { name: b.kurz, wert: k.bereiche[b.id].beitrag, stueck: k.bereiche[b.id].stueck, i: i, farbe: G.bereichFarbe(b.id) }; });
+        var pname = { pflegepflicht: 'Pflegepflicht (in Voll)', pflegezusatz: 'Pflegezusatz' };
+        var bereiche = Object.keys(k.produkt).map(function (id) { return { name: pname[id] || (M.bereich[id] ? M.bereich[id].kurz : id), wert: k.produkt[id].beitrag, stueck: k.produkt[id].stueck, farbe: G.bereichFarbe(id) }; });
+        if (!bereiche.length) bereiche = M.BEREICHE.map(function (b, i) { return { name: b.kurz, wert: k.bereiche[b.id].beitrag, stueck: k.bereiche[b.id].stueck, i: i, farbe: G.bereichFarbe(b.id) }; });
         if (z.ring === 'kategorie') bereiche = Object.keys(k.kategorien).map(function (n) { return { name: n, wert: k.kategorien[n].beitrag, stueck: k.kategorien[n].stueck }; });
         var top = bereiche.filter(function (b) { return b.wert > 0; }).sort(function (a, b) { return b.wert - a.wert; });
         G.ring(dRing, { titel: 'Beitrag nach Bereich', format: U.fmtEuro, mitte: { wert: U.fmtEuro0(k.brutto + k.minder), label: 'Beitrag' },

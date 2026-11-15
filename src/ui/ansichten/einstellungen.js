@@ -42,14 +42,17 @@
       var gv = e.grundverguetung, gvStand = AB.model.grundverguetung(p, 0); if (!gv.tabelle) gv.tabelle = {};
       var leerZahl = function (wert, setze, ph) { var i = h('input', { type: 'text', inputMode: 'decimal', value: wert == null || wert === '' ? '' : U.fmtZahl(+wert, 2), placeholder: ph || '', style: { textAlign: 'right' }, onchange: function () {
         var v = i.value.trim() === '' ? null : U.parseZahl(i.value); if (v != null && (isNaN(v) || v < 0)) { i.classList.add('fehler'); return; } setze(v); App.geaendert(); } }); return i; };
-      el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Grundvergütung'), h('span.frei'), h('span.marke-s' + (gvStand.gesetzt ? '.gut' : ''), null, gvStand.gesetzt ? U.fmtEuro(gvStand.jeMonat) + ' je Monat' + (gvStand.manuell ? ' (von Hand)' : '') : 'nicht hinterlegt')),
-        h('div.unter', null, 'Monatliche Grundvergütung nach dem Karrierestufensystem. Sie erscheint in der Übersicht zusammen mit der Provision als „Auszahlung gesamt".'),
+      var KS = AB.model.KARRIERE;
+      el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Karrierestufe und Grundvergütung'), h('span.frei'), h('span.marke-s' + (gvStand.gesetzt ? '.gut' : ''), null, gvStand.gesetzt ? (gvStand.kurz ? gvStand.kurz + ' · ' : '') + U.fmtEuro(gvStand.jeMonat) + ' je Monat' + (gvStand.manuell ? ' (von Hand)' : '') : 'nicht gewählt')),
+        h('div.unter', null, 'Karrieresystem „Gesundprofi im Außendienst". Das Fixum erscheint in der Übersicht zusammen mit der abgerechneten Provision.'),
         h('div.formraster', { style: { marginTop: '10px' } },
-          D.feld('Meine Karrierestufe', D.auswahl([['', '– bitte wählen –']].concat(AB.bonus.STUFEN.map(function (s) { return [s.id, s.name]; })), gv.stufe || '', function (v) { gv.stufe = v; App.geaendert(); }), 's4'),
-          D.feld('Abweichender Betrag je Monat (€)', leerZahl(gv.betrag, function (v) { gv.betrag = v; }, 'leer = laut Stufe'), 's4'),
-          h('div.feld.s12', null, h('span', null, 'Betrag je Monat nach Stufe (€)'), h('div.formraster', null, AB.bonus.STUFEN.map(function (s) {
-            return D.feld(s.name, leerZahl(gv.tabelle[s.id], function (v) { gv.tabelle[s.id] = v; }), 's2'); })))),
-        h('p.mini', { style: { marginTop: '8px' } }, 'Die Beträge je Stufe sind noch nicht vorbelegt, weil die Vergütungstabelle nicht vorliegt. Tragen Sie Ihren Betrag bei Ihrer Stufe ein oder überschreiben Sie ihn im Feld „Abweichender Betrag".')));
+          D.feld('Meine Karrierestufe', D.auswahl([['', '– bitte wählen –']].concat(KS.map(function (s) { return [s.id, 'Stufe ' + s.id + ' · ' + s.kurz + ' · ' + s.name]; })), gv.stufe || '', function (v) {
+            gv.stufe = v; var ks = KS.find(function (x) { return x.id === v; }); if (ks && p.bonus) p.bonus.stufe = ks.bonus; App.geaendert(); }), 's5'),
+          D.feld('Abweichendes Fixum je Monat (€)', leerZahl(gv.betrag, function (v) { gv.betrag = v; }, 'leer = laut Stufe'), 's4')),
+        h('div', { style: { overflowX: 'auto', marginTop: '10px' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Stufe', 'Bezeichnung', 'Fixum je Monat', 'Wertung', 'Provision freies Geschäft'].map(function (t, i) { return h('th', { style: i >= 2 ? { textAlign: 'right' } : null }, t); }))),
+          h('tbody', null, KS.map(function (s) { return h('tr', gv.stufe === s.id ? { style: { fontWeight: 700, background: 'var(--accent-soft)' } } : null, h('td', null, s.id + ' · ' + s.kurz), h('td', null, s.name),
+            h('td', { style: { textAlign: 'right', width: '150px' } }, leerZahl(gv.tabelle[s.id], function (v) { gv.tabelle[s.id] = v; }, U.fmtZahl(s.fixum, 0))), h('td.num', { style: { textAlign: 'right' } }, s.wertung), h('td.num', { style: { textAlign: 'right' } }, U.fmtZahl(s.mb, 1) + ' MB')); })))),
+        h('p.mini', { style: { marginTop: '8px' } }, 'Die Beträge stammen aus dem Karrieresystem der SDK und lassen sich je Stufe überschreiben. Bei Geschäft über die Bestands-Bank gilt die Provision des freien Geschäfts abzüglich 1 MB, bei aktiver Bank 3 MB. Die gewählte Stufe wird auch für den Bonus-Rechner übernommen.')));
       el.appendChild(h('div.karte', null, h('h3', null, 'Bearbeitungsampel (Service-Level)'),
         h('div.unter', null, 'Werktage seit Einreichung, bis ein noch nicht policierter Antrag gelb bzw. rot wird. Wochenenden und bundesweite Feiertage zählen nicht. Eine offene Nachbearbeitung ist immer rot.'),
         h('div.raster.r-2', null, h('table.einfach', null, h('thead', null, h('tr', null, ['Bereich', 'Gelb ab Werktag', 'Rot ab Werktag'].map(function (t) { return h('th', null, t); }))), slaTb),

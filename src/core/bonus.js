@@ -96,6 +96,7 @@
       // Ohne Pflegepflicht-Tarif zählt die Angabe des ADP; fehlt sie (ältere Einträge), wird nichts gezählt und der Eintrag markiert.
       var herk = M.brauchtHerkunft(a) ? (a.herkunft || '') : '', ohneAngabe = M.brauchtHerkunft(a) && !herk;
       if (herk === 'bestand') { voll = {}; bkv = {}; }
+      else if (herk === 'kind') { /* Kindernachversicherung: jede Person zählt als neue Person, auch ohne Pflegepflicht */ }
       else if (a.bereich === 'voll' || Object.keys(voll).length) { if (hatPp) voll = vollPp; else if (herk !== 'neu') voll = {}; }
       if (ohneAngabe && a.bereich === 'bkv') bkv = {};
       var x = { id: a.id, herkunft: herk, ohneAngabe: ohneAngabe && !hatPp, nr: a.nr || '', vnr: a.vertragsnummer || '', tarife: M.tarife(a), personen: a.positionen.map(function (ps) { return ps.person; }).filter(function (v, i, l) { return v && l.indexOf(v) === i; }).join('; '), name: vn, eingang: a.eingang, beginn: a.beginn || '', bereich: a.bereich, vorgang: a.vorgang, zustand: zustand, gebuchtAm: bdat, policiertAm: pdat, abgerechnet: !!bdat,

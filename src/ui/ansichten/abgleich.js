@@ -2,7 +2,7 @@
 (function (AB) {
   'use strict';
   var D = AB.dom, h = D.h, U = AB.util, M = AB.model, App = AB.app;
-  var REITER = [['gleich', 'Gleich'], ['abweichung', 'Abweichung'], ['offen', 'Offen'], ['neu', 'Buchung ohne Eintrag'], ['storno', 'Storno']];
+  var REITER = [['gleich', 'Gleich'], ['abweichung', 'Abweichung'], ['offen', 'Offen'], ['neu', 'Abgerechnet ohne Antrag'], ['storno', 'Storno']];
 
   /** Einzelbuchungen eines oder mehrerer Bündel anzeigen. */
   AB.zeigeBuchungen = function (titel, buendel) {
@@ -148,7 +148,7 @@
         tab.spaltenDruck = spo.slice(0, 7).map(function (s, i) { return { t: s.t, r: s.r, d: s.d || (i === 0 ? function (r) { return M.vnName(r.antrag) + ' (' + M.tarife(r.antrag) + ')'; } : function (r) { var v = s.w(r); return typeof v === 'string' ? v : ''; }) }; });
       } else if (liste === 'neu') {
         if (!z.wahl) z.wahl = new Set();
-        var sichtbar = function () { return erg.neu.filter(function (b) { return (!mon || b.monat === mon) && (z.abgehakte || !b.ignoriert) && (!z.nurNeu || b.neu); }); };
+        var sichtbar = function () { return erg.neu.filter(function (b) { return (!mon || b.monat === mon) && (z.abgehakte || !b.ignoriert) && (!z.nurNeu || b.neu) && (!z.vorschlag || (z.vorschlag === 'unklar' ? !b.vorschlag.sicher : b.vorschlag.id === z.vorschlag)); }); };
         var hake = function (bs, an) { bs.forEach(function (b) { if (an) p.ignoriert[b.key] = { am: U.heute() }; else delete p.ignoriert[b.key]; }); z.wahl.clear(); App.geaendert(); };
         var zn = sichtbar(), wahlBtn = D.btn('Ausgewählte abhaken', function () { hake(zn.filter(function (b) { return z.wahl.has(b.key); }), true); }, { icon: 'haken', aus: !z.wahl.size });
         var alle = h('input', { type: 'checkbox', title: 'Alle angezeigten auswählen', onchange: function () { z.wahl.clear(); if (alle.checked) tab.zeilen().forEach(function (b) { if (!b.ignoriert) z.wahl.add(b.key); }); wahlBtn.disabled = !z.wahl.size; tab.zeichne(); } });
@@ -159,17 +159,27 @@
           { t: 'Tarifgruppe · Tarife', b: 'minmax(140px, 1.2fr)', k: 'zwei', w: function (b) { return [h('span', null, b.tarife.join(', ')), h('small', null, b.tg)]; }, s: function (b) { return b.tg; }, d: function (b) { return b.tarife.join(', '); } },
           { t: 'Beitragsdiff.', b: '104px', r: true, w: function (b) { return AB.geld(b.mbd, true); }, s: function (b) { return b.mbd; }, d: function (b) { return U.fmtEuro(b.mbd); } },
           { t: 'Provision', b: '100px', r: true, w: function (b) { return AB.geld(b.prov, true); }, s: function (b) { return b.prov; }, d: function (b) { return U.fmtEuro(b.prov); } },
-          { t: 'Art', b: '104px', w: function (b) { return b.arten.join(', ') + (b.hatStorno ? ' · X' : ''); }, s: function (b) { return b.arten.join(); }, d: function (b) { return b.arten.join(', '); } },
+          { t: 'Vorschlag', b: 'minmax(250px, 1.3fr)', k: 'zwei', w: function (b) { return [h('span', null, h('span.marke-s' + (b.vorschlag.sicher ? '.gut' : ''), { title: b.vorschlag.sicher ? 'Eindeutig – kann gesammelt übernommen werden' : 'Vorschlag – bitte prüfen' }, b.vorschlag.text)), h('small', null, b.arten.join(', ') + (b.hatStorno ? ' · Storno (X)' : ''))]; }, s: function (b) { return b.vorschlag.text; }, d: function (b) { return b.vorschlag.text + ' (' + b.arten.join(', ') + ')'; } },
           { t: '', b: '222px', w: function (b) { return b.ignoriert ? D.btn('Wieder aufnehmen', function () { hake([b], false); }, { klasse: 'klein-btn leise' }) : [
-            D.btn('Antrag', function () { var a = AB.abgleich.antragAusBuendel(p, [b]); App.geaendert(); D.toast('Antrag angelegt: ' + M.vnName(a) + '.', { aktion: ['Öffnen', function () { AB.maske.oeffne(a); }] }); }, { klasse: 'klein-btn', titel: 'Als Antrag übernehmen' }),
+            D.btn('Antrag', function () { if (App.gesperrt()) return; var a = AB.abgleich.antragAusBuendel(p, [b]); App.geaendert(); D.toast('Antrag angelegt: ' + M.vnName(a) + ' (' + M.name('vorgang', a.vorgang) + ').', { aktion: ['Öffnen', function () { AB.maske.oeffne(a); }] }); }, { klasse: 'klein-btn', titel: 'Als Antrag ins Antragsbuch übernehmen – Vorschlag: ' + b.vorschlag.text + '. Der Antrag lässt sich danach ändern.' }),
             D.btn('Zuordnen', function () { waehleAntrag([b]); }, { klasse: 'klein-btn', titel: 'Einem vorhandenen Antrag zuordnen' }),
             D.btn('', function () { hake([b], true); }, { klasse: 'klein-btn leise', icon: 'haken', titel: 'Kein Antrag nötig – abhaken' })]; }, d: function () { return ''; } }];
         var schalter = function (text, feld) { return h('label.schalter.klein', null, h('input', { type: 'checkbox', checked: !!z[feld], onchange: function () { z[feld] = this.checked; App.zeige('abgleich'); } }), text); };
-        D.anhaengen(werkzeug, [wahlBtn, D.btn('Alle abhaken', function () { var l = tab.zeilen().filter(function (b) { return !b.ignoriert; }); if (l.length) D.frage(l.length + ' Buchungen abhaken?', 'Alle angezeigten Buchungen werden als „kein Antrag nötig" markiert. Das lässt sich jederzeit rückgängig machen.', 'Abhaken').then(function (ja) { if (ja) hake(l, true); }); }, { klasse: 'leise' }),
+        var dyn = erg.neu.filter(function (b) { return !b.ignoriert && b.vorschlag.sicher && b.vorschlag.id === 'dynamik' && (!mon || b.monat === mon); });
+        var dynBtn = dyn.length ? D.btn('Dynamik übernehmen (' + dyn.length + ')', function () {
+          var sum = 0; dyn.forEach(function (b) { sum += b.mbd; });
+          D.frage(dyn.length + ' Dynamik-Erhöhungen übernehmen?', 'Für jede wird ein Antrag mit der Vorgangsart „Dynamik" angelegt und der Abrechnung zugeordnet (zusammen ' + U.fmtEuro(sum) + ' Beitrag). Vorher wird ein Sicherungsstand angelegt; die Anträge lassen sich danach ändern oder löschen.', 'Übernehmen').then(function (ja) {
+            if (!ja || App.gesperrt()) return; M.sichere(p, 'Vor Übernahme von ' + dyn.length + ' Dynamik-Erhöhungen');
+            dyn.forEach(function (b) { AB.abgleich.antragAusBuendel(p, [b]); }); App.geaendert(); D.toast(dyn.length + ' Anträge aus Dynamik angelegt.'); });
+        }, { klasse: 'haupt-btn', titel: 'Eindeutige Dynamik-Erhöhungen (Pflegetarife mit Dynamik) in einem Schritt als Anträge übernehmen' }) : null;
+        var vsWahl = D.auswahl([['', 'Alle Vorschläge'], ['unklar', 'Nur zu prüfende']].concat(Object.keys(AB.abgleich.VORSCHLAG).filter(function (id) { return erg.neu.some(function (b) { return b.vorschlag.id === id; }); }).map(function (id) { return [id, AB.abgleich.VORSCHLAG[id]]; })), z.vorschlag || '', function (v) { z.vorschlag = v; App.zeige('abgleich'); }, { style: { width: '230px' }, title: 'Nach Vorschlag filtern' });
+        var best = erg.neu.filter(function (b) { return !b.ignoriert && b.vorschlag.id === 'bestand' && (!mon || b.monat === mon); });
+        var bestBtn = best.length ? D.btn('Bestandsprovision abhaken (' + best.length + ')', function () { hake(best, true); D.toast(best.length + ' Zeilen laufende Bestandsprovision abgehakt – dafür ist kein Antrag nötig.'); }, { titel: 'Laufende Bestandsprovision (Provisionsart „Bestand") braucht keinen Antrag' }) : null;
+        D.anhaengen(werkzeug, [dynBtn, bestBtn, vsWahl, wahlBtn, D.btn('Alle abhaken', function () { var l = tab.zeilen().filter(function (b) { return !b.ignoriert; }); if (l.length) D.frage(l.length + ' Buchungen abhaken?', 'Alle angezeigten Buchungen werden als „kein Antrag nötig" markiert. Das lässt sich jederzeit rückgängig machen.', 'Abhaken').then(function (ja) { if (ja) hake(l, true); }); }, { klasse: 'leise' }),
           schalter('Nur neue', 'nurNeu'), schalter('Abgehakte anzeigen', 'abgehakte'), h('span.frei'), artChips, exportBtn()]);
         tab = AB.tabelle(box, { zeilen: zn, spalten: spn, hoehe: 50, sort: { i: 1, ab: true }, klasse: function (b) { return b.ignoriert ? '.blass' : ''; },
-          klick: function (b) { AB.zeigeBuchungen('Buchung ' + b.vnr + ' · ' + U.monatName(b.monat), [b]); }, leer: 'Keine Buchungen ohne Eintrag im Antragsbuch.',
-          fuss: function (l) { var a = 0, b2 = 0; l.forEach(function (x) { a += x.mbd; b2 += x.prov; }); return ['', l.length + ' Buch.', '', '', U.fmtEuro(a), U.fmtEuro(b2), '', '']; } });
+          klick: function (b) { AB.zeigeBuchungen('Buchung ' + b.vnr + ' · ' + U.monatName(b.monat), [b]); }, leer: 'Nichts abgerechnet, wozu der Antrag im Antragsbuch fehlt.',
+          fuss: function (l) { var a = 0, b2 = 0; l.forEach(function (x) { a += x.mbd; b2 += x.prov; }); return ['', l.length + ' Pos.', '', '', U.fmtEuro(a), U.fmtEuro(b2), '', '']; } });
         tab.spaltenDruck = spn.slice(1, 7).map(function (s) { return { t: s.t, r: s.r, d: s.d }; });
       } else {
         var zs = erg.storno.filter(function (r) { return !mon || (r.stDatum || '').slice(0, 7) === mon; });

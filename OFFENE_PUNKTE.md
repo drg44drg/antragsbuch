@@ -69,7 +69,18 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D0000 · Erledigt (Version 2.3)
+## D0000 · Erledigt (Version 2.4)
+
+Liste „Abgerechnet ohne Antrag" mit Vorschlag je Zeile (Dynamik, Bestandsprovision, bKV-Anmeldung, Voll neu, Erhöhung, Storno …) · Sammelübernahme eindeutiger Dynamik ·
+Bestandsprovision in einem Schritt abhaken · Filter „Nur zu prüfende" · Karrieresystem mit sechs Stufen (BV1, BV2, HV, GV, GL, GD) und Fixum ·
+Kachel „Auszahlung abgerechneter Fälle" (Fixum + abgerechnete Provision, offene Provision getrennt) · Kindernachversicherung als eigene Auswahl ·
+„Neu oder Bestand" wird bei „Speichern & nächster" übernommen · Pflegepflicht rot (Teil der Voll), Pflegezusatz orange · Anteil Dynamik in der Übersicht.
+
+Begriff festgelegt: „Antrag" = Zeile im Antragsbuch, kein PDF (steht in Hilfe und Tour).
+Offen dazu: Storno-Schwelle 90 % ist eine Annahme – mit den Provisionsrichtlinien prüfen · Provisionsfaktoren der Regeln aus der Karrierestufe ableiten (4 bis 7 MB, Bank −1 MB / 3 MB) ·
+genaue SDK-Produktfarben aus dem Ordner übernehmen · Ordner „Chancenrechner" war nicht erreichbar.
+
+## Erledigt (Version 2.3)
 
 Pflichtangabe „Neu oder Bestand" bei Neugeschäft Voll und bKV · Zählregel neue Personen KV-Voll: komplett neu abgeschlossen (mit Pflegepflicht),
 auch neugeborene Kinder; Veränderungen im Bestand zählen nicht · Gegenprobe aus der Abrechnung (neu abgeschlossene Pflegepflicht; an 2025 geprüft: 3 = Reporting) ·

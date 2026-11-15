@@ -4,8 +4,8 @@
   var D = AB.dom, U = AB.util, G = AB.dia = {};
   G.FARBEN = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)'];
   G.GRAU = 'var(--s0)';
-  // Produktfarben der SDK: Voll grün, Zusatz lila, Leben blau, bKV grau, Pflege(zusatz) orange
-  G.BEREICH = { voll: 'var(--s3)', zusatz: 'var(--s1)', leben: 'var(--s6)', bkv: 'var(--p-grau)', pflege: 'var(--s2)', gruppe: 'var(--s5)', unfall: 'var(--s4)', gkv: 'var(--p-tuerkis)' };
+  // Produktfarben der SDK: Voll grün, Pflegepflicht rot (gehört zur Voll), Zusatz lila, Pflegezusatz orange, Leben blau, bKV grau
+  G.BEREICH = { voll: 'var(--s3)', zusatz: 'var(--s1)', leben: 'var(--s6)', bkv: 'var(--p-grau)', pflege: 'var(--crit)', pflegepflicht: 'var(--crit)', pflegezusatz: 'var(--s2)', gruppe: 'var(--s5)', unfall: 'var(--s4)', gkv: 'var(--p-tuerkis)' };
   G.bereichFarbe = function (id) { return G.BEREICH[id] || G.GRAU; };
 
   function schritte(min, max, n) {

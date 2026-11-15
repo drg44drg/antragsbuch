@@ -6,7 +6,7 @@
   function leer() {
     var o = { antraege: 0, brutto: 0, minder: 0, storno: 0, stornoAnz: 0, netto: 0, offen: 0, offenAnz: 0,
       policiertAnz: 0, abgerechnetAnz: 0, abgerechnet: 0, abgewiesenAnz: 0, eingereichtAnz: 0, reklamiertAnz: 0,
-      policiert: 0, voraussichtlich: 0, provSoll: 0, provIst: 0, provBuchung: 0, bereiche: {}, vorgaenge: {}, status: {}, kategorien: {}, beihilfeAnz: 0, beihilfe: 0 };
+      policiert: 0, voraussichtlich: 0, dynamik: 0, dynamikAnz: 0, provOffen: 0, produkt: {}, provSoll: 0, provIst: 0, provBuchung: 0, bereiche: {}, vorgaenge: {}, status: {}, kategorien: {}, beihilfeAnz: 0, beihilfe: 0 };
     M.BEREICHE.forEach(function (b) { o.bereiche[b.id] = { stueck: 0, beitrag: 0 }; });
     return o;
   }
@@ -17,6 +17,7 @@
     o.vorgaenge[a.vorgang] = (o.vorgaenge[a.vorgang] || 0) + 1;
     if (abgewiesen) { o.abgewiesenAnz++; return; }
     if (b >= 0) o.brutto += b; else o.minder += b;
+    if (a.vorgang === 'dynamik') { o.dynamik += b; o.dynamikAnz++; }
     if (a.status === 'storno') { o.storno += Math.abs(b); o.stornoAnz++; }
     if (M.istOffen(a)) { o.offen += b; o.offenAnz++; }
     if (a.status === 'eingereicht') o.eingereichtAnz++;
@@ -31,11 +32,15 @@
       var e = AB.tarif.einordnen(ps.tarif), k = e.kategorie ? (e.beihilfe ? 'Beihilfe · ' : '') + e.kategorie : M.bereich[ps.bereich || a.bereich].kurz + ' (ohne Kategorie)';
       var kk = o.kategorien[k] || (o.kategorien[k] = { stueck: 0, beitrag: 0 }), pb = M.vorzeichen(a, +ps.beitrag || 0);
       kk.stueck++; kk.beitrag += pb;
+      // Produktblock: Pflegepflicht (gehört zur Voll, eigene Farbe) und Pflegezusatz getrennt ausweisen
+      var pid = e.kategorie === 'Pflegepflicht' ? 'pflegepflicht' : e.kategorie === 'Pflegezusatz' ? 'pflegezusatz' : (ps.bereich || a.bereich) === 'pflege' ? 'pflegepflicht' : (ps.bereich || a.bereich);
+      var pk = o.produkt[pid] || (o.produkt[pid] = { stueck: 0, beitrag: 0 }); pk.stueck++; pk.beitrag += pb;
       if (e.beihilfe) { hatBeihilfe = true; o.beihilfe += pb; }
     });
     if (hatBeihilfe) o.beihilfeAnz++;
     if (r) {
       if (a.status !== 'storno') o.provSoll += r.soll.laufend && r.sollPGesamt != null ? r.sollPGesamt : r.sollP;
+      if (M.istOffen(a)) o.provOffen += r.soll.laufend && r.sollPGesamt != null ? r.sollPGesamt : r.sollP;
       o.provIst += r.istP + (r.stP || 0);
     }
   }
@@ -43,7 +48,7 @@
     o.netto = o.brutto + o.minder - o.storno;
     // Brutto = eingetragen · voraussichtlich netto = policiert + abgerechnet · netto = abgerechnet
     o.voraussichtlich = o.policiert + o.abgerechnet;
-    ['policiert', 'voraussichtlich', 'brutto', 'minder', 'storno', 'netto', 'offen', 'abgerechnet', 'provSoll', 'provIst', 'provBuchung'].forEach(function (k) { o[k] = U.runde(o[k]); });
+    ['policiert', 'voraussichtlich', 'dynamik', 'provOffen', 'brutto', 'minder', 'storno', 'netto', 'offen', 'abgerechnet', 'provSoll', 'provIst', 'provBuchung'].forEach(function (k) { o[k] = U.runde(o[k]); });
     o.stornoQuote = (o.abgerechnetAnz + o.stornoAnz) ? o.stornoAnz / (o.abgerechnetAnz + o.stornoAnz) : 0;
     return o;
   }
@@ -93,7 +98,7 @@
       if (erg.offen.length) h.push({ art: 'warn', text: erg.offen.length + ' seit ' + p.einstellungen.offenTage + ' Tagen offen', ziel: 'abgleich', filter: 'offen' });
       if (erg.abweichung.length) h.push({ art: 'krit', text: erg.abweichung.length + (erg.abweichung.length === 1 ? ' Abweichung' : ' Abweichungen') + ' zur Abrechnung', ziel: 'abgleich', filter: 'abweichung' });
       if (erg.vorschlaege.length) h.push({ art: 'info', text: erg.vorschlaege.length + (erg.vorschlaege.length === 1 ? ' Zuordnungsvorschlag' : ' Zuordnungsvorschläge') + ' zu bestätigen', ziel: 'abgleich', filter: 'offen' });
-      if (neuOffen) h.push({ art: 'info', text: neuOffen + (neuOffen === 1 ? ' Buchung' : ' Buchungen') + ' ohne Eintrag im Antragsbuch', ziel: 'abgleich', filter: 'neu' });
+      if (neuOffen) h.push({ art: 'info', text: neuOffen + ' × abgerechnet ohne Antrag im Antragsbuch', ziel: 'abgleich', filter: 'neu' });
       var rk = p.antraege.filter(M.reklaOffen).length;
       if (rk) h.push({ art: 'info', text: rk + (rk === 1 ? ' Reklamation' : ' Reklamationen') + ' offen', ziel: 'antraege', filter: 'rekla' });
       var st = erg.storno.length;
