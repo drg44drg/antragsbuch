@@ -475,3 +475,30 @@ test('Beitragsentlastung immer als BE/<Stufe>; Kindernachversicherung nur in der
   const k = Object.assign(M.neuerAntrag(), { bereich: 'bkv', vorgang: 'neu', herkunft: 'kind', vn: { name: 'Firma', vorname: '' } }); k.positionen[0].tarif = 'BFRO'; k.positionen[0].beitrag = 20;
   assert.match(M.pruefeAntrag(k)[0].text, /nur in der Vollversicherung/);
 });
+
+test('Leben (Stuttgarter): Produktsuche mit Teilwort und *, Provision nach Linie, Tarifgruppe und Laufzeit', () => {
+  const L = AB.leben, ids = (q) => L.suche(q).map((p) => p.id);
+  assert.equal(L.PRODUKTE.length, 20);
+  assert.deepEqual(ids('bu'), ['T95', 'T91', 'T91A'], 'Gruppe BU: Grundschutz+, BU-Plus, BU premium'); assert.deepEqual(ids('*91'), ['T91', 'T91A']); assert.deepEqual(ids('prem'), ['T91A']);
+  assert.deepEqual(ids('riester perf'), ['T75P']); assert.deepEqual(ids('risiko fall'), ['T21']); assert.ok(ids('*9').includes('T95') && ids('*9').includes('T69'));
+  assert.deepEqual(ids('t63'), ['T63', 'T63K']); assert.deepEqual(ids('xyz'), []); assert.equal(ids('').length, 20);
+  // index-safe: 30 ‰, höchstens 35 Jahre; performance+ und BU: höchstens 40 Jahre
+  let r = L.rechne({ produkt: 'T63' }, 100, 40); assert.deepEqual([r.wertungssumme, r.satz, r.betrag, r.haftung], [42000, 30, 1260, 96]);
+  r = L.rechne({ produkt: 'T73' }, 100, 45); assert.deepEqual([r.wertungssumme, r.betrag], [48000, 1440]);
+  r = L.rechne({ produkt: 'T91' }, 80, 30); assert.deepEqual([r.wertungssumme, r.betrag, r.haftung], [28800, 864, 60]);
+  // classic: 20 ‰ mit Laufzeitfaktor (über 29 Jahre 100 %, 20 Jahre 50 %, bis 10 Jahre 0 %)
+  assert.deepEqual([30, 29, 28.5, 20, 11, 10].map(L.laufzeitfaktor), [100, 95, 95, 50, 5, 0]);
+  r = L.rechne({ produkt: 'T37' }, 100, 20); assert.deepEqual([r.wertungssumme, r.satz, r.betrag, r.richtwert], [24000, 10, 240, false]);
+  // Tarifgruppe mit verminderten Abschlusskosten und Einmalbeitrag
+  r = L.rechne({ produkt: 'T63', tarifgruppe: 'KG6' }, 100, 30); assert.deepEqual([r.satz, r.betrag], [18, 648]);
+  r = L.rechne({ produkt: 'T69', einmal: true }, 20000, 0); assert.deepEqual([r.wertungssumme, r.betrag], [20000, 600]);
+  assert.equal(L.rechne({ produkt: 'gibtsnicht' }, 100, 20).ok, false);
+  // im Antrag: Produkt ist Pflicht, die erwartete Provision folgt dem Produkt; mit Bank die Hälfte
+  const a = Object.assign(M.neuerAntrag(), { bereich: 'leben', vorgang: 'neu', laufzeit: 30, vn: { name: 'Muster', vorname: 'Anna' } });
+  a.positionen[0].tarif = 'T91'; a.positionen[0].beitrag = 80;
+  assert.match(M.pruefeAntrag(a)[0].text, /Produkt aus der Liste/);
+  a.leben = { produkt: 'T91', tarifgruppe: 'einzel', einmal: false }; assert.deepEqual(M.pruefeAntrag(a), []);
+  const regeln = AB.provision.standardRegeln();
+  assert.equal(AB.provision.soll(a, regeln).betrag, 864);
+  a.bank = { aktiv: true, anteil: 50 }; assert.equal(AB.provision.soll(a, regeln).betrag, 432);
+});

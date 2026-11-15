@@ -61,7 +61,10 @@
       var b = M.vorzeichen(a, +p.beitrag || 0), x = 0, text = '';
       if (AB.tarif && AB.tarif.einordnen(p.tarif).kategorie === 'Gesetzlicher Zuschlag') { teile.push({ text: p.tarif + ': gesetzlicher Zuschlag – keine Provision', betrag: 0 }); return; }
       if (r.art === 'faktor') { x = r.wert * b; text = U.fmtZahl(r.wert, 2) + ' × ' + U.fmtEuro(b); }
-      else if (r.art === 'leben') {
+      else if (r.art === 'leben' && AB.leben && a.leben && AB.leben.produkt(a.leben.produkt)) {
+        // Stuttgarter-Produkt gewählt: Satz nach Produktlinie, Tarifgruppe und Laufzeit (Provisionsrichtlinien Ventil)
+        var lr = AB.leben.rechne(a.leben, b, a.laufzeit); x = lr.betrag; text = lr.text;
+      } else if (r.art === 'leben') {
         var bws = b * 12 * (+a.laufzeit || 0);
         x = r.wert / 1000 * bws; text = U.fmtZahl(r.wert, 1) + ' ‰ × ' + U.fmtEuro(bws) + ' Bewertungssumme';
       } else if (r.art === 'unfall') { x = r.wert / 100 * b; laufend = true; text = U.fmtZahl(r.wert, 0) + ' % × ' + U.fmtEuro(b) + ' je Monat'; }

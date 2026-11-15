@@ -311,3 +311,11 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
   #druck .seite { page: hoch; break-after: page; break-inside: avoid; font-size: 10.5pt; } #druck .seite:last-child { break-after: auto; }
   #druck .rekla .zeile { margin: 6.5px 0; } #druck .rekla .balken { margin: 10px 0 9px; -webkit-print-color-adjust: exact; print-color-adjust: exact; } #druck .rekla .fuss { margin-top: 12px; } #druck .rekla hr { margin: 12px 0 10px; }
 }
+
+/* Produktsuche (Leben) */
+.vorschlagsliste { position: absolute; left: 0; right: 0; top: 100%; z-index: 30; margin-top: 4px; max-height: 300px; overflow-y: auto; background: var(--surface); border: 1px solid var(--line-2); border-radius: 12px; box-shadow: 0 12px 32px rgba(20, 16, 60, .18); padding: 6px; }
+.vorschlagsliste .vs { display: flex; gap: 8px; align-items: baseline; width: 100%; text-align: left; padding: 7px 10px; border: 0; background: none; border-radius: 8px; color: var(--text); font: inherit; cursor: pointer; }
+.vorschlagsliste .vs b { min-width: 58px; } .vorschlagsliste .vs small { margin-left: auto; color: var(--text-3); }
+.vorschlagsliste .vs.aktiv, .vorschlagsliste .vs:hover { background: var(--accent-soft); }
+.vorschlagsliste .vs-gruppe { font-size: 11.5px; font-weight: 700; color: var(--text-3); padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: .04em; }
+.vorschlagsliste .vs-leer { padding: 10px; color: var(--text-3); }

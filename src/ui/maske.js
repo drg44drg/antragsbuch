@@ -70,6 +70,7 @@
       var x = JSON.parse(JSON.stringify(a));
       x.eingang = fEingang.value; x.vn = { name: fName.value.trim(), vorname: fVorname.value.trim() };
       x.bereich = fBereich.value; x.vorgang = fVorgang.value; x.herkunft = M.brauchtHerkunft({ bereich: fBereich.value, vorgang: fVorgang.value }) ? fHerkunft.value : ''; x.vertragsnummer = fVnr.value.trim(); x.beginn = fBeginn.value;
+      x.leben = fBereich.value === 'leben' ? { produkt: lb.produkt, tarifgruppe: lb.tarifgruppe, einmal: !!lb.einmal } : null;
       x.laufzeit = liesZahl(fLaufzeit.value); x.gruppenvertrag = fGv.value.trim(); x.firma = fFirma.value.trim();
       x.eantrag = fEantrag.checked; x.bank = { aktiv: fBank.checked, anteil: liesZahl(fAnteil.value) || 0 };
       x.bemerkung = fBem.value.trim(); x.provisionManuell = liesZahl(fProv.value);
@@ -77,10 +78,42 @@
       x.positionen = Array.from(posBox.children).map(function (z) { return z._lies(); });
       return x;
     }
-    var blockLeben = D.feld('Laufzeit (Jahre)', fLaufzeit, 's2', true), blockGv = D.feld('Gruppenvertragsnr.', fGv, 's3'), blockFirma = D.feld('Firma', fFirma, 's4');
+    // Leben: Produkt aus der Liste (Suche mit Teilwort oder *), Tarifgruppe, Beitragszahlungsdauer, Einmalbeitrag
+    var lb = Object.assign({ produkt: '', tarifgruppe: 'einzel', einmal: false }, a.leben || {}), LP = AB.leben;
+    var fProdukt = h('input', { type: 'text', autocomplete: 'off', spellcheck: false, placeholder: 'tippen: BU, Rente, *91 …', value: LP.produkt(lb.produkt) ? LP.titel(LP.produkt(lb.produkt)) : '' }); fProdukt.dataset.feld = 'leben.produkt'; felder['leben.produkt'] = fProdukt;
+    var vListe = h('div.vorschlagsliste', { hidden: true }), vAktiv = 0, vTreffer = [];
+    function waehleProdukt(pr) {
+      lb.produkt = pr.id; fProdukt.value = LP.titel(pr); vListe.hidden = true;
+      var z0 = posBox.children[0]; if (z0 && (!z0._felder.tarif.value.trim() || /^T\d/.test(z0._felder.tarif.value))) z0._felder.tarif.value = 'T' + pr.tarif;
+      aktualisiere();
+    }
+    function zeigeVorschlaege() {
+      vTreffer = LP.suche(fProdukt.value === (LP.produkt(lb.produkt) ? LP.titel(LP.produkt(lb.produkt)) : '\u0000') ? '' : fProdukt.value); vAktiv = Math.min(vAktiv, Math.max(0, vTreffer.length - 1)); D.leere(vListe);
+      if (!vTreffer.length) vListe.appendChild(h('div.vs-leer', null, 'Kein Produkt gefunden. Platzhalter: * (z. B. *91)'));
+      var letzte = '';
+      vTreffer.forEach(function (pr, i) {
+        if (pr.gruppe !== letzte) { letzte = pr.gruppe; vListe.appendChild(h('div.vs-gruppe', null, pr.gruppe)); }
+        vListe.appendChild(h('button.vs' + (i === vAktiv ? '.aktiv' : ''), { type: 'button', onmousedown: function (e) { e.preventDefault(); waehleProdukt(pr); } }, h('b', null, 'T' + pr.tarif), ' ' + pr.name, h('small', null, U.fmtZahl(LP.LINIEN[pr.linie].satz, 0) + ' ‰')));
+      });
+      vListe.hidden = false;
+    }
+    fProdukt.addEventListener('focus', function () { fProdukt.select(); zeigeVorschlaege(); });
+    fProdukt.addEventListener('input', function () { lb.produkt = ''; vAktiv = 0; zeigeVorschlaege(); });
+    fProdukt.addEventListener('blur', function () { vListe.hidden = true; if (!lb.produkt) fProdukt.value = ''; });
+    fProdukt.addEventListener('keydown', function (e) {
+      if (vListe.hidden) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); vAktiv = (vAktiv + (e.key === 'ArrowDown' ? 1 : vTreffer.length - 1)) % Math.max(1, vTreffer.length); zeigeVorschlaege(); }
+      else if (e.key === 'Enter' && vTreffer.length) { e.preventDefault(); e.stopPropagation(); waehleProdukt(vTreffer[vAktiv]); }
+      else if (e.key === 'Escape') { e.stopPropagation(); vListe.hidden = true; }
+    });
+    var fTg = D.auswahl(LP.TARIFGRUPPEN.map(function (t) { return [t[0], t[1]]; }), lb.tarifgruppe, function (v) { lb.tarifgruppe = v; aktualisiere(); });
+    var fEinmal = h('input', { type: 'checkbox', checked: !!lb.einmal, onchange: function () { lb.einmal = fEinmal.checked; aktualisiere(); } });
+    var blockProdukt = h('div.feld.s5', { style: { position: 'relative' } }, h('span', null, 'Produkt (Stuttgarter)', h('i', null, ' *')), fProdukt, vListe);
+    var blockTg = D.feld('Tarifgruppe', fTg, 's3'), blockEinmal = h('div.feld.s2', null, h('span', null, 'Zahlweise'), h('label.schalter', { style: { minHeight: '38px' } }, fEinmal, 'Einmalbeitrag'));
+    var blockLeben = D.feld('Beitragszahlungsdauer (Jahre)', fLaufzeit, 's2', true), blockGv = D.feld('Gruppenvertragsnr.', fGv, 's3'), blockFirma = D.feld('Firma', fFirma, 's4');
     function aktualisiere() {
       var x = sammle(), soll = AB.provision.soll(x, p.regeln);
-      blockLeben.hidden = x.bereich !== 'leben'; blockHerkunft.hidden = !M.brauchtHerkunft(x);
+      blockLeben.hidden = blockProdukt.hidden = blockTg.hidden = blockEinmal.hidden = x.bereich !== 'leben'; blockHerkunft.hidden = !M.brauchtHerkunft(x);
       var oKind = fHerkunft.querySelector('option[value="kind"]'); if (oKind) { oKind.hidden = oKind.disabled = x.bereich !== 'voll'; if (x.bereich !== 'voll' && fHerkunft.value === 'kind') fHerkunft.value = ''; }
       blockGv.hidden = blockFirma.hidden = !(x.bereich === 'bkv' || x.bereich === 'gruppe');
       fAnteil.parentNode.hidden = !fBank.checked;
@@ -141,7 +174,7 @@
       h('div.formraster', null,
         D.feld('Eingangsdatum', fEingang, 's2', true), D.feld('Name', fName, 's3', true), D.feld('Vorname', fVorname, 's3', true),
         D.feld('Bereich', fBereich, 's2', true), D.feld('Vorgangsart', fVorgang, 's2', true), blockHerkunft,
-        h('div.feld.s3', null, h('span', null, 'Vertragsnummer'), fVnr, vnrHinweis), D.feld('Beginn / Änderung zum', fBeginn, 's2'), blockLeben, blockGv, blockFirma,
+        h('div.feld.s3', null, h('span', null, 'Vertragsnummer'), fVnr, vnrHinweis), D.feld('Beginn / Änderung zum', fBeginn, 's2'), blockProdukt, blockTg, blockLeben, blockEinmal, blockGv, blockFirma,
         h('div.feld.s5', null, h('span', null, 'Optionen'), h('div.leiste', { style: { minHeight: '38px' } },
           h('label.schalter', null, fEantrag, 'E-Antrag'), h('label.schalter', null, fBank, 'Teilung mit Bank'),
           h('label.schalter', null, fAnteil, '% Bank-Anteil')))),

@@ -115,7 +115,7 @@
       id: U.uid(), eingang: U.heute(), vn: { name: '', vorname: '' },
       bereich: 'voll', vorgang: 'neu', herkunft: '', vertragsnummer: '',
       positionen: [M.neuePosition()],
-      beginn: '', gruppenvertrag: '', firma: '', laufzeit: null,
+      beginn: '', gruppenvertrag: '', firma: '', laufzeit: null, leben: null,
       eantrag: false, bank: { aktiv: false, anteil: 50 }, bemerkung: '',
       status: 'eingereicht', statusDatum: U.heute(), statusManuell: false, historie: [],
       provisionManuell: null, abweichungOk: null, nachbearbeitung: { status: '', text: '', datum: '' }, reklamation: null,
@@ -123,7 +123,7 @@
     };
     if (vorlage) {
       var k = JSON.parse(JSON.stringify(vorlage));
-      ['eingang', 'vn', 'bereich', 'vorgang', 'herkunft', 'vertragsnummer', 'beginn', 'gruppenvertrag', 'firma', 'laufzeit', 'eantrag', 'bank', 'bemerkung']
+      ['eingang', 'vn', 'bereich', 'vorgang', 'herkunft', 'vertragsnummer', 'beginn', 'gruppenvertrag', 'firma', 'laufzeit', 'leben', 'eantrag', 'bank', 'bemerkung']
         .forEach(function (f) { a[f] = k[f]; });
       a.positionen = k.positionen.map(function (p) { p.id = U.uid(); return p; });
     }
@@ -275,8 +275,10 @@
       if (a.bereich !== 'gkv' && (p.beitrag == null || p.beitrag === '' || isNaN(p.beitrag)))
         f.push({ feld: 'pos.' + i + '.beitrag', text: 'Position ' + (i + 1) + ': Beitrag fehlt.' });
     });
-    if (a.bereich === 'leben' && a.vorgang !== 'umstellung' && !(+a.laufzeit > 0))
-      f.push({ feld: 'laufzeit', text: 'Leben: Laufzeit in Jahren fehlt (für die Bewertungssumme).' });
+    if (a.bereich === 'leben' && a.vorgang !== 'umstellung' && a.quelle !== 'abrechnung' && a.quelle !== 'altbuch' && !(a.leben && AB.leben && AB.leben.produkt(a.leben.produkt)))
+      f.push({ feld: 'leben.produkt', text: 'Leben: bitte das Produkt aus der Liste wählen (z. B. „BU" oder „*91" eintippen).' });
+    if (a.bereich === 'leben' && a.vorgang !== 'umstellung' && !(a.leben && a.leben.einmal) && !(+a.laufzeit > 0))
+      f.push({ feld: 'laufzeit', text: 'Leben: Beitragszahlungsdauer in Jahren fehlt (für die Wertungssumme).' });
     if (a.bank.aktiv && !(+a.bank.anteil > 0 && +a.bank.anteil <= 100))
       f.push({ feld: 'bank.anteil', text: 'Bank-Anteil muss zwischen 1 und 100 % liegen.' });
     return f;

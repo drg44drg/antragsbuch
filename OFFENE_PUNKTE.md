@@ -80,7 +80,15 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Rückmeldung: wofür stehen die Blätter „GDms" und „GVms"?
 - [ ] Altersvorsorgedepot: Regeln und Vergütung erst ab Januar 2027 verlässlich – dann nachliefern und einbauen
 
-## D0000 · Erledigt (Version 2.6)
+## D0000 · Erledigt (Version 2.7)
+
+Leben (Stuttgarter): Produktliste mit 20 Tarifen, Suchfeld (Teilwort, mehrere Wörter, Platzhalter *), Tarifgruppe, Beitragszahlungsdauer, Einmalbeitrag ·
+Provision nach Produktlinie (20 ‰ classic mit Laufzeitfaktor, 30 ‰ sonst), Begrenzung auf 35 bzw. 40 Jahre, mit Bank die Hälfte.
+
+Offen dazu: Staffeln für Tarifgruppen und Einmalbeitrag bei classic sind Richtwerte · Anlage DirektRente/Riester (Scan) auswerten ·
+Unfall-Produkte der Stuttgarter (aktiv laufend 20 %, 3-Jahres-Vertrag 50 % + 8 %) als Auswahl im Antrag · Haftung 60/96 Monate in der Storno-Liste für Leben.
+
+## Erledigt (Version 2.6)
 
 Storno nach Provisionsrichtlinie: Anteil der Rückbuchung als Bruch (n/12, n/60), Verrechnung ohne Provisionswirkung getrennt von Storno ·
 Knopf „Sätze der Stufe übernehmen" für die Provisionsregeln · Erklärung des Provisionssatzes bei Beteiligten (Bank, mhplus, Teilung) ·
