@@ -182,7 +182,26 @@
       kachel('Erhöhungen', gew.kat.mehr, euro0, U.fmtZahl(gew.katN.mehr, 0) + ' Buchungen', { einheit: '€', punkt: G.FARBEN[2] }),
       kachel('Storno + Reduzierung', gew.kat.storno + gew.kat.minder, euro0, 'Stornoquote ' + U.fmtZahl(plus ? storno / plus * 100 : 0, 1) + ' %', { einheit: '€', punkt: 'var(--crit)' }));
     var dKat = h('div'), dRing = h('div'), dLin = h('div'), dQuer = h('div');
-    var rechts = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 } }, kacheln,
+    // Stand zur Karrierestufe: Nettoproduktion des ganzen Jahres bis zum letzten Monat mit Buchungen, gegen Wertung ÷ 12 je Monat
+    var stufenKarte = null;
+    if (hatProd) {
+      var gvS = p.einstellungen.grundverguetung, npJ = T.nettoproduktion(App.zeilen, p.jahr), letzterM = 0;
+      npJ.monate.forEach(function (v, i) { if (Math.abs(v) > 0.005) letzterM = i + 1; });
+      var st = gvS && gvS.stufe ? AB.model.stufenStand(gvS.stufe, npJ.gesamt, letzterM) : null;
+      if (st) {
+        var balkenS = function (x) { var q = x.wertung > 0 ? Math.max(0, Math.min(1, st.ist / x.wertung)) : 1, soll = Math.min(1, st.monate / 12);
+          return h('div', { title: 'Balken: erreicht · Strich: wo Sie bei gleichmäßigem Verlauf heute stehen müssten', style: { position: 'relative', height: '12px', borderRadius: '99px', background: 'var(--surface-2)', margin: '8px 0 6px' } },
+            h('div.hb.dia', { style: { position: 'absolute', left: 0, top: 0, bottom: 0, width: (q * 100) + '%', borderRadius: '99px', background: x.diff >= 0 ? 'var(--good)' : 'var(--s1)' } }),
+            h('div', { style: { position: 'absolute', left: (soll * 100) + '%', top: '-3px', bottom: '-3px', width: '2px', background: 'var(--text)' } })); };
+        var zeileS = function (x, titel) { return h('div', { style: { minWidth: 0 } }, h('div.leiste', null, h('b', null, titel + ': ' + x.kurz + ' · ' + x.name), h('span.frei'), h('span.marke-s' + (x.diff >= 0 ? '.gut' : '.warn'), null, (x.diff >= 0 ? U.fmtEuro0(x.diff) + ' darüber' : U.fmtEuro0(-x.diff) + ' darunter'))),
+          x.wertung > 0 ? balkenS(x) : null,
+          h('div.klein.muted', null, x.wertung > 0 ? 'Wertung ' + U.fmtEuro0(x.wertung) + ' im Jahr = ' + U.fmtEuro0(x.jeMonat) + ' je Monat · Soll bis ' + U.MONATE[st.monate - 1] + ' ' + U.fmtEuro0(x.soll) + ' · erreicht ' + U.fmtEuro0(st.ist) + (x.restJeMonat != null && st.ist < x.wertung ? ' · ab jetzt ' + U.fmtEuro0(x.restJeMonat) + ' je Monat nötig' : st.ist >= x.wertung ? ' · Jahreswert schon erreicht' : '') : 'Einstiegsstufe ohne Mindestwertung')); };
+        stufenKarte = h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Mein Stand zur Karrierestufe'), h('span.frei'), h('span.muted.klein', null, 'Hochrechnung aufs Jahr: ' + U.fmtEuro0(st.eigene.hochrechnung))),
+          h('div.unter', null, 'Nettoproduktion Januar bis ' + U.MONATE[st.monate - 1] + ' ' + p.jahr + ' gegen einen gleichmäßigen Verlauf (Wertung ÷ 12 je Monat)'),
+          h('div', { style: { display: 'grid', gridTemplateColumns: st.naechste ? 'repeat(auto-fit, minmax(280px, 1fr))' : '1fr', gap: '18px', marginTop: '8px' } }, zeileS(st.eigene, 'Meine Stufe'), st.naechste ? zeileS(st.naechste, 'Nächste Stufe') : null));
+      } else if (!(gvS && gvS.stufe)) stufenKarte = h('div.meldung', null, 'Wählen Sie in den Einstellungen Ihre Karrierestufe, dann sehen Sie hier, ob Sie über oder unter dem gleichmäßigen Verlauf zur Wertung Ihrer Stufe liegen. ', D.btn('Zu den Einstellungen', function () { App.zeige('einstellungen'); }, { klasse: 'klein-btn' }));
+    }
+    var rechts = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 } }, kacheln, stufenKarte,
       h('div.raster.r-21', null,
         h('div.karte.rein', null, h('h3', null, 'Beitrag je Monat nach Kategorie'), h('div.unter', null, (eigen ? 'laut Abrechnung' : 'ausgewählte ADP') + ' · Zugänge nach oben, Abgänge nach unten'), dKat),
         h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Mix nach'), D.seg([['gruppe', 'Sparte'], ['kategorie', 'Kategorie']], z.ring || 'gruppe', function (v) { z.ring = v; neu(); })),

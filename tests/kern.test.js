@@ -536,3 +536,12 @@ test('Analyse für Verkäufer: Größe der Anträge, Familien, Beitragsentlastun
   assert.equal(Y.heute('2026-07-10').tag, null); assert.equal(Y.heute('2026-04-10').monat.titel, 'An den September denken'); assert.ok(Y.heute('2026-12-31').woche.length > 20);
   assert.equal(Y.MONAT.length, 12);
 });
+
+test('Stand zur Karrierestufe: linear gegen Wertung ÷ 12, eigene und nächste Stufe', () => {
+  const s = M.stufenStand('3', 5000, 6);   // HV 9.000 im Jahr = 750 je Monat
+  assert.deepEqual([s.eigene.kurz, s.eigene.jeMonat, s.eigene.soll, s.eigene.diff, s.eigene.hochrechnung, s.eigene.restJeMonat], ['HV', 750, 4500, 500, 10000, 666.67]);
+  assert.deepEqual([s.naechste.kurz, s.naechste.jeMonat, s.naechste.soll, s.naechste.diff, s.naechste.restJeMonat], ['GV', 1000, 6000, -1000, 1166.67]);
+  assert.equal(M.stufenStand('6', 30000, 12).naechste, null); assert.equal(M.stufenStand('6', 30000, 12).eigene.restJeMonat, null);
+  assert.deepEqual([M.stufenStand('1', 100, 2).eigene.wertung, M.stufenStand('1', 100, 2).naechste.kurz], [0, 'BV2']);
+  assert.equal(M.stufenStand('', 100, 2), null); assert.equal(M.stufenStand('3', 100, 0), null);
+});

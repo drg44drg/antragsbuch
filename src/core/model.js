@@ -176,12 +176,12 @@
   M.HERKUNFT = { neu: 'Neuversicherung – neue Person', kind: 'Kindernachversicherung – neue Person', bestand: 'aus Bestand – Veränderung' };
   /** Karrieresystem „Gesundprofi im Außendienst": Stufe, Fixum je Monat, Wertung, Monatsbeiträge Provision im freien Geschäft. */
   M.KARRIERE = [
-    { id: '1', kurz: 'BV1', name: 'Bezirksvertreter 1', fixum: 1500, wertung: 'bis 6.000', mb: 4, bonus: '1+2' },
-    { id: '2', kurz: 'BV2', name: 'Bezirksvertreter 2', fixum: 2000, wertung: '6.000', mb: 5, bonus: '1+2' },
-    { id: '3', kurz: 'HV', name: 'Hauptvertreter', fixum: 2250, wertung: '9.000', mb: 5.5, bonus: '3' },
-    { id: '4', kurz: 'GV', name: 'Generalvertreter', fixum: 2750, wertung: '12.000', mb: 6, bonus: '4' },
-    { id: '5', kurz: 'GL', name: 'Gebietsleiter', fixum: 3300, wertung: '15.000', mb: 7, bonus: '5' },
-    { id: '6', kurz: 'GD', name: 'Gebietsdirektor', fixum: 4400, wertung: '20.000', mb: 7, bonus: '6' }
+    { id: '1', kurz: 'BV1', name: 'Bezirksvertreter 1', fixum: 1500, wertung: 'bis 6.000', wert: 0, mb: 4, bonus: '1+2' },
+    { id: '2', kurz: 'BV2', name: 'Bezirksvertreter 2', fixum: 2000, wertung: '6.000', wert: 6000, mb: 5, bonus: '1+2' },
+    { id: '3', kurz: 'HV', name: 'Hauptvertreter', fixum: 2250, wertung: '9.000', wert: 9000, mb: 5.5, bonus: '3' },
+    { id: '4', kurz: 'GV', name: 'Generalvertreter', fixum: 2750, wertung: '12.000', wert: 12000, mb: 6, bonus: '4' },
+    { id: '5', kurz: 'GL', name: 'Gebietsleiter', fixum: 3300, wertung: '15.000', wert: 15000, mb: 7, bonus: '5' },
+    { id: '6', kurz: 'GD', name: 'Gebietsdirektor', fixum: 4400, wertung: '20.000', wert: 20000, mb: 7, bonus: '6' }
   ];
   M.brauchtHerkunft = function (a) { return a.vorgang === 'neu' && (a.bereich === 'voll' || a.bereich === 'bkv'); };
   M.istPflegepflicht = function (tarif) { var e = tarif ? AB.tarif.einordnen(tarif) : null; return !!(e && e.kategorie === 'Pflegepflicht'); };
@@ -199,6 +199,17 @@
 
   /** Provisionshaftung in Monaten nach den Provisionsrichtlinien (Stand 07/2025 bzw. Ventil 08/2025). */
   M.HAFTUNG = { voll: 60, pflege: 60, zusatz: 12, bkv: 12, gruppe: 12, unfall: 60, leben: 60, gkv: 0 };
+
+  /**
+   * Stand zur Karrierestufe bei gleichmäßigem („linearem") Verlauf: Wertung der Stufe ÷ 12 je Monat.
+   * ist = Nettoproduktion bis einschließlich Monat `monate` (1–12). Liefert die eigene und die nächste Stufe.
+   */
+  M.stufenStand = function (stufeId, ist, monate) {
+    var i = M.KARRIERE.findIndex(function (k) { return k.id === stufeId; }); if (i < 0 || !(monate > 0)) return null;
+    var zeile = function (k) { var soll = k.wert * monate / 12; return { id: k.id, kurz: k.kurz, name: k.name, wertung: k.wert, jeMonat: U.runde(k.wert / 12), soll: U.runde(soll), diff: U.runde(ist - soll),
+      quote: soll > 0 ? ist / soll : null, hochrechnung: U.runde(ist / monate * 12), restJeMonat: monate < 12 ? U.runde(Math.max(0, k.wert - ist) / (12 - monate)) : null }; };
+    return { monate: monate, ist: U.runde(ist), eigene: zeile(M.KARRIERE[i]), naechste: M.KARRIERE[i + 1] ? zeile(M.KARRIERE[i + 1]) : null };
+  };
 
   M.vnName = function (a) {
     return (a.vn.name || '') + (a.vn.vorname ? ', ' + a.vn.vorname : '');

@@ -86,6 +86,15 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
+## D0000 · Erledigt (Version 3.2)
+
+„Mein Stand zur Karrierestufe" in „Meine Produktion": Nettoproduktion gegen den gleichmäßigen Verlauf (Wertung ÷ 12 je Monat) für die eigene und die nächste Stufe, mit Hochrechnung.
+
+Notiert für später:
+- Beitragstabellen je Tarif (kommen von der Führungskraft): „Da ist mehr zu holen" tarifgenau rechnen, z. B. AP5 → AP7 → AP9, ZP, SP, Vollversicherung ohne BE → mit BE. Maßvoll bleiben, nicht übertreiben.
+- Vergleich mit dem Vorjahr („über/unter Vorjahr"), sobald Monatsscheiben des Vorjahres vorliegen – noch zu entscheiden.
+- E-Mails (Paket V5): Text kopieren oder Standard-E-Mail-Programm öffnen – so bestätigt.
+
 ## Vertriebs-Pakete (Vorschlag, Reihenfolge nach Nutzen; Auswahl steht aus)
 
 - V1 Wiedervorlagen: Datum + Anlass je Antrag oder Kunde, Liste „Heute fällig", Zähler im Menü
