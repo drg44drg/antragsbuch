@@ -676,3 +676,17 @@ test('Produktionsjahr: Produktionsschluss, Beginn im Folgejahr, offene Anträge 
   assert.deepEqual([p.jahr, AB.abrechnung.entpacke(p.abrechnung).length, p.importe.length, p.bonus.neueVoll, M.archivJahre(p)], [2026, 1, 1, 5, [2027]]);
   assert.equal(M.jahreswechsel(p, 2026), false);
 });
+
+test('Zweites Einlesen eines Antragsbuchs: vorhandene Einträge werden erkannt, Fortsetzung wird übernommen', () => {
+  const A = (eingang, tarif, beitrag, name) => { const a = Object.assign(M.neuerAntrag(), { eingang, bereich: 'zusatz', vorgang: 'neu', vn: { name: name || '', vorname: '' } }); a.positionen = [Object.assign(M.neuePosition(), { tarif, beitrag })]; return a; };
+  const teil1 = [A('2026-01-10', 'ZP7', 35), A('2026-01-10', 'ZP7', 35), A('2026-02-01', 'AP5', 20, 'Muster')];
+  // dieselbe Datei noch einmal: alles doppelt
+  let t = M.trenneDubletten(teil1, [A('2026-01-10', 'ZP7', 35), A('2026-01-10', 'zp 7', 35), A('2026-02-01', 'AP5', 20, 'MUSTER')]);
+  assert.deepEqual([t.neu.length, t.doppelt.length], [0, 3]);
+  // Fortsetzung: zwei alte, zwei neue – ein dritter gleicher Januar-Eintrag ist wirklich neu
+  t = M.trenneDubletten(teil1, [A('2026-01-10', 'ZP7', 35), A('2026-01-10', 'ZP7', 35), A('2026-01-10', 'ZP7', 35), A('2026-03-05', 'SP2', 40)]);
+  assert.deepEqual([t.neu.length, t.doppelt.length, t.neu.map((a) => a.eingang)], [2, 2, ['2026-01-10', '2026-03-05']]);
+  // anderer Beitrag oder anderes Datum: kein Treffer
+  assert.equal(M.trenneDubletten(teil1, [A('2026-01-10', 'ZP7', 36), A('2026-01-11', 'ZP7', 35)]).doppelt.length, 0);
+  assert.equal(M.trenneDubletten([], teil1).neu.length, 3);
+});

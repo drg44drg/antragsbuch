@@ -352,20 +352,24 @@
   /** Einträge aus dem alten Excel-Antragsbuch übernehmen (mit Rückfrage). */
   App.uebernimmAltbuch = async function (r, bytes, name, opt) {
     var p = App.p, alt = r.altbuch, schon = p.antraege.filter(function (a) { return a.quelle === 'altbuch'; }).length;
-    var mitAbr = h('input', { type: 'checkbox' });
+    var mitAbr = h('input', { type: 'checkbox' }), tr = M.trenneDubletten(p.antraege, alt.antraege.map(function (x) { return M.ergaenzeAntrag(JSON.parse(JSON.stringify(x))); })), ohneDoppelte = h('input', { type: 'checkbox', checked: true });
     var text = h('div', null, h('p.muted', { style: { margin: '0 0 8px' } }, 'Im Blatt „' + r.blatt + '" stehen ' + alt.antraege.length + ' Einträge aus ' + alt.jahr + '. Sie werden als Anträge übernommen – mit Monat, Bereich, Vorgangsart, Tarif, Beitrag, Status und Provision.'),
       h('p.muted', { style: { margin: '0 0 8px' } }, 'Fehlen Name und Vertragsnummer, schlägt der Abgleich danach passende Buchungen über Beitrag und Provision vor.'),
-      schon ? h('div.meldung.warn', null, 'Es sind bereits ' + schon + ' Einträge aus einem alten Antragsbuch im Projekt. Beim erneuten Übernehmen entstehen Dubletten.') : null,
+      tr.doppelt.length ? h('div.meldung.warn', null, h('b', null, tr.doppelt.length + ' der ' + alt.antraege.length + ' Einträge sind vermutlich schon im Projekt'), ' (gleicher Eingang, Bereich, Tarif und Beitrag). Neu wären ' + tr.neu.length + '.',
+        h('ul', { style: { margin: '6px 0', paddingLeft: '20px' } }, tr.doppelt.slice(0, 6).map(function (x) { return h('li', null, U.fmtDatum(x.eingang) + ' · ' + (M.vnName(x) || 'ohne Name') + ' · ' + M.tarife(x) + ' · ' + U.fmtEuro(M.beitrag(x))); }), tr.doppelt.length > 6 ? h('li', null, '… und ' + (tr.doppelt.length - 6) + ' weitere') : null),
+        h('label.schalter', null, ohneDoppelte, 'Schon vorhandene überspringen (empfohlen)')) : schon ? h('div.meldung', null, 'Im Projekt sind bereits ' + schon + ' Einträge aus einem alten Antragsbuch. Keiner der neuen Einträge ist doppelt – die Datei wirkt wie eine Fortsetzung.') : null,
       r.abrechnungsblatt ? h('label.schalter', { style: { marginTop: '8px' } }, mitAbr, 'Auch das Blatt „' + r.abrechnungsblatt.name + '" als Abrechnung einlesen (' + U.fmtZahl(r.abrechnungsblatt.zeilen, 0) + ' Zeilen, ' + r.abrechnungsblatt.jahre.join('/') + ')') : null);
-    if (!(await D.frage('Altes Antragsbuch übernehmen?', text, alt.antraege.length + ' Einträge übernehmen'))) return;
+    if (!(await D.frage('Altes Antragsbuch übernehmen?', text, 'Übernehmen'))) return;
+    var nimm = tr.doppelt.length && ohneDoppelte.checked ? tr.neu : tr.neu.concat(tr.doppelt);
+    if (!nimm.length) { D.toast('Alle Einträge sind schon im Projekt – nichts übernommen.'); return; }
     M.sichere(p, 'Vor Übernahme „' + name + '"');
     if (!p.antraege.length && !App.zeilen.length && alt.jahr) p.jahr = alt.jahr;
-    alt.antraege.forEach(function (a) { p.antraege.push(M.ergaenzeAntrag(a)); });
+    nimm.forEach(function (a) { p.antraege.push(a); });
     M.erweitereTarife(p, [], 'manuell');
-    p.importe.push({ id: U.uid(), typ: 'Altes Antragsbuch', datum: new Date().toISOString(), datei: name, zeilen: alt.antraege.length });
+    p.importe.push({ id: U.uid(), typ: 'Altes Antragsbuch', datum: new Date().toISOString(), datei: name, zeilen: nimm.length });
     App.ansicht = 'antraege';
     App.geaendert();
-    D.toast(alt.antraege.length + ' Einträge übernommen. Lesen Sie jetzt die Abrechnung ' + alt.jahr + ' ein – der Abgleich schlägt die Vertragsnummern vor.');
+    D.toast(nimm.length + ' Einträge übernommen' + (nimm.length < alt.antraege.length ? ', ' + (alt.antraege.length - nimm.length) + ' schon vorhandene übersprungen' : '') + '. Lesen Sie jetzt die Abrechnung ' + alt.jahr + ' ein – der Abgleich schlägt die Vertragsnummern vor.');
     if (mitAbr.checked) await App.importiereBytes(bytes, name, Object.assign({}, opt, { nurAbrechnung: true }));
   };
 

@@ -423,6 +423,20 @@
     return f;
   };
 
+  /**
+   * Zweites Einlesen eines Antragsbuchs (Fortsetzung oder dieselbe Datei noch einmal): Welche Einträge sind vermutlich schon da?
+   * Verglichen werden Eingang, Bereich, Vorgangsart, Name, Tarife und Beitrag; jeder vorhandene Antrag deckt höchstens einen neuen ab.
+   */
+  M.signatur = function (a) {
+    return [a.eingang || '', a.bereich || '', a.vorgang || '', U.falte(M.vnName(a)), a.positionen.map(function (ps) { return U.falte(ps.tarif || '').replace(/\s+/g, ''); }).sort().join('+'), Math.round(M.beitrag(a) * 100)].join('|');
+  };
+  M.trenneDubletten = function (vorhandene, neue) {
+    var vorrat = {}; (vorhandene || []).forEach(function (a) { var s = M.signatur(a); vorrat[s] = (vorrat[s] || 0) + 1; });
+    var o = { neu: [], doppelt: [] };
+    (neue || []).forEach(function (a) { var s = M.signatur(a); if (vorrat[s] > 0) { vorrat[s]--; o.doppelt.push(a); } else o.neu.push(a); });
+    return o;
+  };
+
   /** Mögliche Dubletten zu einem (neuen/geänderten) Antrag. */
   M.findeDubletten = function (a, alle) {
     var vn = U.normVnr(a.vertragsnummer), name = U.falte(M.vnName(a)).replace(/[^a-z]/g, ''), b = M.beitrag(a);
