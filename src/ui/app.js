@@ -179,7 +179,7 @@
       var zeile = function (x, gesamt) {
         var f = h('input', { type: 'text', inputMode: 'decimal', value: x.ziel == null || (gesamt && s.gesamtAusSumme) ? '' : U.fmtZahl(x.ziel, 0), placeholder: gesamt && s.gesamtAusSumme ? U.fmtZahl(x.ziel, 0) + ' (Summe)' : 'Ziel', style: { textAlign: 'right', padding: '5px 8px', width: '120px' }, 'aria-label': 'Jahresziel ' + x.name,
           onchange: function () { var v = f.value.trim() === '' ? null : U.parseZahl(f.value); if (v != null && (isNaN(v) || v < 0)) { f.classList.add('fehler'); return; } if (App.gesperrt()) return; M.setzeZiel(p, x.id, v); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); } });
-        var q = x.quote != null ? Math.max(0, Math.min(1, x.quote)) : 0, sollQ = Math.min(1, s.monate / 12);
+        var q = x.quote != null ? Math.max(0, Math.min(1, x.quote)) : 0, sollQ = Math.min(1, s.anteil);
         tb.appendChild(h('tr', gesamt ? { style: { fontWeight: 650 } } : null,
           h('td', null, gesamt ? null : h('span', { style: { display: 'inline-block', width: '10px', height: '10px', borderRadius: '3px', background: G.bereichFarbe(x.id), marginRight: '8px' } }), x.name),
           h('td', { style: { textAlign: 'right' } }, f),
@@ -193,8 +193,20 @@
       };
       s.zeilen.forEach(function (x) { zeile(x, false); }); zeile(s.gesamt, true);
       D.anhaengen(karte, [h('div.leiste', null, h('h3', null, 'Meine Ziele ' + s.jahr), h('span.frei'), h('span.muted.klein', null, s.hatAbrechnung ? 'Stand: Nettoproduktion laut Abrechnung' : 'Stand: eingetragener Beitrag im Antragsbuch')),
-        h('div.unter', null, 'Jahresziel je Produkt in Euro Monatsbeitrag eintragen – es wird gespeichert und mit dem Stand verglichen. Soll = Ziel bei gleichmäßigem Verlauf bis ' + (s.monate ? U.MONATE[s.monate - 1] : 'Januar') + '.'),
+        h('div.unter', null, 'Jahresziel je Produkt in Euro Monatsbeitrag eintragen – es wird gespeichert und mit dem Stand verglichen. Soll = Anteil des Ziels bis ' + (s.monate ? U.MONATE[s.monate - 1] : 'Januar') + ' nach der Monatsverteilung (' + U.fmtZahl(s.anteil * 100, 0) + ' %).'),
         h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Produkt', 'Jahresziel', 'Soll bis heute', 'Stand', 'Abstand', 'Fortschritt', 'Noch nötig'].map(function (t, i) { return h('th', { style: i >= 1 && i <= 3 || i === 6 ? { textAlign: 'right' } : null }, t); }))), tb)),
+        (function () {
+          // Verteilung auf die Monate: Standard 100 ÷ 12, je Monat änderbar
+          var vt = s.verteilung, zeileV = h('div.monatsverteilung'), sumEl = h('span.marke-s' + (Math.abs(vt.summe - 100) < 0.05 ? '.gut' : '.warn'), null, 'Summe ' + U.fmtZahl(vt.summe, 1) + ' %');
+          vt.prozent.forEach(function (v, i) {
+            var f = h('input', { type: 'text', inputMode: 'decimal', value: U.fmtZahl(v, 1), 'aria-label': 'Anteil ' + U.MONATE[i] + ' in Prozent', style: { textAlign: 'right', padding: '4px 6px' },
+              onchange: function () { var x = U.parseZahl(f.value); if (isNaN(x) || x < 0) { f.classList.add('fehler'); return; } if (App.gesperrt()) return; var neu = vt.prozent.slice(); neu[i] = x; M.setzeVerteilung(p, neu); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); } });
+            zeileV.appendChild(h('label', { title: s.gesamt.ziel ? U.MONATE[i] + ': ' + euro(s.gesamt.ziel * vt.anteile[i]) + ' vom Gesamtziel' : U.MONATE[i] }, h('span' + (i < s.monate ? '.vorbei' : ''), null, U.MONATE_KURZ[i]), f));
+          });
+          return h('div', { style: { marginTop: '12px' } }, h('div.leiste', null, h('b', null, 'Verteilung auf die Monate (%)'), sumEl, h('span.frei'),
+            vt.eigen ? D.btn('Gleichmäßig', function () { if (App.gesperrt()) return; M.setzeVerteilung(p, null); App.geaendert({ still: true, ohneRechnen: true }); zeichne(); }, { klasse: 'klein-btn leise', titel: 'Zurück auf 100 ÷ 12 je Monat' }) : h('span.muted.klein', null, 'gleichmäßig: 8,3 % je Monat')),
+            zeileV, Math.abs(vt.summe - 100) >= 0.05 ? h('div.klein.muted', { style: { marginTop: '4px' } }, 'Die Summe ist nicht 100 %. Gerechnet wird mit den Anteilen im Verhältnis zueinander.') : null);
+        })(),
         h('p.mini', { style: { marginTop: '8px' } }, 'Pflegepflicht zählt zur Vollversicherung. Ohne eigenes Gesamtziel gilt die Summe der Produktziele. ' + (s.hatAbrechnung ? '' : 'Sobald eine Abrechnung eingelesen ist, wird mit der Nettoproduktion verglichen.'))]);
     }
     zeichne();

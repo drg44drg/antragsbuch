@@ -86,7 +86,16 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
-## D0000 · Erledigt (Version 3.5)
+## D0000 · Erledigt (Version 3.6)
+
+Ziele: Verteilung auf die Monate in Prozent (Standard 100 ÷ 12, je Monat änderbar, Knopf „Gleichmäßig"); das Soll folgt der Verteilung.
+
+Notiert für später:
+- Monatsverteilung aus den Monatsscheiben der Vorjahre vorschlagen (Datei der letzten Jahre nötig); Ausreißer wie eine große bKV in einem Monat dürfen die Verteilung nicht verzerren, deshalb nur als Vorschlag zum Ändern.
+- Bank-Auswertung für ADP und Management: je Bank (Beteiligte laut Abrechnung) Produktion, Provision, Stückzahlen, Anteil aus Dynamik, Kreisdiagramm, Ziele je Bank mit Stand,
+  Export als Reporting für die Bank. Vorlage: bisheriges Bankenreporting – wird von der Führungskraft geliefert, danach nachbauen.
+
+## Erledigt (Version 3.5)
 
 Rechenhilfe „Krankentagegeld: reicht es?" im Reiter Analyse (Bedarf je Tag, Lücke, Deckung; wird nicht gespeichert).
 

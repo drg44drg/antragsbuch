@@ -218,14 +218,15 @@
    */
   M.zieleStand = function (p, zeilen, heute) {
     var jahr = +p.jahr, h = heute || U.heute(), hj = +h.slice(0, 4), monate = jahr < hj ? 12 : jahr > hj ? 0 : +h.slice(5, 7);
-    var z = (p.ziele && p.ziele[jahr]) || {}, ist = {}, ein = {}, hatAbr = false, raus = { abgelehnt: 1, widerruf: 1, absage: 1, storno: 1 }, zaehlt = { neu: 1, mehr: 1, minder: 1 };
+    var z = (p.ziele && p.ziele[jahr]) || {}, vt = M.zielVerteilung(p), anteil = 0; for (var mi = 0; mi < monate; mi++) anteil += vt.anteile[mi];
+    var ist = {}, ein = {}, hatAbr = false, raus = { abgelehnt: 1, widerruf: 1, absage: 1, storno: 1 }, zaehlt = { neu: 1, mehr: 1, minder: 1 };
     (zeilen || []).forEach(function (x) { if (+x.bdat.slice(0, 4) !== jahr || !(+x.prod)) return; hatAbr = true; var b = M.bereichAusGruppe(x.tg); ist[b] = (ist[b] || 0) + +x.prod; });
     (p.antraege || []).forEach(function (a) {
       if (!a.eingang || +a.eingang.slice(0, 4) !== jahr || raus[a.status] || !zaehlt[a.vorgang]) return;
       a.positionen.forEach(function (ps) { var b = ps.bereich || a.bereich; if (b === 'pflege') b = 'voll'; ein[b] = (ein[b] || 0) + M.vorzeichen(a, +ps.beitrag || 0); });
     });
     var zeile = function (id, name, ziel, i, e) {
-      var wert = hatAbr ? i : e, soll = ziel != null ? ziel * monate / 12 : null;
+      var wert = hatAbr ? i : e, soll = ziel != null ? ziel * anteil : null;
       return { id: id, name: name, ziel: ziel, ist: hatAbr ? U.runde(i) : null, eingetragen: U.runde(e), wert: U.runde(wert), soll: soll != null ? U.runde(soll) : null,
         diff: soll != null ? U.runde(wert - soll) : null, quote: ziel > 0 ? wert / ziel : null, fehlt: ziel > 0 ? U.runde(Math.max(0, ziel - wert)) : null,
         restJeMonat: ziel > 0 && monate < 12 ? U.runde(Math.max(0, ziel - wert) / (12 - monate)) : null };
@@ -234,8 +235,19 @@
     Object.keys(ist).forEach(function (k) { sumI += ist[k]; }); Object.keys(ein).forEach(function (k) { if (k !== 'gkv') sumE += ein[k]; });
     var zeilenO = ber.map(function (b) { return zeile(b.id, b.name, z[b.id] != null && z[b.id] !== '' ? +z[b.id] : null, ist[b.id] || 0, ein[b.id] || 0); });
     var sumZ = zeilenO.reduce(function (s, x) { return s + (x.ziel || 0); }, 0), gesamtZiel = z.gesamt != null && z.gesamt !== '' ? +z.gesamt : (sumZ > 0 ? sumZ : null);
-    return { jahr: jahr, monate: monate, hatAbrechnung: hatAbr, zeilen: zeilenO, gesamt: zeile('gesamt', 'Gesamt', gesamtZiel, sumI, sumE), gesamtAusSumme: !(z.gesamt != null && z.gesamt !== '') && sumZ > 0 };
+    return { jahr: jahr, monate: monate, anteil: anteil, verteilung: vt, hatAbrechnung: hatAbr, zeilen: zeilenO, gesamt: zeile('gesamt', 'Gesamt', gesamtZiel, sumI, sumE), gesamtAusSumme: !(z.gesamt != null && z.gesamt !== '') && sumZ > 0 };
   };
+  /**
+   * Verteilung des Jahresziels auf die Monate in Prozent. Standard: gleichmäßig (100 ÷ 12). Der ADP kann einzelne Monate ändern
+   * (z. B. August weniger, Jahresende mehr). anteile = auf Summe 1 gebracht, damit auch eine Summe ungleich 100 sauber rechnet.
+   */
+  M.zielVerteilung = function (p) {
+    var z = (p.ziele && p.ziele[p.jahr]) || {}, roh = Array.isArray(z.verteilung) && z.verteilung.length === 12 ? z.verteilung.map(function (v) { return Math.max(0, +v || 0); }) : null;
+    var summe = roh ? roh.reduce(function (s, v) { return s + v; }, 0) : 0;
+    if (!roh || summe <= 0) { roh = []; for (var i = 0; i < 12; i++) roh.push(100 / 12); summe = 100; return { prozent: roh, summe: 100, anteile: roh.map(function (v) { return v / 100; }), eigen: false }; }
+    return { prozent: roh, summe: U.runde(summe), anteile: roh.map(function (v) { return v / summe; }), eigen: true };
+  };
+  M.setzeVerteilung = function (p, prozent) { if (!p.ziele) p.ziele = {}; var j = p.ziele[p.jahr] || (p.ziele[p.jahr] = {}); if (!prozent) delete j.verteilung; else j.verteilung = prozent.map(function (v) { return Math.max(0, +v || 0); }); };
   M.setzeZiel = function (p, id, wert) { if (!p.ziele) p.ziele = {}; var j = p.ziele[p.jahr] || (p.ziele[p.jahr] = {}); if (wert == null || wert === '' || isNaN(wert)) delete j[id]; else j[id] = +wert; };
 
   M.vnName = function (a) {

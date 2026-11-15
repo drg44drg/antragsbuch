@@ -370,3 +370,9 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 /* Tipp-Leiste */
 .tipp { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 14px; line-height: 1.45; }
 .tipp > svg { width: 20px; height: 20px; color: var(--accent); flex: none; margin-top: 2px; } .tipp > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+
+/* Ziele: Verteilung auf die Monate */
+.monatsverteilung { display: grid; grid-template-columns: repeat(12, minmax(54px, 1fr)); gap: 6px; margin-top: 8px; overflow-x: auto; }
+.monatsverteilung label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--text-3); min-width: 0; }
+.monatsverteilung label span.vorbei { color: var(--text); font-weight: 600; }
+.monatsverteilung input { width: 100%; box-sizing: border-box; }

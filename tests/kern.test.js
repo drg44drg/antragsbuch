@@ -574,3 +574,18 @@ test('Krankentagegeld-Bedarf: Richtwert je Tag, Lücke und Deckung', () => {
   assert.deepEqual((({ lueckeTag, lueckeMonat, deckung }) => [lueckeTag, lueckeMonat, deckung])(AB.analyse.tagegeld(3000, 600, 0, 150)), [0, 0, 1]);
   assert.equal(AB.analyse.tagegeld(0, 0, 0, 0).deckung, null);
 });
+
+test('Ziele: Verteilung auf die Monate in Prozent, Soll folgt der Verteilung', () => {
+  const p = M.neuesProjekt(2026); M.setzeZiel(p, 'voll', 12000);
+  let v = M.zielVerteilung(p); assert.equal(v.eigen, false); assert.ok(Math.abs(v.prozent[0] - 100 / 12) < 1e-9); assert.equal(v.summe, 100);
+  const voll = (s) => s.zeilen.find((z) => z.id === 'voll');
+  assert.equal(voll(M.zieleStand(p, [], '2026-06-15')).soll, 6000);
+  // August wenig, Jahresende mehr
+  M.setzeVerteilung(p, [8, 8, 8, 8, 8, 8, 8, 4, 8, 8, 10, 14]);
+  v = M.zielVerteilung(p); assert.deepEqual([v.eigen, v.summe], [true, 100]);
+  assert.equal(voll(M.zieleStand(p, [], '2026-06-15')).soll, 5760); assert.equal(voll(M.zieleStand(p, [], '2026-08-15')).soll, 7200); assert.equal(voll(M.zieleStand(p, [], '2027-01-15')).soll, 12000);
+  // Summe ungleich 100: gerechnet wird im Verhältnis
+  M.setzeVerteilung(p, [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
+  assert.equal(M.zielVerteilung(p).summe, 120); assert.equal(voll(M.zieleStand(p, [], '2026-06-15')).soll, 6000);
+  M.setzeVerteilung(p, null); assert.equal(M.zielVerteilung(p).eigen, false); assert.equal(p.ziele[2026].voll, 12000);
+});
