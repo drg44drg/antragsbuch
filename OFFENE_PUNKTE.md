@@ -80,7 +80,12 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Rückmeldung: wofür stehen die Blätter „GDms" und „GVms"?
 - [ ] Altersvorsorgedepot: Regeln und Vergütung erst ab Januar 2027 verlässlich – dann nachliefern und einbauen
 
-## D0000 · Erledigt (Version 2.7)
+## D0000 · Erledigt (Version 2.8)
+
+Akzentfarbe in den Einstellungen: Standard, zwölf Einzelfarben oder Multicolor (jeder Klick würfelt eine neue Serie aus dem Farbpool des Multicolor-Skills) ·
+Vorschau mit Beispielmenü, Kacheln und Knopf; erst „Übernehmen" schaltet das Programm um · gilt je Browser · Produktfarben und Ampel bleiben fest.
+
+## Erledigt (Version 2.7)
 
 Leben (Stuttgarter): Produktliste mit 20 Tarifen, Suchfeld (Teilwort, mehrere Wörter, Platzhalter *), Tarifgruppe, Beitragszahlungsdauer, Einmalbeitrag ·
 Provision nach Produktlinie (20 ‰ classic mit Laufzeitfaktor, 30 ‰ sonst), Begrenzung auf 35 bzw. 40 Jahre, mit Bank die Hälfte.

@@ -319,3 +319,41 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 .vorschlagsliste .vs.aktiv, .vorschlagsliste .vs:hover { background: var(--accent-soft); }
 .vorschlagsliste .vs-gruppe { font-size: 11.5px; font-weight: 700; color: var(--text-3); padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: .04em; }
 .vorschlagsliste .vs-leer { padding: 10px; color: var(--text-3); }
+
+/* Akzentfarbe (Einzelfarbe oder Multicolor). Die Werte kommen als --akz-l / --akz-d (hell / dunkel) vom Element; Produktfarben und Ampel bleiben fest. */
+[data-akzent="einzel"], [data-akzent="multi"], [data-akzent="multi"] .nav button, [data-akzent="multi"] .raster > .kachel, [data-akzent="multi"] .v-zeile {
+  --accent: var(--akz-l); --accent-ink: var(--akz-il); --accent-2: color-mix(in srgb, var(--accent) 80%, white); --accent-soft: color-mix(in srgb, var(--accent) 13%, var(--surface));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"])[data-akzent="einzel"], :root:not([data-theme="light"])[data-akzent="multi"], :root:not([data-theme="light"]) [data-akzent="einzel"], :root:not([data-theme="light"]) [data-akzent="multi"],
+  :root:not([data-theme="light"]) [data-akzent="multi"] .nav button, :root:not([data-theme="light"])[data-akzent="multi"] .nav button,
+  :root:not([data-theme="light"]) [data-akzent="multi"] .raster > .kachel, :root:not([data-theme="light"])[data-akzent="multi"] .raster > .kachel,
+  :root:not([data-theme="light"]) [data-akzent="multi"] .v-zeile { --accent: var(--akz-d); --accent-ink: #120f22; }
+}
+:root[data-theme="dark"][data-akzent="einzel"], :root[data-theme="dark"][data-akzent="multi"], :root[data-theme="dark"] [data-akzent="einzel"], :root[data-theme="dark"] [data-akzent="multi"],
+:root[data-theme="dark"] [data-akzent="multi"] .nav button, :root[data-theme="dark"][data-akzent="multi"] .nav button,
+:root[data-theme="dark"] [data-akzent="multi"] .raster > .kachel, :root[data-theme="dark"][data-akzent="multi"] .raster > .kachel,
+:root[data-theme="dark"] [data-akzent="multi"] .v-zeile { --accent: var(--akz-d); --accent-ink: #120f22; }
+[data-akzent="multi"] .nav button:nth-child(6n+1), [data-akzent="multi"] .raster > .kachel:nth-child(6n+1), [data-akzent="multi"] .v-zeile:nth-child(6n+1) { --akz-l: var(--m1l); --akz-d: var(--m1d); --akz-il: var(--m1i); }
+[data-akzent="multi"] .nav button:nth-child(6n+2), [data-akzent="multi"] .raster > .kachel:nth-child(6n+2), [data-akzent="multi"] .v-zeile:nth-child(6n+2) { --akz-l: var(--m2l); --akz-d: var(--m2d); --akz-il: var(--m2i); }
+[data-akzent="multi"] .nav button:nth-child(6n+3), [data-akzent="multi"] .raster > .kachel:nth-child(6n+3), [data-akzent="multi"] .v-zeile:nth-child(6n+3) { --akz-l: var(--m3l); --akz-d: var(--m3d); --akz-il: var(--m3i); }
+[data-akzent="multi"] .nav button:nth-child(6n+4), [data-akzent="multi"] .raster > .kachel:nth-child(6n+4), [data-akzent="multi"] .v-zeile:nth-child(6n+4) { --akz-l: var(--m4l); --akz-d: var(--m4d); --akz-il: var(--m4i); }
+[data-akzent="multi"] .nav button:nth-child(6n+5), [data-akzent="multi"] .raster > .kachel:nth-child(6n+5), [data-akzent="multi"] .v-zeile:nth-child(6n+5) { --akz-l: var(--m5l); --akz-d: var(--m5d); --akz-il: var(--m5i); }
+[data-akzent="multi"] .nav button:nth-child(6n), [data-akzent="multi"] .raster > .kachel:nth-child(6n), [data-akzent="multi"] .v-zeile:nth-child(6n) { --akz-l: var(--m6l); --akz-d: var(--m6d); --akz-il: var(--m6i); }
+[data-akzent="multi"] .nav button svg { color: var(--accent); }
+[data-akzent="multi"] .raster > .kachel:not(.akzent) .wert .num { color: var(--accent); }
+/* Auswahl und Vorschau in den Einstellungen */
+.akz-felder { display: flex; flex-wrap: wrap; gap: 8px; }
+.akz-feld { width: 34px; height: 34px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; padding: 0; outline-offset: 2px; }
+.akz-feld.gewaehlt { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface) inset; }
+.akz-feld:focus-visible { outline: 2px solid var(--text); }
+.akz-reihe { display: flex; gap: 4px; }
+.akz-reihe i { width: 26px; height: 26px; border-radius: 8px; display: block; }
+.vorschau { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 14px; border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: var(--bg); }
+.vorschau .nav { display: flex; flex-direction: column; gap: 2px; }
+.vorschau .nav button { pointer-events: none; }
+.vorschau .v-rechts { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.vorschau .raster { gap: 10px; }
+.vorschau .kachel { padding: 12px 14px; }
+.vorschau .kachel .wert { font-size: 22px; }
+@media (max-width: 900px) { .vorschau { grid-template-columns: 1fr; } }

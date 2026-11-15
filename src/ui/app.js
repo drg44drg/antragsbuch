@@ -312,7 +312,7 @@
 
   // ---------- Start ----------
   App.start = function () {
-    D.thema();
+    D.thema(); AB.akzent.wende(AB.akzent.lade());
     starteWorker();
     Sp.onstatus = function (s) {
       document.getElementById('speicherpunkt').className = 'punkt ' + (s.art === 'ok' ? '' : s.art);

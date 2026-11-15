@@ -37,6 +37,34 @@
         slaTb.appendChild(h('tr', null, h('td', null, b.name), h('td', { style: { width: '110px' } }, zahl(s.gelb, function (n) { s.gelb = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } })),
           h('td', { style: { width: '110px' } }, zahl(s.rot, function (n) { s.rot = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } }))));
       });
+      // Akzentfarbe: Auswahl ändert zuerst nur die Vorschau; erst „Übernehmen" schaltet das Programm um
+      (function () {
+        var AK = AB.akzent, aktiv = AK.lade(), entwurf = JSON.parse(JSON.stringify(aktiv));
+        var felder = h('div.akz-felder'), reihe = h('div.akz-reihe'), text = h('span.muted.klein'), vor = h('div.vorschau');
+        var navBsp = [['uebersicht', 'Übersicht'], ['antraege', 'Anträge'], ['abgleich', 'Abgleich'], ['aktionen', 'Aktionen'], ['team', 'Team'], ['bonus', 'Bonus']];
+        D.anhaengen(vor, [h('div.nav', null, navBsp.map(function (n, i) { return h('button' + (i === 1 ? '.aktiv' : ''), { type: 'button', tabIndex: -1 }, D.icon(AB.ansichten[n[0]].icon), n[1], i === 2 ? h('span.zahl', null, '3') : null); })),
+          h('div.v-rechts', null, h('div.raster.r-3', null,
+            h('div.karte.kachel.akzent', null, h('div.lbl', null, 'Anträge'), h('div.wert', null, h('span.num', null, '17'))),
+            h('div.karte.kachel', null, h('div.lbl', null, 'Brutto'), h('div.wert', null, h('span.num', null, '1.626'), h('small', null, '€'))),
+            h('div.karte.kachel', null, h('div.lbl', null, 'Netto'), h('div.wert', null, h('span.num', null, '1.051'), h('small', null, '€')))),
+            h('div.leiste', null, h('button.btn.haupt-btn', { type: 'button', tabIndex: -1, style: { pointerEvents: 'none' } }, 'Neuer Antrag'), h('span.chip.aktiv', null, 'Auswahl'), h('span.marke-s', null, 'Markierung'), h('a', { style: { color: 'var(--accent)', fontWeight: 600 } }, 'Verweis')))]);
+        var gleich = function () { return JSON.stringify(entwurf) === JSON.stringify(aktiv); };
+        var uebernehmen = D.btn('Übernehmen', function () { aktiv = JSON.parse(JSON.stringify(entwurf)); AK.speichere(aktiv); AK.wende(aktiv); zeichne(); D.toast('Akzentfarbe übernommen.'); }, { klasse: 'haupt-btn' });
+        function zeichne() {
+          D.leere(felder); D.leere(reihe);
+          felder.appendChild(h('button.akz-feld' + (entwurf.modus === 'standard' ? '.gewaehlt' : ''), { type: 'button', title: 'Standard (Lila)', 'aria-label': 'Standard (Lila)', style: { background: '#6250d6' }, onclick: function () { entwurf = { modus: 'standard' }; zeichne(); } }));
+          AK.EINZEL.forEach(function (f) { felder.appendChild(h('button.akz-feld' + (entwurf.modus === 'einzel' && entwurf.farbe === f[1] ? '.gewaehlt' : ''), { type: 'button', title: f[0], 'aria-label': f[0], style: { background: f[1] }, onclick: function () { entwurf = { modus: 'einzel', farbe: f[1] }; zeichne(); } })); });
+          if (entwurf.modus === 'multi') entwurf.farben.forEach(function (f) { reihe.appendChild(h('i', { title: AK.name(f), style: { background: f } })); });
+          text.textContent = entwurf.modus === 'multi' ? entwurf.farben.map(AK.name).join(' → ') : entwurf.modus === 'einzel' ? AK.name(entwurf.farbe) : 'Standard (Lila)';
+          AK.wende(entwurf, vor); uebernehmen.disabled = gleich();
+        }
+        el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Akzentfarbe'), h('span.frei'), h('span.marke-s', null, aktiv.modus === 'multi' ? 'Multicolor' : aktiv.modus === 'einzel' ? AK.name(aktiv.farbe) : 'Standard')),
+          h('div.unter', null, 'Farbe für Knöpfe, Markierungen und Menü. Die Auswahl ändert zuerst nur die Vorschau; erst „Übernehmen" schaltet das Programm um. Produktfarben und Ampel bleiben gleich. Gilt für diesen Browser.'),
+          h('div.leiste', { style: { margin: '10px 0' } }, felder, D.btn('Multicolor würfeln', function () { entwurf = { modus: 'multi', farben: AK.wuerfle() }; zeichne(); }, { icon: 'funke', titel: 'Jeder Klick schlägt eine neue Farbserie vor' }), reihe),
+          vor,
+          h('div.leiste', { style: { marginTop: '10px' } }, text, h('span.frei'), D.btn('Verwerfen', function () { entwurf = JSON.parse(JSON.stringify(aktiv)); zeichne(); }, { klasse: 'leise' }), uebernehmen)));
+        zeichne();
+      })();
       // Grundvergütung nach Karrierestufe
       if (!e.grundverguetung) e.grundverguetung = { stufe: '', betrag: null, tabelle: {} };
       var gv = e.grundverguetung, gvStand = AB.model.grundverguetung(p, 0); if (!gv.tabelle) gv.tabelle = {};

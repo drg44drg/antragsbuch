@@ -3,7 +3,7 @@
 const fs = require('fs'), path = require('path');
 const r = (...p) => fs.readFileSync(path.join(__dirname, ...p), 'utf8');
 const KERN = ['util', 'csv', 'xlsx', 'statement', 'provision', 'model', 'abgleich', 'kennzahlen', 'team', 'vdienst', 'xlsxout', 'tarifdaten', 'tarif', 'leben', 'krypto', 'altbuch', 'bonus', 'lizenz', 'aktionen', 'import'];
-const UI = ['dom', 'diagramme', 'tabelle', 'speicher', 'app', 'maske', 'kunde', 'reklamation', 'tour',
+const UI = ['dom', 'akzent', 'diagramme', 'tabelle', 'speicher', 'app', 'maske', 'kunde', 'reklamation', 'tour',
   'ansichten/start', 'ansichten/uebersicht', 'ansichten/antraege', 'ansichten/abgleich', 'ansichten/vdienst', 'ansichten/team', 'ansichten/bonus', 'ansichten/aktionen', 'ansichten/einstellungen', 'ansichten/hilfe'];
 
 const kern = KERN.map((k) => r('src', 'core', k + '.js')).join('\n');

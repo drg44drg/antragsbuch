@@ -502,3 +502,17 @@ test('Leben (Stuttgarter): Produktsuche mit Teilwort und *, Provision nach Linie
   assert.equal(AB.provision.soll(a, regeln).betrag, 864);
   a.bank = { aktiv: true, anteil: 50 }; assert.equal(AB.provision.soll(a, regeln).betrag, 432);
 });
+
+test('Akzentfarbe: Fassungen sind in Hell und Dunkel lesbar, Multicolor würfelt sechs verschiedene Farben', () => {
+  const merk = globalThis.AB; require('../src/ui/akzent.js'); const A = globalThis.AB.akzent;
+  assert.equal(A.POOL.length, 25); assert.ok(A.EINZEL.length >= 10);
+  for (const [name, hex] of A.POOL) {
+    const f = A.fassungen(hex);
+    assert.ok(A.kontrast(f.hell, '#ffffff') >= 3, name + ' auf Weiß'); assert.ok(A.kontrast(f.dunkel, '#15141f') >= 4.5, name + ' auf Dunkel');
+    assert.ok(A.kontrast(f.tinte, f.hell) >= 3, name + ': Schrift auf der Akzentfläche');
+  }
+  let z = 0.123; const zufall = () => (z = (z * 9301 + 0.49297) % 1);
+  for (let i = 0; i < 40; i++) { const w = A.wuerfle(zufall); assert.ok(w.length >= 5 && new Set(w).size === w.length, 'keine Farbe doppelt'); w.forEach((f) => assert.ok(A.POOL.some((p) => p[1] === f))); }
+  assert.notDeepEqual(A.wuerfle(zufall), A.wuerfle(zufall));
+  assert.equal(globalThis.AB, merk);
+});
