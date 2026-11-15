@@ -97,7 +97,7 @@
       var rk = p.antraege.filter(M.reklaOffen).length;
       if (rk) h.push({ art: 'info', text: rk + (rk === 1 ? ' Reklamation' : ' Reklamationen') + ' offen', ziel: 'antraege', filter: 'rekla' });
       var st = erg.storno.length;
-      if (st) h.push({ art: 'krit', text: st + (st === 1 ? ' Rückbuchung' : ' Rückbuchungen') + ' zu abgerechneten Anträgen', ziel: 'abgleich', filter: 'storno' });
+      if (st) h.push({ art: 'krit', text: st + (st === 1 ? ' Storno-Rückbuchung' : ' Storno-Rückbuchungen') + ' zu bereits abgerechneten Anträgen', ziel: 'abgleich', filter: 'storno' });
     }
     return { jahr: jahr, monate: monate, schnitt: schnitt, hinweise: h, erinnerung: K.erinnerung(p, heute) };
   };

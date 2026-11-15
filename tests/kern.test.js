@@ -423,3 +423,16 @@ test('Bonus-Vorschau: bestätigt (Reporting), gebucht (Abrechnung nach dem Stand
   const ohne = AB.bonus.simulation(Object.assign(M.neuesProjekt(2026), { antraege: p.antraege }), [], null);
   assert.equal(ohne.voll.bestaetigt, 0); assert.equal(ohne.voll.beantragt, 4); assert.equal(ohne.voll.gebucht, 2, 'ohne Reporting-Stand gilt Abgerechnetes als gebucht');
 });
+
+test('Grundvergütung: Betrag nach Karrierestufe, von Hand überschreibbar, Jahr bis zum laufenden Monat', () => {
+  const p = M.neuesProjekt(2026);
+  assert.equal(M.grundverguetung(p, null, '2026-05-10').gesetzt, false);
+  p.einstellungen.grundverguetung = { stufe: '3', betrag: null, tabelle: { '1+2': 1500, '3': 2000 } };
+  assert.deepEqual((({ jeMonat, monate, summe, manuell }) => [jeMonat, monate, summe, manuell])(M.grundverguetung(p, null, '2026-05-10')), [2000, 5, 10000, false]);
+  assert.equal(M.grundverguetung(p, 2, '2026-05-10').summe, 2000);
+  assert.equal(M.grundverguetung(p, null, '2027-02-01').summe, 24000); assert.equal(M.grundverguetung(p, null, '2025-12-01').summe, 0);
+  p.einstellungen.grundverguetung.betrag = 2150.5;
+  assert.deepEqual((({ jeMonat, ausStufe, manuell }) => [jeMonat, ausStufe, manuell])(M.grundverguetung(p, 0, '2026-05-10')), [2150.5, 2000, true]);
+  const alt = M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: {} });
+  assert.equal(alt.einstellungen.grundverguetung.stufe, '');
+});

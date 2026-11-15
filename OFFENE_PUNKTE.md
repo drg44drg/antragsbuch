@@ -69,7 +69,14 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D0000 · Erledigt (Version 2.1)
+## D0000 · Erledigt (Version 2.2)
+
+Grundvergütung nach Karrierestufe (Einstellungen, von Hand überschreibbar) und Kachel „Auszahlung gesamt" in der Übersicht ·
+Liste „Buchung ohne Eintrag" und Hinweis „Storno-Rückbuchungen zu bereits abgerechneten Anträgen" klarer benannt.
+
+Offen dazu: Vergütungstabelle des Karrierestufensystems (Betrag je Stufe) liefern, dann wird sie fest vorbelegt · Einarbeitungsvergütung bewusst weggelassen.
+
+## Erledigt (Version 2.1)
 
 Policiert (Veränderungsdienst) als eigene Stufe: zählt in der Bonus-Vorschau ab dem Policierungsdatum, auch ohne Abrechnung ·
 Übersicht zeigt Brutto (eingetragen), voraussichtlich netto (policiert + abgerechnet) und Netto (abgerechnet) · Monatsdiagramm trennt Policiert von Eingereicht.

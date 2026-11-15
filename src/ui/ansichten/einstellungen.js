@@ -37,6 +37,19 @@
         slaTb.appendChild(h('tr', null, h('td', null, b.name), h('td', { style: { width: '110px' } }, zahl(s.gelb, function (n) { s.gelb = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } })),
           h('td', { style: { width: '110px' } }, zahl(s.rot, function (n) { s.rot = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } }))));
       });
+      // Grundvergütung nach Karrierestufe
+      if (!e.grundverguetung) e.grundverguetung = { stufe: '', betrag: null, tabelle: {} };
+      var gv = e.grundverguetung, gvStand = AB.model.grundverguetung(p, 0); if (!gv.tabelle) gv.tabelle = {};
+      var leerZahl = function (wert, setze, ph) { var i = h('input', { type: 'text', inputMode: 'decimal', value: wert == null || wert === '' ? '' : U.fmtZahl(+wert, 2), placeholder: ph || '', style: { textAlign: 'right' }, onchange: function () {
+        var v = i.value.trim() === '' ? null : U.parseZahl(i.value); if (v != null && (isNaN(v) || v < 0)) { i.classList.add('fehler'); return; } setze(v); App.geaendert(); } }); return i; };
+      el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Grundvergütung'), h('span.frei'), h('span.marke-s' + (gvStand.gesetzt ? '.gut' : ''), null, gvStand.gesetzt ? U.fmtEuro(gvStand.jeMonat) + ' je Monat' + (gvStand.manuell ? ' (von Hand)' : '') : 'nicht hinterlegt')),
+        h('div.unter', null, 'Monatliche Grundvergütung nach dem Karrierestufensystem. Sie erscheint in der Übersicht zusammen mit der Provision als „Auszahlung gesamt".'),
+        h('div.formraster', { style: { marginTop: '10px' } },
+          D.feld('Meine Karrierestufe', D.auswahl([['', '– bitte wählen –']].concat(AB.bonus.STUFEN.map(function (s) { return [s.id, s.name]; })), gv.stufe || '', function (v) { gv.stufe = v; App.geaendert(); }), 's4'),
+          D.feld('Abweichender Betrag je Monat (€)', leerZahl(gv.betrag, function (v) { gv.betrag = v; }, 'leer = laut Stufe'), 's4'),
+          h('div.feld.s12', null, h('span', null, 'Betrag je Monat nach Stufe (€)'), h('div.formraster', null, AB.bonus.STUFEN.map(function (s) {
+            return D.feld(s.name, leerZahl(gv.tabelle[s.id], function (v) { gv.tabelle[s.id] = v; }), 's2'); })))),
+        h('p.mini', { style: { marginTop: '8px' } }, 'Die Beträge je Stufe sind noch nicht vorbelegt, weil die Vergütungstabelle nicht vorliegt. Tragen Sie Ihren Betrag bei Ihrer Stufe ein oder überschreiben Sie ihn im Feld „Abweichender Betrag".')));
       el.appendChild(h('div.karte', null, h('h3', null, 'Bearbeitungsampel (Service-Level)'),
         h('div.unter', null, 'Werktage seit Einreichung, bis ein noch nicht policierter Antrag gelb bzw. rot wird. Wochenenden und bundesweite Feiertage zählen nicht. Eine offene Nachbearbeitung ist immer rot.'),
         h('div.raster.r-2', null, h('table.einfach', null, h('thead', null, h('tr', null, ['Bereich', 'Gelb ab Werktag', 'Rot ab Werktag'].map(function (t) { return h('th', null, t); }))), slaTb),

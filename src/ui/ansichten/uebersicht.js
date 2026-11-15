@@ -41,14 +41,16 @@
         }))));
       var titel = (mon == null ? 'im Jahr ' + p.jahr : 'im ' + U.MONATE[mon]) + (filter ? ' · ' + [z.bereich ? M.bereich[z.bereich].kurz : '', z.tarif, z.beihilfe === 'ja' ? 'Beihilfe' : z.beihilfe === 'nein' ? 'ohne Beihilfe' : ''].filter(Boolean).join(' · ') : '');
       var verlauf = function (f) { var w = kz.monate.map(function (m) { return m[f]; }); while (w.length > 2 && !w[w.length - 1]) w.pop(); return w; };
-      el.appendChild(h('div.raster.r-7', null,
+      var gv = M.grundverguetung(p, mon);
+      el.appendChild(h('div.raster.r-4', null,
         kachel('Anträge ' + titel, k.antraege, ganz, mon == null ? 'Ø ' + U.fmtZahl(kz.schnitt.antraege, 1) + ' je Monat' : 'Jahr: ' + kz.jahr.antraege, { akzent: true, i: 0, funke: mon == null ? verlauf('antraege') : null, klick: function () { App.zeige('antraege', { monat: mon == null ? '' : String(mon), status: '', spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '', beihilfe: z.beihilfe || '' }); } }),
         kachel('Brutto · eingetragen', k.brutto, euro0, 'alle erfassten Anträge' + (mon == null ? ' · Ø ' + U.fmtEuro0(kz.schnitt.brutto) : ''), { einheit: '€', i: 1 }),
         kachel('Voraussichtlich netto · policiert', k.voraussichtlich, euro0, k.policiertAnz + ' policiert, noch nicht abgerechnet (' + U.fmtEuro0(k.policiert) + ')', { einheit: '€', punkt: 'var(--s3)', i: 2 }),
         kachel('Netto · abgerechnet', k.abgerechnet, euro0, k.abgerechnetAnz + (k.abgerechnetAnz === 1 ? ' Antrag' : ' Anträge') + ' in der Abrechnung', { einheit: '€', punkt: 'var(--good)', i: 3 }),
         kachel('Offen', k.offenAnz, ganz, U.fmtEuro(k.offen) + ' unterwegs · ' + kz.jahr.ampel.rot + ' rot, ' + kz.jahr.ampel.gelb + ' gelb', { punkt: 'var(--s6)', i: 2, klick: function () { App.zeige('antraege', { status: 'offen', monat: mon == null ? '' : String(mon), spezial: '', ampel: '', bereich: z.bereich || '', tarif: z.tarif || '' }); } }),
         kachel('Storno', k.stornoAnz, ganz, U.fmtEuro(k.storno) + ' · Quote ' + U.fmtZahl(k.stornoQuote * 100, 1) + ' %', { punkt: 'var(--crit)', i: 4 }),
-        kachel('Provision Ist', k.provIst, euro0, 'Soll ' + U.fmtEuro(k.provSoll), { einheit: '€', i: 5 })));
+        kachel('Provision Ist', k.provIst, euro0, 'Soll ' + U.fmtEuro(k.provSoll), { einheit: '€', i: 5 }),
+        kachel('Auszahlung gesamt', gv.summe + k.provIst, euro0, gv.gesetzt ? 'Grundvergütung ' + U.fmtEuro0(gv.jeMonat) + (gv.monate === 1 ? '' : ' × ' + gv.monate + ' Monate') + ' + Provision ' + U.fmtEuro0(k.provIst) : 'Grundvergütung noch nicht hinterlegt – hier klicken', { einheit: '€', punkt: 'var(--s1)', i: 6, klick: function () { App.zeige('einstellungen'); } })));
 
       // Diagramme
       var dBalken = h('div'), dRing = h('div'), dLinie = h('div'), dQuer = h('div');

@@ -59,7 +59,7 @@
     return {
       vermittlernummer: '', name: '',
       toleranzBeitrag: 0.05, toleranzProvision: 0.5, pruefeProvision: true,
-      offenTage: 60, stornoSchwelle: 90,
+      offenTage: 60, stornoSchwelle: 90, grundverguetung: { stufe: '', betrag: null, tabelle: { '1+2': null, '3': null, '4': null, '5': null, '6': null } },
       provisionsarten: ['Abschluss', 'Erhöhung', 'Manuell', 'Bestand', 'Kündigungsrücknahme'], artenStand: 2,
       sla: M.standardSla(), abrechnungTag: 6
     };
@@ -153,6 +153,18 @@
     ohne.forEach(function (a) { a.nr = ++max; });
     p.naechsteNr = max + 1;
     return ohne.length > 0;
+  };
+
+  /**
+   * Grundvergütung nach Karrierestufe: Betrag je Monat aus der Stufentabelle, von Hand überschreibbar.
+   * monat: 0–11 oder null (Jahr: bis zum laufenden Monat, in abgeschlossenen Jahren 12 Monate).
+   */
+  M.grundverguetung = function (p, monat, heute) {
+    var g = (p.einstellungen && p.einstellungen.grundverguetung) || {}, tab = g.tabelle || {};
+    var ausStufe = +tab[g.stufe] || 0, hand = g.betrag != null && g.betrag !== '' && !isNaN(+g.betrag);
+    var je = hand ? +g.betrag : ausStufe, h = heute || U.heute(), hj = +h.slice(0, 4), jahr = +p.jahr;
+    var monate = monat != null ? 1 : jahr < hj ? 12 : jahr > hj ? 0 : +h.slice(5, 7);
+    return { stufe: g.stufe || '', jeMonat: U.runde(je), ausStufe: U.runde(ausStufe), manuell: hand, monate: monate, summe: U.runde(je * monate), gesetzt: je > 0 };
   };
 
   M.vnName = function (a) {
