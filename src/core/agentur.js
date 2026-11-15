@@ -67,6 +67,16 @@
   ];
   G.MIN = { mb: 4, gp: 1500 };
   G.AGENTUR_MB = 7;
+  /**
+   * Ergänzende Grundvergütung des Versicherers für einen Untervermittler (Nachtrag zum Vertretervertrag):
+   * in der Anlaufzeit (bis Ende des übernächsten Jahres nach Tätigkeitsbeginn) fest 1.500 € im Monat, danach nach der
+   * Netto-KV-Eigenproduktion des Untervermittlers. Unter 6.000 € entfällt sie. Dazu höchstens 12 Monate Einarbeitungspauschale von 500 €.
+   */
+  G.GP_STAFFEL = [[15000, 3250], [12000, 3000], [9000, 2750], [6000, 2250]];
+  G.GP_ANLAUF = 1500; G.EINARBEITUNG = 500;
+  G.gpNachProduktion = function (produktion) { for (var i = 0; i < G.GP_STAFFEL.length; i++) if (produktion >= G.GP_STAFFEL[i][0]) return G.GP_STAFFEL[i][1]; return 0; };
+  /** Nächste Schwelle der Staffel: { ab, gp, fehlt } oder null, wenn die höchste erreicht ist. */
+  G.gpNaechste = function (produktion) { var n = null; G.GP_STAFFEL.forEach(function (x) { if (produktion < x[0]) n = { ab: x[0], gp: x[1], fehlt: U.runde(x[0] - produktion) }; }); return n; };
   G.stufe = function (id) { return G.MODELL.filter(function (x) { return x.id === id; })[0] || null; };
 
   /**

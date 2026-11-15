@@ -348,3 +348,17 @@ Offen, braucht eine Entscheidung oder den Agenturvertrag:
 - Verfall der Grundpauschale, wenn der Untervermittler nach zwei Jahren unter 6.000 MB liegt: noch nicht geprüft.
 - Produktionsübertrag zwischen Agentur und Untervermittler (in den Beispieldaten 540 €) ist noch nicht erklärt.
 - Näherung Provision ÷ Faktor weicht je ADP im Mittel rund 6 % von den Monatsscheiben ab. Genau wird es nur mit den Abrechnungen der einzelnen ADP.
+
+## Version 4.2 (Auswertung „Nettoproduktion FD“, Staffel der Grundvergütung)
+
+Erledigt:
+- Die Auswertung „Nettoproduktion FD“ (täglicher Bericht) wird im Feld „Team und Auswertung“ erkannt und eingelesen. Sie geht für das ganze Jahr den Monatsscheiben vor und liefert alle Vermittler mit Namen. Karte mit Jahreswert, laufendem Monat, Vorjahresvergleich, Zeitziel und Bewegung seit dem letzten eingelesenen Stand (Verlauf von bis zu 120 Ständen).
+- Vergleichstabelle mit „Laufender Monat“ und „Vorjahr“.
+- Agentur: Staffel der ergänzenden Grundvergütung des Versicherers nach Netto-KV-Eigenproduktion (aus dem Nachtrag), mit Abstand zur nächsten Stufe.
+- Unterschied Abrechnung der Führungskraft gegen Auswertung geklärt: Pflegepflicht und manuelle Buchungen erzeugen keine Hierarchie-Buchung; Storno und Verrechnung laufen getrennt.
+
+Offen:
+- Overheads legt die Agentur selbst vor: Eingabe eigener Sätze ist da, ein Rechnungsmuster gibt es nicht.
+- Anlaufzeit und Einarbeitungspauschale (500 € für höchstens 12 Monate) brauchen den Tätigkeitsbeginn des Untervermittlers als Eingabe.
+- Verkaufshilfen Voll- und Zusatzversicherung liegen vor (Tarifübersichten). Noch nicht ausgewertet für Tipps, Tarifauswahl und Vertriebs-Pakete.
+- Verlauf der Auswertung als Diagramm (Tageskurve gegen Zeitziel).

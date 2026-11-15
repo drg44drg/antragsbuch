@@ -727,3 +727,26 @@ test('Unternehmeragentur: Agenturmodell und Abrechnung aus der Abrechnung des Un
   const ohne = G.abrechnungUv(zeilen, 2026, {}, 7); assert.equal(ohne.anspruch, null); assert.equal(ohne.brutto, 150);
   const t = G.tabelleUv(a); assert.equal(t.zeilen.length, 3); assert.equal(t.summe[1], 50);
 });
+
+test('Auswertung „Nettoproduktion FD": erkennen, lesen, Verlauf; Staffel der Grundvergütung', async () => {
+  const T = AB.team, G = AB.agentur;
+  const z = [[], [null, 'Nettoproduktion FD 2026'], [null, 'Stand: 19.03.2026'], [],
+    [null, '', 'laufender Monat', null, null, '', 'kumulierte Monatswerte', null, null, '', '', 'Zeitziel Mrz../2026', 'Zeitzielerreichungsgrad Mrz../2026'],
+    [null, null, 'Nettoproduktion in €', null, null, null, 'Nettoproduktion in €'],
+    [null, null, 'Mrz../2026', 'Mrz../2025', '[D]', null, '01-Mrz../2026', '01-Mrz../2025'],
+    [null, '900999 FD Muster', 300, 200, 50, '', 1000, 800, 25, '', '', 1200, 83.3],
+    [null, '900101 MUSTER,ANNA', 200, 150, 0, '', 700, 500, 0],
+    [null, '900102 PROBE,CLARA', 100, '-', '∞', '', 290, 300, 0],
+    [null, '900999 LEITUNG,LEO', '-', 50, 0, '', 10, '-', 0]];
+  const bl = [{ name: 'KV', zeilen: z }];
+  assert.ok(T.istFdBericht(bl)); assert.ok(!T.istFdBericht([{ name: 'x', zeilen: [['Monat', 'Wert']] }]));
+  const b = T.liesFdBericht(bl);
+  assert.deepEqual([b.jahr, b.monat, b.stand, b.sparte], [2026, 2, '2026-03-19', 'KV']);
+  assert.deepEqual([b.gesamt.nr, b.gesamt.kum, b.gesamt.lfd, b.gesamt.ziel], ['900999', 1000, 300, 1200]);
+  assert.equal(b.zeilen.length, 3); assert.deepEqual([b.zeilen[1].lfd, b.zeilen[1].lfdVj, b.zeilen[1].kumVj], [100, 0, 300]);
+  assert.equal(b.zeilen[2].nr, '900999'); assert.equal(b.zeilen[2].kum, 10);
+  let v = T.merkeFdVerlauf(null, b); v = T.merkeFdVerlauf(v, b); assert.equal(v.length, 1); assert.equal(v[0].je['900101'], 700);
+  v = T.merkeFdVerlauf(v, Object.assign({}, b, { stand: '2026-03-18' })); assert.deepEqual(v.map((x) => x.stand), ['2026-03-18', '2026-03-19']);
+  assert.deepEqual([5999, 6000, 9000, 12000, 20000].map(G.gpNachProduktion), [0, 2250, 2750, 3000, 3250]);
+  assert.deepEqual(G.gpNaechste(7000), { ab: 9000, gp: 2750, fehlt: 2000 }); assert.equal(G.gpNaechste(15000), null);
+});

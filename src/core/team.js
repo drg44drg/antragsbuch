@@ -74,6 +74,47 @@
     return team;
   };
 
+  // ---------- Auswertung „Nettoproduktion FD": je Vermittler laufender Monat und kumulierter Jahreswert ----------
+  var MON_KURZ = ['jan', 'feb', 'mrz', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dez'];
+  function fdKopf(zeilen) {
+    for (var r = 0; r < Math.min(30, zeilen.length); r++) {
+      var z = (zeilen[r] || []).map(function (c) { return U.falte(c == null ? '' : c); });
+      var cL = z.findIndex(function (c) { return /^laufender monat/.test(c); }), cK = z.findIndex(function (c) { return /^kumulierte monatswerte/.test(c); });
+      if (cL >= 0 && cK > cL) return { zeile: r, lfd: cL, kum: cK, ziel: z.findIndex(function (c) { return /^zeitziel\b/.test(c) && !/grad/.test(c); }), grad: z.findIndex(function (c) { return /^zeitzielerreichungsgrad/.test(c); }) };
+    }
+    return null;
+  }
+  T.istFdBericht = function (blaetter) { return blaetter.some(function (b) { return !!fdKopf(b.zeilen); }); };
+  /**
+   * → { jahr, monat (0–11), stand, sparte, gesamt:{nr,name,lfd,lfdVj,kum,kumVj,ziel,grad}, zeilen:[{nr,name,lfd,lfdVj,kum,kumVj}] }
+   * Die erste Zeile ist die Summe der Führungseinheit; ihre Nummer taucht darunter noch einmal mit der Eigenproduktion auf.
+   */
+  T.liesFdBericht = function (blaetter) {
+    var b = blaetter.filter(function (x) { return !!fdKopf(x.zeilen); })[0], k = fdKopf(b.zeilen), o = { jahr: 0, monat: -1, stand: '', sparte: String(b.name || '').trim(), gesamt: null, zeilen: [], importiert: new Date().toISOString() };
+    b.zeilen.slice(0, k.zeile).forEach(function (z) { z.forEach(function (c) { var m = /Stand:\s*(\S+)/.exec(String(c || '')); if (m) o.stand = U.parseDatum(m[1]) || o.stand; }); });
+    // Spaltenköpfe wie „Dez../2025" und „01-Dez../2025" in den Zeilen unter dem Kopf
+    b.zeilen.slice(k.zeile + 1, k.zeile + 4).forEach(function (z) { var c = String(z[k.lfd] == null ? '' : z[k.lfd]), m = /^([A-Za-zä]{3})\.*\/(20\d\d)$/.exec(c.trim()); if (m && MON_KURZ.indexOf(U.falte(m[1]).replace('mar', 'mrz')) >= 0) { o.monat = MON_KURZ.indexOf(U.falte(m[1]).replace('mar', 'mrz')); o.jahr = +m[2]; } });
+    var zahl = function (v) { return typeof v === 'number' && isFinite(v) ? v : 0; };
+    b.zeilen.slice(k.zeile + 1).forEach(function (z) {
+      var li = z.findIndex(function (c) { return typeof c === 'string' && /^\d{6}\s+\S/.test(c.trim()); });
+      if (li < 0) return;
+      var m = /^(\d{6})\s+(.*)$/.exec(z[li].trim());
+      var e = { nr: m[1], name: m[2].trim(), lfd: zahl(z[k.lfd]), lfdVj: zahl(z[k.lfd + 1]), kum: zahl(z[k.kum]), kumVj: zahl(z[k.kum + 1]) };
+      if (!o.gesamt) { e.ziel = k.ziel >= 0 ? zahl(z[k.ziel]) : 0; e.grad = k.grad >= 0 ? zahl(z[k.grad]) : 0; o.gesamt = e; } else o.zeilen.push(e);
+    });
+    if (!o.gesamt || o.zeilen.length < 1) throw new Error('In der Auswertung wurden keine Zeilen mit Vermittlernummern gefunden.');
+    if (!o.jahr && o.stand) o.jahr = +o.stand.slice(0, 4);
+    return o;
+  };
+  /** Verlauf der eingelesenen Stände (je Stand Jahreswert und laufender Monat), höchstens 120 Einträge. */
+  T.merkeFdVerlauf = function (verlauf, b) {
+    verlauf = (verlauf || []).filter(function (x) { return x.stand !== b.stand || +x.jahr !== +b.jahr; });
+    var je = {}; b.zeilen.forEach(function (z) { if (Math.abs(z.kum) >= 0.5) je[z.nr] = U.runde(z.kum); });
+    verlauf.push({ stand: b.stand, jahr: b.jahr, kum: U.runde(b.gesamt.kum), lfd: U.runde(b.gesamt.lfd), je: je });
+    verlauf.sort(function (x, y) { return x.stand < y.stand ? -1 : x.stand > y.stand ? 1 : 0; });
+    return verlauf.slice(-120);
+  };
+
   // ---------- Sammelmappe: je ADP ein Blatt „NNNms" mit Produktscheiben, dazu Soll-Ist-Ziele ----------
   T.SPARTEN = [
     ['Kranken', 'Kranken gesamt'], ['Vollversicherung', 'Vollversicherung'], ['Vollversicherung mit Beihilfe', 'Voll mit Beihilfe'], ['Vollversicherung nicht Beihilfe', 'Voll ohne Beihilfe'],

@@ -267,10 +267,10 @@
     { id: 'abrechnung', titel: 'Provisionsabrechnung', text: 'Die Abrechnung des Versicherers als CSV oder Excel. Jede neue Datei ersetzt die vorige, weil sie das ganze Jahr enthält.', arten: ['abrechnung'], icon: 'abgleich', endung: '.csv,.txt,.xlsx,.xlsm' },
     { id: 'altbuch', titel: 'Mein bisheriges Antragsbuch', text: 'Das Excel-Antragsbuch, das Sie bisher geführt haben. Die Einträge werden als Anträge übernommen.', arten: ['altbuch'], icon: 'antraege', endung: '.xlsx,.xlsm' },
     { id: 'vdienst', titel: 'Veränderungsdienst', text: 'Die Liste der policierten Verträge. Passende Anträge werden auf „Policiert" gesetzt.', arten: ['tabelle'], icon: 'vdienst', endung: '.csv,.txt,.xlsx,.xlsm' },
-    { id: 'team', titel: 'Team und Auswertung', text: 'Monatsscheiben, Sammelmappe, persönliche Auswertung oder die Teamdatei Ihrer Führungskraft.', arten: ['monatsscheiben', 'teamdatei'], icon: 'team', endung: '.xlsx,.xlsm,.json' },
+    { id: 'team', titel: 'Team und Auswertung', text: 'Monatsscheiben, Sammelmappe, Nettoproduktion FD, persönliche Auswertung oder die Teamdatei Ihrer Führungskraft.', arten: ['monatsscheiben', 'teamdatei', 'fdbericht'], icon: 'team', endung: '.xlsx,.xlsm,.json' },
     { id: 'projekt', titel: 'Antragsbuch-Projektdatei', text: 'Eine gespeicherte Projektdatei dieser App (.json) öffnen, zum Beispiel eine Sicherung.', arten: ['projekt'], icon: 'einstellungen', endung: '.json' }
   ];
-  App.ARTNAME = { abrechnung: 'eine Provisionsabrechnung', altbuch: 'ein bisheriges Excel-Antragsbuch', tabelle: 'eine einfache Liste (z. B. Veränderungsdienst)', monatsscheiben: 'eine Team-Auswertung (Monatsscheiben)', teamdatei: 'eine Teamdatei', agenturdatei: 'die Prüfdatei eines Untervermittlers', projekt: 'eine Antragsbuch-Projektdatei' };
+  App.ARTNAME = { abrechnung: 'eine Provisionsabrechnung', altbuch: 'ein bisheriges Excel-Antragsbuch', tabelle: 'eine einfache Liste (z. B. Veränderungsdienst)', monatsscheiben: 'eine Team-Auswertung (Monatsscheiben)', teamdatei: 'eine Teamdatei', fdbericht: 'die Auswertung „Nettoproduktion FD“', agenturdatei: 'die Prüfdatei eines Untervermittlers', projekt: 'eine Antragsbuch-Projektdatei' };
   App.einleseDialog = function () {
     var d = D.dialog('Datei einlesen', { klasse: 'mittel' });
     D.anhaengen(d.rumpf, [h('p.muted', { style: { margin: 0 } }, 'Ziehen Sie die Datei auf das passende Feld oder klicken Sie darauf. Die App prüft den Inhalt und fragt nach, wenn die Datei nicht zum Feld passt.'),
@@ -363,6 +363,18 @@
       if (!ag.untervermittler[dt.von]) ag.untervermittler[dt.von] = { name: dt.name || '', art: 'mb', wert: null };
       App.zustand.agentur = { nr: dt.von }; App.ansicht = 'agentur'; App.geaendert();
       D.toast('Prüfdatei von ' + dt.von + ' eingelesen: ' + dt.posten.length + ' Posten' + (ersetzt ? ' (ersetzt die frühere Datei)' : '') + '.');
+    } else if (r.art === 'fdbericht') {
+      var fb = r.bericht;
+      if (App.modus() !== 'mgmt') {
+        if (!(await D.frage('Auswertung für Führungskräfte', '„' + name + '" enthält Namen und Werte aller Vermittler der Einheit. Sie wird nur in der Management-Ansicht verwendet. Soll dieses Projekt auf Management umgestellt werden?', 'Auf Management umstellen'))) return;
+        p.einstellungen.modus = 'mgmt';
+      }
+      var frueher = (p.fdVerlauf || []).filter(function (x) { return +x.jahr === +fb.jahr && x.stand < fb.stand; }).pop();
+      p.fdBericht = fb; p.fdVerlauf = AB.team.merkeFdVerlauf(p.fdVerlauf, fb);
+      p.importe.push({ id: U.uid(), typ: 'Nettoproduktion FD', datum: new Date().toISOString(), datei: name, zeilen: fb.zeilen.length });
+      App.ansicht = opt.still ? App.ansicht : 'team';
+      App.geaendert({ ohneRechnen: true });
+      D.toast('Nettoproduktion eingelesen: ' + fb.zeilen.length + ' Vermittler, Stand ' + U.fmtDatum(fb.stand) + ', Jahreswert ' + U.fmtEuro0(fb.gesamt.kum) + (frueher ? ' (' + (fb.gesamt.kum - frueher.kum >= 0 ? '+' : '') + U.fmtEuro0(fb.gesamt.kum - frueher.kum) + ' seit ' + U.fmtDatum(frueher.stand) + ')' : '') + '.' + (+fb.jahr !== +p.jahr ? ' Achtung: Die Auswertung gilt für ' + fb.jahr + ', das Projekt steht auf ' + p.jahr + '.' : ''), +fb.jahr !== +p.jahr ? { krit: true } : undefined);
     } else if (r.art === 'monatsscheiben' || r.art === 'teamdatei') {
       M.sichere(p, 'Vor Import „' + name + '"');
       var team = r.team;
