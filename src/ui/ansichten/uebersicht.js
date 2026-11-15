@@ -55,7 +55,7 @@
       // Diagramme
       var dBalken = h('div'), dRing = h('div'), dLinie = h('div'), dQuer = h('div');
       el.appendChild(h('div.raster.r-21', null,
-        h('div.karte.rein', null, h('h3', null, 'Anträge je Monat'), h('div.unter', null, 'nach aktuellem Status · Klick auf einen Monat filtert die Übersicht'), dBalken),
+        h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Anträge je Monat nach'), D.seg([['bereich', 'Bereich'], ['status', 'Status']], z.balken || 'bereich', function (v) { z.balken = v; App.zeige('uebersicht'); })), h('div.unter', null, (z.balken === 'status' ? 'nach aktuellem Status' : 'in den Produktfarben') + ' · Klick auf einen Monat filtert die Übersicht'), dBalken),
         h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Beitrag nach'), D.seg([['bereich', 'Bereich'], ['kategorie', 'Kategorie']], z.ring || 'bereich', function (v) { z.ring = v; App.zeige('uebersicht'); })),
           h('div.unter', null, titel + ' · Beihilfe: ' + k.beihilfeAnz + (k.beihilfeAnz === 1 ? ' Antrag, ' : ' Anträge, ') + U.fmtEuro(k.beihilfe)), dRing)));
       // Bearbeitung: was wartet am längsten?
@@ -75,17 +75,17 @@
       el.appendChild(h('div.karte.rein', null, h('h3', null, 'Provision: Soll und Ist'), h('div.unter', null, 'aufgelaufen nach Eingangsmonat der Anträge'), dLinie));
       requestAnimationFrame(function () {
         var ms = kz.monate;
-        G.balken(dBalken, { titel: 'Anträge je Monat nach Status', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: ganz, klick: function (i) { z.monat = z.monat === i ? null : i; App.zeige('uebersicht'); },
-          reihen: [{ name: 'Abgerechnet', farbe: G.FARBEN[0], werte: ms.map(function (m) { return m.abgerechnetAnz; }) },
+        G.balken(dBalken, { titel: 'Anträge je Monat', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: ganz, klick: function (i) { z.monat = z.monat === i ? null : i; App.zeige('uebersicht'); },
+          reihen: z.balken !== 'status' ? M.BEREICHE.filter(function (b) { return ms.some(function (m) { return m.bereiche[b.id] && m.bereiche[b.id].stueck; }); }).map(function (b) { return { name: b.kurz, farbe: G.bereichFarbe(b.id), werte: ms.map(function (m) { return m.bereiche[b.id] ? m.bereiche[b.id].stueck : 0; }) }; }) : [{ name: 'Abgerechnet', farbe: G.FARBEN[0], werte: ms.map(function (m) { return m.abgerechnetAnz; }) },
             { name: 'Policiert', farbe: G.FARBEN[2], werte: ms.map(function (m) { return m.policiertAnz; }) },
             { name: 'Eingereicht/Reklamiert', farbe: G.FARBEN[1], werte: ms.map(function (m) { return m.offenAnz - m.policiertAnz; }) },
             { name: 'Storno', farbe: G.FARBEN[4], werte: ms.map(function (m) { return m.stornoAnz; }) },
             { name: 'Abgelehnt/Widerruf/Absage', farbe: G.FARBEN[3], werte: ms.map(function (m) { return m.abgewiesenAnz; }) }] });
-        var bereiche = M.BEREICHE.map(function (b, i) { return { name: b.kurz, wert: k.bereiche[b.id].beitrag, stueck: k.bereiche[b.id].stueck, i: i }; });
+        var bereiche = M.BEREICHE.map(function (b, i) { return { name: b.kurz, wert: k.bereiche[b.id].beitrag, stueck: k.bereiche[b.id].stueck, i: i, farbe: G.bereichFarbe(b.id) }; });
         if (z.ring === 'kategorie') bereiche = Object.keys(k.kategorien).map(function (n) { return { name: n, wert: k.kategorien[n].beitrag, stueck: k.kategorien[n].stueck }; });
         var top = bereiche.filter(function (b) { return b.wert > 0; }).sort(function (a, b) { return b.wert - a.wert; });
         G.ring(dRing, { titel: 'Beitrag nach Bereich', format: U.fmtEuro, mitte: { wert: U.fmtEuro0(k.brutto + k.minder), label: 'Beitrag' },
-          teile: top.map(function (b, i) { return { name: b.name, wert: b.wert, farbe: i < 5 ? G.FARBEN[i] : G.GRAU }; }) });
+          teile: top.map(function (b, i) { return { name: b.name, wert: b.wert, farbe: b.farbe || (i < 5 ? G.FARBEN[i] : G.GRAU) }; }) });
         var sS = 0, sI = 0, letzter = -1;
         ms.forEach(function (m, i) { if (m.antraege) letzter = i; });
         G.linie(dLinie, { titel: 'Provision Soll und Ist, aufgelaufen', kategorien: U.MONATE_KURZ, kategorienLang: U.MONATE, format: U.fmtEuro,

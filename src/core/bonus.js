@@ -84,15 +84,21 @@
       if (!pdat && a.status === 'policiert') pdat = a.statusDatum || '';
       var wirksam = pdat && bdat ? (pdat < bdat ? pdat : bdat) : (pdat || bdat);
       var zustand = !wirksam ? 'beantragt' : stand && wirksam <= stand ? 'bestaetigt' : bdat ? 'gebucht' : 'policiert';
-      var voll = {}, bkv = {}, mbKv = 0, mbGes = 0, vn = M.vnName(a);
+      var voll = {}, vollPp = {}, bkv = {}, mbKv = 0, mbGes = 0, vn = M.vnName(a), hatPp = false;
       a.positionen.forEach(function (ps, i) {
         var be = ps.bereich || a.bereich, wer = (ps.person || vn || 'Person ' + (i + 1)).trim().toLowerCase(), b = M.vorzeichen(a, +ps.beitrag || 0);
-        if (a.vorgang === 'neu' && be === 'voll') voll[wer] = 1;
+        if (a.vorgang === 'neu' && (be === 'voll' || be === 'pflege')) { if (be === 'voll') voll[wer] = 1; if (M.istPflegepflicht(ps.tarif)) { vollPp[wer] = 1; hatPp = true; } }
         if (a.vorgang === 'neu' && be === 'bkv') bkv[wer] = 1;
         if (be === 'leben') return;
         mbGes += b; if (be !== 'unfall') mbKv += b;
       });
-      var x = { id: a.id, nr: a.nr || '', vnr: a.vertragsnummer || '', tarife: M.tarife(a), personen: a.positionen.map(function (ps) { return ps.person; }).filter(function (v, i, l) { return v && l.indexOf(v) === i; }).join('; '), name: vn, eingang: a.eingang, beginn: a.beginn || '', bereich: a.bereich, vorgang: a.vorgang, zustand: zustand, gebuchtAm: bdat, policiertAm: pdat, abgerechnet: !!bdat,
+      // Neue Personen: „aus Bestand" zählt nie. Mit Pflegepflicht-Tarif zählen genau die Personen mit Pflegepflicht (komplett neu abgeschlossen).
+      // Ohne Pflegepflicht-Tarif zählt die Angabe des ADP; fehlt sie (ältere Einträge), wird nichts gezählt und der Eintrag markiert.
+      var herk = M.brauchtHerkunft(a) ? (a.herkunft || '') : '', ohneAngabe = M.brauchtHerkunft(a) && !herk;
+      if (herk === 'bestand') { voll = {}; bkv = {}; }
+      else if (a.bereich === 'voll' || Object.keys(voll).length) { if (hatPp) voll = vollPp; else if (herk !== 'neu') voll = {}; }
+      if (ohneAngabe && a.bereich === 'bkv') bkv = {};
+      var x = { id: a.id, herkunft: herk, ohneAngabe: ohneAngabe && !hatPp, nr: a.nr || '', vnr: a.vertragsnummer || '', tarife: M.tarife(a), personen: a.positionen.map(function (ps) { return ps.person; }).filter(function (v, i, l) { return v && l.indexOf(v) === i; }).join('; '), name: vn, eingang: a.eingang, beginn: a.beginn || '', bereich: a.bereich, vorgang: a.vorgang, zustand: zustand, gebuchtAm: bdat, policiertAm: pdat, abgerechnet: !!bdat,
         voll: Object.keys(voll).length, bkv: Object.keys(bkv).length, mbKv: U.runde(mbKv), mb: U.runde(mbGes) };
       if (!x.voll && !x.bkv && Math.abs(x.mb) < 0.005) return;
       o.liste.push(x);
@@ -119,12 +125,33 @@
     o.liste.forEach(function (x) { ['voll', 'bkv'].forEach(function (f) { if (!x[f]) return; pos[f][x.zustand].push(x.nr); if (x.zustand === 'bestaetigt') imBuch[f] += x[f]; }); });
     o.voll.imBuch = imBuch.voll; o.voll.abweichung = stand ? o.voll.bestaetigt - imBuch.voll : 0; o.voll.positionen = pos.voll;
     o.bkv.imBuch = imBuch.bkv; o.bkv.abweichung = stand ? o.bkv.bestaetigt - imBuch.bkv : 0; o.bkv.positionen = pos.bkv;
+    o.ohneAngabe = o.liste.filter(function (x) { return x.ohneAngabe; }).map(function (x) { return x.nr; });
+    o.abrechnung = B.neueVollAusAbrechnung(zeilen || [], jahr);
     o.heute = B.rechne(e);
     // „policiert" = alles, was technisch verarbeitet ist (bestätigt + abgerechnet + policiert): das sollte der Versicherer für den Bonus schon zählen.
     var bisPol = function (z) { return U.runde(z.bestaetigt + z.gebucht + z.policiert); };
     o.gebucht = B.rechne(Object.assign({}, e, { neueVoll: bisPol(o.voll), neueBkv: bisPol(o.bkv), nettoKv: bisPol(o.nettoKv), nettoGesamt: bisPol(o.nettoGesamt) }));
     o.prognose = B.rechne(Object.assign({}, e, { neueVoll: o.voll.voraussichtlich, neueBkv: o.bkv.voraussichtlich, nettoKv: o.nettoKv.voraussichtlich, nettoGesamt: o.nettoGesamt.voraussichtlich }));
     return o;
+  };
+
+  /**
+   * Gegenprobe aus der Abrechnung: Personen mit neu abgeschlossener Pflegepflichtversicherung (Provisionsart Abschluss, nicht zurückgebucht).
+   * An der Jahresabrechnung 2025 eines ADP geprüft: ergibt dieselbe Zahl wie das Bonus-Reporting.
+   */
+  B.neueVollAusAbrechnung = function (zeilen, jahr) {
+    var per = {}, cache = {};
+    zeilen.forEach(function (z) {
+      if (jahr && +z.bdat.slice(0, 4) !== +jahr || z.part !== 'Abschluss') return;
+      var pp = cache[z.tarif]; if (pp == null) pp = cache[z.tarif] = AB.model.istPflegepflicht(z.tarif);
+      if (!pp) return;
+      var k = U.normVnr(z.vnr) + '|' + z.pnr, o = per[k] || (per[k] = { plus: 0, minus: 0, monat: z.bdat.slice(0, 7) });
+      if (z.st) o.minus++; else o.plus++;
+      if (z.bdat.slice(0, 7) < o.monat) o.monat = z.bdat.slice(0, 7);
+    });
+    var monate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], n = 0;
+    Object.keys(per).forEach(function (k) { if (per[k].plus > per[k].minus) { n++; monate[+per[k].monat.slice(5, 7) - 1]++; } });
+    return { anzahl: n, monate: monate };
   };
 
   B.ZUSTAND = { bestaetigt: 'bestätigt (im Bonus-Reporting)', gebucht: 'abgerechnet – noch nicht bestätigt', policiert: 'policiert – noch nicht bestätigt', beantragt: 'beantragt – nicht bestätigt' };
@@ -142,10 +169,10 @@
     var z1 = [zz('Neue Personen KV-Voll', s.voll, pr.ziel1.soll, true), zz('Neue Personen bKV', s.bkv, pr.bkv.soll, true), zz('KV-Nettoproduktion (€ MB)', s.nettoKv, Math.round(pr.ziel2.soll)), zz('Nettoproduktion gesamt (€ MB)', s.nettoGesamt, 0)];
     var sp2 = [{ t: 'Pos.', typ: 'zahl', b: 7 }, { t: 'Kunde', b: 26 }, { t: 'Vertragsnummer', b: 15 }, { t: 'Eingereicht', typ: 'datum', b: 12 }, { t: 'Beginn', typ: 'datum', b: 12 }, { t: 'Bereich', b: 18 }, { t: 'Vorgangsart', b: 14 },
       { t: 'Tarif(e)', b: 22 }, { t: 'Versicherte Person(en)', b: 28 }, { t: 'Personen KV-Voll', typ: 'zahl', b: 10 }, { t: 'Personen bKV', typ: 'zahl', b: 10 }, { t: 'Monatsbeitrag', typ: 'euro', b: 14 },
-      { t: 'Stand', b: 32 }, { t: 'Policiert am', typ: 'datum', b: 12 }, { t: 'Abgerechnet am', typ: 'datum', b: 13 }, { t: 'Anmerkung für die SDK', b: 34 }];
+      { t: 'Stand', b: 32 }, { t: 'Policiert am', typ: 'datum', b: 12 }, { t: 'Abgerechnet am', typ: 'datum', b: 13 }, { t: 'Neu / Bestand', b: 26 }, { t: 'Anmerkung für die SDK', b: 34 }];
     var z2 = s.liste.map(function (x) {
       return [x.nr || '', x.name, x.vnr, U.fmtDatum(x.eingang), x.beginn ? U.fmtDatum(x.beginn) : '', AB.model.name('bereich', x.bereich), AB.model.name('vorgang', x.vorgang), x.tarife, x.personen,
-        x.voll || '', x.bkv || '', x.mb, B.ZUSTAND[x.zustand] + (x.zustand === 'bestaetigt' && !x.abgerechnet ? ' · noch nicht abgerechnet' : ''), x.policiertAm ? U.fmtDatum(x.policiertAm) : '', x.gebuchtAm ? U.fmtDatum(x.gebuchtAm) : '', ''];
+        x.voll || '', x.bkv || '', x.mb, B.ZUSTAND[x.zustand] + (x.zustand === 'bestaetigt' && !x.abgerechnet ? ' · noch nicht abgerechnet' : ''), x.policiertAm ? U.fmtDatum(x.policiertAm) : '', x.gebuchtAm ? U.fmtDatum(x.gebuchtAm) : '', x.herkunft ? AB.model.HERKUNFT[x.herkunft] : x.ohneAngabe ? 'Angabe fehlt – nicht gezählt' : '', ''];
     });
     return [
       { name: 'Überprüfung Bonus', titel: 'Überprüfung Bonus ' + s.jahr, unter: unter, spalten: sp1, zeilen: z1,

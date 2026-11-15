@@ -98,7 +98,7 @@ function csv(bis) {
 
 function antrag(o) {
   const a = M.neuerAntrag();
-  Object.assign(a, { eingang: o.eingang, vn: { name: o.name, vorname: o.vorname }, bereich: o.bereich || 'voll', vorgang: o.vorgang || 'neu',
+  Object.assign(a, { eingang: o.eingang, vn: { name: o.name, vorname: o.vorname }, bereich: o.bereich || 'voll', vorgang: o.vorgang || 'neu', herkunft: o.herkunft || ((o.vorgang || 'neu') === 'neu' && ['voll', 'bkv'].includes(o.bereich || 'voll') ? 'neu' : ''),
     vertragsnummer: o.vnr || '', beginn: o.beginn || '', laufzeit: o.lz || null, bemerkung: o.bem || '', statusDatum: o.eingang, firma: o.firma || '', gruppenvertrag: o.gvnr || '' });
   a.positionen = o.pos.map((p) => Object.assign(M.neuePosition(), { tarif: p[0], beitrag: p[1], personennummer: p[2] || '', person: p[3] || '' }));
   a.historie = [{ status: 'eingereicht', datum: o.eingang, am: o.eingang + 'T09:00:00.000Z', quelle: 'manuell' }];

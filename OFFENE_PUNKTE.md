@@ -69,7 +69,17 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Antrag aus der Kundenakte mit einem Klick aus Buchungen vorbelegen (für ADP, die wenig eintragen)
 - [ ] Weitere Prozess-Status (z. B. Nachfrage beim Kunden, Rückfrage Fachabteilung) je nach Postkorb
 
-## D0000 · Erledigt (Version 2.2)
+## D0000 · Erledigt (Version 2.3)
+
+Pflichtangabe „Neu oder Bestand" bei Neugeschäft Voll und bKV · Zählregel neue Personen KV-Voll: komplett neu abgeschlossen (mit Pflegepflicht),
+auch neugeborene Kinder; Veränderungen im Bestand zählen nicht · Gegenprobe aus der Abrechnung (neu abgeschlossene Pflegepflicht; an 2025 geprüft: 3 = Reporting) ·
+Produktfarben: Voll grün, Zusatz lila, Leben blau, bKV grau, Pflege orange (Kreisdiagramm Bereich, Anträge je Monat nach Bereich).
+
+Festgelegt (gilt für alle weiteren Diagramme): Voll grün · Zusatz lila · Leben blau · bKV grau · Pflegezusatz orange.
+Offen dazu: ältere Einträge ohne Angabe „Neu oder Bestand" nachtragen (werden in der Bonus-Vorschau als Liste genannt) ·
+Produktfarben auch in „Meine Produktion" und im Management verwenden · Gegenprobe bKV aus der Abrechnung (Regel noch unbekannt).
+
+## Erledigt (Version 2.2)
 
 Grundvergütung nach Karrierestufe (Einstellungen, von Hand überschreibbar) und Kachel „Auszahlung gesamt" in der Übersicht ·
 Liste „Buchung ohne Eintrag" und Hinweis „Storno-Rückbuchungen zu bereits abgerechneten Anträgen" klarer benannt.

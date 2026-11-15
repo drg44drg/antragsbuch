@@ -27,6 +27,9 @@
     var fEingang = ein('eingang', 'date', a.eingang), fName = ein('vn.name', 'text', a.vn.name), fVorname = ein('vn.vorname', 'text', a.vn.vorname);
     var fBereich = D.auswahl(M.BEREICHE.map(function (b) { return [b.id, b.name]; }), a.bereich, aktualisiere); fBereich.dataset.feld = 'bereich';
     var fVorgang = D.auswahl(M.VORGAENGE.map(function (v) { return [v.id, v.name]; }), a.vorgang, aktualisiere); fVorgang.dataset.feld = 'vorgang';
+    var fHerkunft = D.auswahl([['', '– bitte wählen –']].concat(Object.keys(M.HERKUNFT).map(function (id) { return [id, M.HERKUNFT[id]]; })), a.herkunft || '', aktualisiere, { title: 'Für den Bonus zählen nur neue Personen: komplett neu abgeschlossene Vollversicherung mit Pflegepflicht (auch neugeborene Kinder) bzw. in der bKV Personen, die bisher nicht versichert waren.' });
+    fHerkunft.dataset.feld = 'herkunft'; felder.herkunft = fHerkunft;
+    var blockHerkunft = D.feld('Neu oder Bestand', fHerkunft, 's3', true);
     var fVnr = ein('vertragsnummer', 'text', a.vertragsnummer, { inputMode: 'numeric', placeholder: 'sobald bekannt' });
     var fBeginn = ein('beginn', 'date', a.beginn), fLaufzeit = ein('laufzeit', 'text', a.laufzeit || '', { inputMode: 'numeric' });
     var fGv = ein('gruppenvertrag', 'text', a.gruppenvertrag), fFirma = ein('firma', 'text', a.firma);
@@ -60,7 +63,7 @@
     function sammle() {
       var x = JSON.parse(JSON.stringify(a));
       x.eingang = fEingang.value; x.vn = { name: fName.value.trim(), vorname: fVorname.value.trim() };
-      x.bereich = fBereich.value; x.vorgang = fVorgang.value; x.vertragsnummer = fVnr.value.trim(); x.beginn = fBeginn.value;
+      x.bereich = fBereich.value; x.vorgang = fVorgang.value; x.herkunft = M.brauchtHerkunft({ bereich: fBereich.value, vorgang: fVorgang.value }) ? fHerkunft.value : ''; x.vertragsnummer = fVnr.value.trim(); x.beginn = fBeginn.value;
       x.laufzeit = liesZahl(fLaufzeit.value); x.gruppenvertrag = fGv.value.trim(); x.firma = fFirma.value.trim();
       x.eantrag = fEantrag.checked; x.bank = { aktiv: fBank.checked, anteil: liesZahl(fAnteil.value) || 0 };
       x.bemerkung = fBem.value.trim(); x.provisionManuell = liesZahl(fProv.value);
@@ -71,7 +74,7 @@
     var blockLeben = D.feld('Laufzeit (Jahre)', fLaufzeit, 's2', true), blockGv = D.feld('Gruppenvertragsnr.', fGv, 's3'), blockFirma = D.feld('Firma', fFirma, 's4');
     function aktualisiere() {
       var x = sammle(), soll = AB.provision.soll(x, p.regeln);
-      blockLeben.hidden = x.bereich !== 'leben';
+      blockLeben.hidden = x.bereich !== 'leben'; blockHerkunft.hidden = !M.brauchtHerkunft(x);
       blockGv.hidden = blockFirma.hidden = !(x.bereich === 'bkv' || x.bereich === 'gruppe');
       fAnteil.parentNode.hidden = !fBank.checked;
       D.leere(sollText);
@@ -130,7 +133,7 @@
     D.anhaengen(dlg.rumpf, [dl, meldungen,
       h('div.formraster', null,
         D.feld('Eingangsdatum', fEingang, 's2', true), D.feld('Name', fName, 's3', true), D.feld('Vorname', fVorname, 's3', true),
-        D.feld('Bereich', fBereich, 's2', true), D.feld('Vorgangsart', fVorgang, 's2', true),
+        D.feld('Bereich', fBereich, 's2', true), D.feld('Vorgangsart', fVorgang, 's2', true), blockHerkunft,
         h('div.feld.s3', null, h('span', null, 'Vertragsnummer'), fVnr, vnrHinweis), D.feld('Beginn / Änderung zum', fBeginn, 's2'), blockLeben, blockGv, blockFirma,
         h('div.feld.s5', null, h('span', null, 'Optionen'), h('div.leiste', { style: { minHeight: '38px' } },
           h('label.schalter', null, fEantrag, 'E-Antrag'), h('label.schalter', null, fBank, 'Teilung mit Bank'),

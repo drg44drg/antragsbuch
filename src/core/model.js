@@ -113,7 +113,7 @@
   M.neuerAntrag = function (vorlage) {
     var a = {
       id: U.uid(), eingang: U.heute(), vn: { name: '', vorname: '' },
-      bereich: 'voll', vorgang: 'neu', vertragsnummer: '',
+      bereich: 'voll', vorgang: 'neu', herkunft: '', vertragsnummer: '',
       positionen: [M.neuePosition()],
       beginn: '', gruppenvertrag: '', firma: '', laufzeit: null,
       eantrag: false, bank: { aktiv: false, anteil: 50 }, bemerkung: '',
@@ -123,7 +123,7 @@
     };
     if (vorlage) {
       var k = JSON.parse(JSON.stringify(vorlage));
-      ['eingang', 'vn', 'bereich', 'vorgang', 'vertragsnummer', 'beginn', 'gruppenvertrag', 'firma', 'laufzeit', 'eantrag', 'bank', 'bemerkung']
+      ['eingang', 'vn', 'bereich', 'vorgang', 'herkunft', 'vertragsnummer', 'beginn', 'gruppenvertrag', 'firma', 'laufzeit', 'eantrag', 'bank', 'bemerkung']
         .forEach(function (f) { a[f] = k[f]; });
       a.positionen = k.positionen.map(function (p) { p.id = U.uid(); return p; });
     }
@@ -166,6 +166,15 @@
     var monate = monat != null ? 1 : jahr < hj ? 12 : jahr > hj ? 0 : +h.slice(5, 7);
     return { stufe: g.stufe || '', jeMonat: U.runde(je), ausStufe: U.runde(ausStufe), manuell: hand, monate: monate, summe: U.runde(je * monate), gesetzt: je > 0 };
   };
+
+  /**
+   * Neuversicherung oder Bestand – Pflichtangabe bei Neugeschäft in der Vollversicherung und der bKV.
+   * Für den Bonus zählen nur neue Personen: komplett neu abgeschlossene Vollversicherung (mit Pflegepflicht), auch neugeborene Kinder;
+   * in der bKV Personen, die bisher nicht versichert waren. Veränderungen im Bestand zählen nicht.
+   */
+  M.HERKUNFT = { neu: 'Neuversicherung – neue Person', bestand: 'aus Bestand – Veränderung' };
+  M.brauchtHerkunft = function (a) { return a.vorgang === 'neu' && (a.bereich === 'voll' || a.bereich === 'bkv'); };
+  M.istPflegepflicht = function (tarif) { var e = tarif ? AB.tarif.einordnen(tarif) : null; return !!(e && e.kategorie === 'Pflegepflicht'); };
 
   M.vnName = function (a) {
     return (a.vn.name || '') + (a.vn.vorname ? ', ' + a.vn.vorname : '');
@@ -230,6 +239,7 @@
       f.push({ feld: 'vn.vorname', text: 'Vorname des Versicherungsnehmers fehlt.' });
     if (!M.bereich[a.bereich]) f.push({ feld: 'bereich', text: 'Bereich fehlt.' });
     if (!M.vorgang[a.vorgang]) f.push({ feld: 'vorgang', text: 'Vorgangsart fehlt.' });
+    if (M.brauchtHerkunft(a) && !M.HERKUNFT[a.herkunft]) f.push({ feld: 'herkunft', text: 'Bitte angeben: Neuversicherung (neue Person) oder aus dem Bestand.' });
     var pos = a.positionen.filter(function (p) { return p.tarif || p.beitrag != null || p.person; });
     if (!pos.length) f.push({ feld: 'pos.0.tarif', text: 'Mindestens eine Position mit Tarif und Beitrag erfassen.' });
     a.positionen.forEach(function (p, i) {

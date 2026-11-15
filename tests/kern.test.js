@@ -153,6 +153,9 @@ test('Pflichtfelder, Dubletten, Statushistorie, Migration', () => {
   const f = M.pruefeAntrag(a).map((x) => x.feld);
   assert.ok(f.includes('vn.name') && f.includes('vn.vorname') && f.includes('pos.0.tarif') && f.includes('pos.0.beitrag'));
   a.vn = { name: 'Muster', vorname: 'Anna' }; a.positionen[0].tarif = 'A107'; a.positionen[0].beitrag = -12.5;
+  assert.deepEqual(M.pruefeAntrag(a).map((x) => x.feld), ['herkunft'], 'Neu oder Bestand ist bei Neugeschäft Voll/bKV Pflicht');
+  a.vorgang = 'mehr'; assert.deepEqual(M.pruefeAntrag(a), []); a.vorgang = 'neu'; a.bereich = 'zusatz'; assert.deepEqual(M.pruefeAntrag(a), []); a.bereich = 'voll';
+  a.herkunft = 'neu';
   assert.deepEqual(M.pruefeAntrag(a), [], 'negativer Beitrag ist erlaubt');
   a.bereich = 'leben';
   assert.ok(M.pruefeAntrag(a).some((x) => x.feld === 'laufzeit'));
@@ -369,7 +372,7 @@ test('Bonus: Fehlbeträge mit ungerundeter Produktion wie im Reporting; Mindestp
 
 test('Bonus-Vorschau: bestätigt (Reporting), gebucht (Abrechnung nach dem Stand), beantragt (Antragsbuch, ab Einreichung)', () => {
   const p = M.neuesProjekt(2026); p.bonus = Object.assign(AB.bonus.leer(), { stufe: '1+2', bestandKv: 300000, neueVoll: 4, neueBkv: 10, nettoKv: 4000, nettoGesamt: 4100, reportingStand: '2026-06-30' });
-  const antrag = (o, pos) => { const a = M.neuerAntrag(); Object.assign(a, o); a.positionen = pos.map((x) => Object.assign(M.neuePosition(), x)); p.antraege.push(a); return a; };
+  const antrag = (o, pos) => { const a = M.neuerAntrag(); Object.assign(a, { herkunft: 'neu' }, o); a.positionen = pos.map((x) => Object.assign(M.neuePosition(), x)); p.antraege.push(a); return a; };
   const a1 = antrag({ eingang: '2026-03-10', bereich: 'voll', vorgang: 'neu', beginn: '2026-08-01', vn: { name: 'Muster', vorname: 'Anna' } }, [{ person: 'Anna Muster', tarif: 'AM13', beitrag: 400 }, { person: 'Anna Muster', tarif: 'S1', beitrag: 100 }, { person: 'Kind Muster', tarif: 'AM13', beitrag: 150 }]);
   const a2 = antrag({ eingang: '2026-05-02', bereich: 'voll', vorgang: 'neu', status: 'abgerechnet', vn: { name: 'Probe', vorname: 'Bernd' } }, [{ tarif: 'A107a', beitrag: 500 }]);
   const a3 = antrag({ eingang: '2026-07-15', bereich: 'voll', vorgang: 'neu', status: 'abgerechnet', vn: { name: 'Beispiel', vorname: 'Clara' } }, [{ tarif: 'AM12', beitrag: 450 }]);
@@ -410,6 +413,18 @@ test('Bonus-Vorschau: bestätigt (Reporting), gebucht (Abrechnung nach dem Stand
   assert.equal(sfrueh.liste.find((x) => x.nr === 2).zustand, 'bestaetigt', 'vor dem Stand policiert: sollte im Reporting enthalten sein');
   assert.deepEqual([sfrueh.voll.imBuch, sfrueh.voll.abweichung, sfrueh.voll.policiert], [3, 1, 0]);
   M.setzeStatus(am, 'eingereicht', '2026-03-10', 'manuell'); am.historie = [];
+  // Neu oder Bestand: aus Bestand zählt nie; mit Pflegepflicht zählen genau die Personen mit Pflegepflicht; ohne Angabe wird nicht gezählt
+  const zaehl = () => AB.bonus.simulation(p, zl, erg).liste.find((x) => x.nr === 2);
+  am.herkunft = 'bestand'; assert.equal(zaehl().voll, 0);
+  am.herkunft = ''; assert.deepEqual([zaehl().voll, zaehl().ohneAngabe], [0, true]); assert.deepEqual(AB.bonus.simulation(p, zl, erg).ohneAngabe, [2]);
+  am.positionen.push(Object.assign(M.neuePosition(), { person: 'Kind Muster', tarif: 'PPN', beitrag: 0 }));
+  assert.deepEqual([zaehl().voll, zaehl().ohneAngabe], [1, false], 'ohne Angabe, aber mit Pflegepflicht: die Person mit Pflegepflicht zählt');
+  am.herkunft = 'neu'; assert.equal(zaehl().voll, 1, 'mit Pflegepflicht zählen nur die Personen mit Pflegepflicht');
+  am.positionen.pop(); assert.equal(zaehl().voll, 2);
+  const zz = (vnr, pnr, tarif, part, st, bdat) => ({ vnr, pnr, tarif, part, st, bdat, tg: 'Pflegeversicherung', prod: 0 });
+  const gp = AB.bonus.neueVollAusAbrechnung([zz('1', '1', 'PPN', 'Abschluss', 0, '2026-01-05'), zz('2', '1', 'PPN', 'Kündigungsrücknahme', 0, '2026-03-05'), zz('3', '1', 'PPB', 'Abschluss', 0, '2026-04-05'), zz('3', '1', 'PPB', 'Abschluss', 1, '2026-04-06'),
+    zz('3', '1', 'PPB', 'Abschluss', 0, '2026-06-06'), zz('4', '2', 'PPN', 'Abschluss', 0, '2026-11-11'), zz('5', '1', 'PPN', 'Abschluss', 0, '2026-02-01'), zz('5', '1', 'PPN', 'Abschluss', 1, '2026-02-20'), zz('6', '1', 'AM13', 'Abschluss', 0, '2026-02-01'), zz('7', '1', 'PPN', 'Abschluss', 0, '2025-12-01')], 2026);
+  assert.deepEqual([gp.anzahl, gp.monate[0], gp.monate[3], gp.monate[10]], [3, 1, 1, 1]);
   assert.deepEqual(s.nettoGesamt, { bestaetigt: 4100, gebucht: 462, policiert: 0, beantragt: 660, voraussichtlich: 5222 });
   assert.deepEqual(s.nettoKv, { bestaetigt: 4000, gebucht: 550, policiert: 0, beantragt: 660, voraussichtlich: 5210 });
   assert.equal(s.monate.vollBeantragt[2], 2, 'beantragt zählt ab dem Monat der Einreichung, auch bei Beginn 1. August');

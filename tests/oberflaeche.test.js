@@ -54,6 +54,8 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       await page.keyboard.type('Muster'); await page.keyboard.press('Enter');
       assert.match(await page.textContent('dialog .meldung.krit'), /Vorname.*fehlt[\s\S]*Tarif fehlt[\s\S]*Beitrag fehlt/);
       assert.ok(await zahl('dialog input.fehler') >= 3);
+      assert.match(await page.textContent('dialog .meldung.krit'), /Neuversicherung \(neue Person\) oder aus dem Bestand/);
+      await page.selectOption('dialog select[data-feld="herkunft"]', 'neu');
       await page.fill('dialog input[data-feld="vn.vorname"]', 'Anna');
       await page.fill('dialog .pos-zeile input[placeholder="Tarif"]', 'A107');
       await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '123,45');
@@ -62,6 +64,7 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       await page.waitForSelector('dialog[open] h2:has-text("Neuer Antrag")');
       await page.fill('dialog input[data-feld="vn.name"]', 'Muster'); await page.fill('dialog input[data-feld="vn.vorname"]', 'Anna');
       await page.fill('dialog .pos-zeile input[placeholder="Tarif"]', 'A107'); await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '123,45');
+      await page.selectOption('dialog select[data-feld="herkunft"]', 'bestand');
       await page.keyboard.press('Enter');
       assert.match(await page.textContent('dialog .meldung.warn'), /Mögliche Dublette/);
       await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '-20');   // negativer Beitrag erlaubt
@@ -340,6 +343,7 @@ test('Speichern in die Projektdatei (File System Access API, nachgestellt) und W
     await page.keyboard.press('n');
     await page.fill('dialog input[data-feld="vn.name"]', 'Muster'); await page.fill('dialog input[data-feld="vn.vorname"]', 'Anna');
     await page.fill('dialog .pos-zeile input[placeholder="Tarif"]', 'A107'); await page.fill('dialog .pos-zeile input[placeholder="0,00"]', '50');
+    await page.selectOption('dialog select[data-feld="herkunft"]', 'neu');
     await page.keyboard.press('Enter');
     await page.waitForFunction(() => JSON.parse(window.__datei).antraege.length === 1);
     await page.waitForFunction(() => /^Gespeichert um/.test(document.getElementById('speichertext').textContent));
