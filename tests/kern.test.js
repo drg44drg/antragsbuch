@@ -608,3 +608,23 @@ test('Ziele: Rest gleichmäßig verteilen und Vorjahreswerte für die Planung', 
   assert.equal(M.zieleStand(M.neuesProjekt(2026), [], '2026-06-15').gesamt.vorjahr, null);
   assert.equal(M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: {} }).vorjahr == null, true);
 });
+
+test('Banken: Auswertung je Beteiligtem aus der Abrechnung, Ziel und Zeitzielerreichung, Reporting', () => {
+  const K = AB.bank;
+  assert.deepEqual(K.beteiligter('913095 (RB Musterstadt eG, als Bestandsinhaber)'), { nr: '913095', name: 'RB Musterstadt eG', rolle: 'Bestandsinhaber', bank: true });
+  assert.equal(K.beteiligter('902648 (Muster, als Bestandsinhaber)').bank, false); assert.equal(K.beteiligter(''), null); assert.equal(K.beteiligter('913095').nr, '913095');
+  const z = (o) => Object.assign({ bdat: '2026-03-05', prod: 0, prov: 0, tg: 'Vollversicherung', sparte: 'KVUV', tarif: 'AM13', part: 'Abschluss', st: 0, vnr: '100', pnr: '1', beteil: '913095 (RB Musterstadt eG, als Bestandsinhaber)' }, o);
+  const zl = [z({ prod: 400, prov: 1200 }), z({ prod: 60, prov: 180, tg: 'Zusatzversicherung (Art Leben)', tarif: 'ZP7', pnr: '2' }), z({ prod: 2, prov: 6, tg: 'Zusatzversicherung (Art Leben)', tarif: 'PG3AD', part: 'Erhöhung', bdat: '2026-05-01', vnr: '200' }),
+    z({ prod: 0, prov: 3, tg: 'Unfallversicherung', tarif: 'UT', part: 'Bestand', bdat: '2026-04-30', vnr: '300' }), z({ prod: 3, tg: 'Unfallversicherung', tarif: 'UT', vnr: '300', bdat: '2026-02-01' }),
+    z({ prod: 50, prov: 100, beteil: '912040 (VR Beispiel, als Bestandsinhaber)', vnr: '400' }), z({ prod: 999, beteil: '' }), z({ prod: 77, bdat: '2025-03-05' }), z({ prod: 10, beteil: '', bdat: '2026-06-10' })];
+  const l = K.rechne(zl, 2026), b = l[0];
+  assert.deepEqual(l.map((x) => x.nr), ['913095', '912040']);
+  assert.deepEqual([b.name, b.prod, b.kv, b.uv, b.lv, b.zusatz, b.dynamik, b.prov, b.provLaufend, b.vertraege, b.personen, b.neuePersonen, b.stand, b.hr], ['RB Musterstadt eG', 465, 462, 3, 0, 62, 2, 1386, 3, 3, 4, 3, 6, 930]);
+  assert.deepEqual([b.monate[1], b.monate[2], b.monate[4], b.bereiche], [3, 460, 2, { voll: 400, zusatz: 62, unfall: 3 }]);
+  const p = M.neuesProjekt(2026); K.setze(p, '913095', 'ziel', 1200);
+  const zi = K.ziel(p, b); assert.deepEqual([zi.plan, zi.zeitziel, zi.fehlt, Math.round(zi.grad * 100), Math.round(zi.hrGrad * 100)], [1200, 600, 735, 78, 78]);
+  assert.equal(K.ziel(p, l[1]).plan, null); K.setze(p, '913095', 'ziel', null); assert.equal(K.ziel(p, b).plan, null);
+  const t = K.tabelle(p, l); t.zeilen.forEach((r) => assert.equal(r.length, t.spalten.length));
+  const rep = K.reporting(p, b); assert.deepEqual(rep.map((x) => x.name), ['Bankenreporting', 'Verlauf']); rep.forEach((bl) => bl.zeilen.forEach((r) => assert.equal(r.length, bl.spalten.length)));
+  assert.deepEqual(rep[0].zeilen.find((r) => r[0] === 'Gesamt'), ['Gesamt', 465, 930]); assert.ok(AB.xlsxout.schreibe(rep).length > 1000);
+});

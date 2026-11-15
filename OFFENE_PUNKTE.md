@@ -86,7 +86,17 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
-## D0000 · Erledigt (Version 3.7)
+## D0000 · Erledigt (Version 3.8)
+
+Reiter „Banken" (erscheint, sobald die Abrechnung Beteiligte enthält): je Bank Produktion, KV/UV/LV, Zusatz, Dynamik, Stück, Hochrechnung, Monatsverlauf, Kreisdiagramm nach Produkt,
+Planproduktion je Bank mit Zeitzielerreichungsgrad, Übersicht als Excel, Reporting je Bank als Excel und Druck/PDF.
+
+Gegenüber dem bisherigen Bankenreporting fehlt (steht nicht in der Abrechnung): Stammdaten der Bank (Adresse, Vorstand, BSU, Kategorie, Status, Modell), Bestandsentwicklung in € MB und Personen,
+Produktion der Vorjahre, Bonifikation (Staffel unbekannt), Ertrag der Bank (Abschlussprovision, Bonifikation, Auslandsreise).
+Offen: diese Angaben je Bank eintragbar machen oder aus einer Datei übernehmen · Bonifikations-Staffel liefern · im Management die Banken aller ADP zusammenführen ·
+Hochrechnung des Musters rechnet mit Monat 5 bei Stand 30.09. – Regel klären.
+
+## Erledigt (Version 3.7)
 
 Ziele: Knopf „Rest gleichmäßig verteilen" (selbst gesetzte Monate bleiben) · Vorjahreswerte für die Planung: Abrechnung oder Projektdatei des Vorjahres einlesen,
 Spalte „Vorjahr" je Produkt, Vorjahresanteile je Monat, Knopf „Verteilung wie im Vorjahr". Gespeichert wird nur die Zusammenfassung.
