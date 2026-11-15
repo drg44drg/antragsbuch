@@ -86,6 +86,21 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
+## Geplant · Agenturmodus (Unterlagen der Führungskraft stehen aus)
+
+Ausgangslage: Der Agenturleiter (z. B. 900341) erhält die Gesamtabrechnung seiner Agentur und einen Overhead auf die Provisionen seiner Untervermittler (z. B. 900385, 900388, 900688).
+Die Untervermittler stellen dem Agenturleiter eine Rechnung. Der Agenturleiter gleicht deren Abrechnungen heute von Hand mit seiner eigenen ab.
+
+Vorgesehen:
+- Agenturleiter: Management-Sicht aus der eigenen Gesamtabrechnung je Untervermittler (Produktion, Provision, Overhead, Storno) – wie das Cockpit der Führungskraft.
+- Untervermittler: aus dem eigenen Antragsbuch eine Abrechnungsdatei für den Agenturleiter erzeugen (ohne mehr Kundendaten als nötig) und einen Rechnungsentwurf als PDF.
+- Agenturleiter: diese Dateien einlesen und automatisch gegen die Gesamtabrechnung abgleichen (gleich, Abweichung, fehlt bei mir, fehlt beim Untervermittler), mit Export.
+- Overhead-Regeln nach den Agenturverträgen hinterlegen.
+
+Benötigt: Abrechnungen 341, 385, 388, 688 desselben Zeitraums · Agentur- und Untervermittlerverträge mit Overhead-Sätzen · ein Muster der bisherigen Rechnung an den Agenturleiter.
+Zu klären: Steht der Untervermittler in der Gesamtabrechnung in „Beteiligte Vermittler" oder in der Vermittlernummer? Wird der Overhead als eigene Zeile gebucht (Provisionsart „Hierarchie")?
+Was muss auf der Rechnung stehen (Umsatzsteuer, Leistungszeitraum, Nummer)?
+
 ## D0000 · Erledigt (Version 3.9)
 
 Verlustfreier Import (idempotent): neue Abrechnung ergänzt, zählt nichts doppelt, löscht nichts; fehlende Zeilen bleiben und werden markiert ·
