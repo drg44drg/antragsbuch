@@ -91,14 +91,14 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
         await page.waitForSelector(`#untertitel:has-text("${f}")`);
       }
       const reiter = await page.$$eval('.reiter button', (bs) => bs.map((b) => b.textContent));
-      assert.equal(reiter[0], 'Gleich8'); assert.equal(reiter[1], 'Abweichung2'); assert.equal(reiter[3], 'Neu ohne Antrag5'); assert.equal(reiter[4], 'Storno2');
+      assert.equal(reiter[0], 'Gleich8'); assert.equal(reiter[1], 'Abweichung2'); assert.equal(reiter[3], 'Buchung ohne Eintrag5'); assert.equal(reiter[4], 'Storno2');
       assert.match(await page.textContent('.ablage'), /204 Zeilen.*67 neu/);
       // Vorschlag bestätigen
       await page.click('.reiter button:has-text("Offen")');
       await page.click('button:has-text("Bestätigen")');
       assert.equal((await page.$$eval('.reiter button', (bs) => bs.map((b) => b.textContent)))[0], 'Gleich9');
       // Buchung abhaken und als Antrag übernehmen
-      await page.click('.reiter button:has-text("Neu ohne Antrag")');
+      await page.click('.reiter button:has-text("Buchung ohne Eintrag")');
       assert.equal(await zahl('.vt-zeile'), 4);
       await page.click('.vt-zeile:has-text("PROBE, DIETER") button[title^="Kein Antrag"]');
       assert.equal(await zahl('.vt-zeile'), 3);
@@ -287,7 +287,7 @@ test('Oberfläche im Browser', { skip: !chromium && 'Playwright nicht installier
       assert.match(await page.textContent('.ablage'), /52\.000 Zeilen/);
       assert.equal(await page.evaluate(() => AB.app.mitWorker()), true, 'Import läuft im Web Worker');
       for (const art of ['Hierarchie']) await page.click(`.chip:has-text("${art}")`);
-      await page.click('.reiter button:has-text("Neu ohne Antrag")');
+      await page.click('.reiter button:has-text("Buchung ohne Eintrag")');
       const anzahl = +(await page.textContent('.reiter button.aktiv .zahl'));
       assert.ok(anzahl > 20000, 'viele Bündel: ' + anzahl);
       assert.ok(await zahl('.vt-zeile') < 60, 'nur sichtbare Zeilen im DOM');

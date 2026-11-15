@@ -250,8 +250,8 @@ test('Korrektur im Folgemonat (z. B. nach Reklamation) wird nachgezogen: Abweich
   assert.deepEqual(ids(e2.abweichung), []);
   assert.equal(e2.proAntrag['a-3'].istP, 120); assert.equal(e2.proAntrag['a-3'].nachbuchung, true);
   assert.equal(e2.proAntrag['a-2'].istB, 35); assert.equal(e2.proAntrag['a-2'].buendel.length, 2);
-  assert.ok(!e2.neu.some((b) => b.monat === '2026-04'), 'Korrekturen landen nicht unter „Neu ohne Antrag"');
-  // eine nicht passende Buchung bleibt unter „Neu ohne Antrag"
+  assert.ok(!e2.neu.some((b) => b.monat === '2026-04'), 'Korrekturen landen nicht unter „Buchung ohne Eintrag"');
+  // eine nicht passende Buchung bleibt unter „Buchung ohne Eintrag"
   const fremd = kopie('250250', { mbd: 0, prov: 7, bdat: '2026-04-09', part: 'Manuell', imp: 4 });
   const e3 = A.rechne(p, zeilen.concat([fremd]), HEUTE);
   assert.deepEqual(ids(e3.abweichung), ['a-2', 'a-3']);

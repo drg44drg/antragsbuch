@@ -2,7 +2,7 @@
 (function (AB) {
   'use strict';
   var D = AB.dom, h = D.h, U = AB.util, M = AB.model, App = AB.app;
-  var REITER = [['gleich', 'Gleich'], ['abweichung', 'Abweichung'], ['offen', 'Offen'], ['neu', 'Neu ohne Antrag'], ['storno', 'Storno']];
+  var REITER = [['gleich', 'Gleich'], ['abweichung', 'Abweichung'], ['offen', 'Offen'], ['neu', 'Buchung ohne Eintrag'], ['storno', 'Storno']];
 
   /** Einzelbuchungen eines oder mehrerer Bündel anzeigen. */
   AB.zeigeBuchungen = function (titel, buendel) {
@@ -168,7 +168,7 @@
         D.anhaengen(werkzeug, [wahlBtn, D.btn('Alle abhaken', function () { var l = tab.zeilen().filter(function (b) { return !b.ignoriert; }); if (l.length) D.frage(l.length + ' Buchungen abhaken?', 'Alle angezeigten Buchungen werden als „kein Antrag nötig" markiert. Das lässt sich jederzeit rückgängig machen.', 'Abhaken').then(function (ja) { if (ja) hake(l, true); }); }, { klasse: 'leise' }),
           schalter('Nur neue', 'nurNeu'), schalter('Abgehakte anzeigen', 'abgehakte'), h('span.frei'), artChips, exportBtn()]);
         tab = AB.tabelle(box, { zeilen: zn, spalten: spn, hoehe: 50, sort: { i: 1, ab: true }, klasse: function (b) { return b.ignoriert ? '.blass' : ''; },
-          klick: function (b) { AB.zeigeBuchungen('Buchung ' + b.vnr + ' · ' + U.monatName(b.monat), [b]); }, leer: 'Keine Buchungen ohne Antrag.',
+          klick: function (b) { AB.zeigeBuchungen('Buchung ' + b.vnr + ' · ' + U.monatName(b.monat), [b]); }, leer: 'Keine Buchungen ohne Eintrag im Antragsbuch.',
           fuss: function (l) { var a = 0, b2 = 0; l.forEach(function (x) { a += x.mbd; b2 += x.prov; }); return ['', l.length + ' Buch.', '', '', U.fmtEuro(a), U.fmtEuro(b2), '', '']; } });
         tab.spaltenDruck = spn.slice(1, 7).map(function (s) { return { t: s.t, r: s.r, d: s.d }; });
       } else {
