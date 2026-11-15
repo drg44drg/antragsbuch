@@ -78,6 +78,7 @@ Arbeitsliste für Tests, Erweiterungen und Zulieferungen. Stand: 14.11.2026.
 - [ ] Genaue SDK-Produktfarben (Ordner am MacBook)
 - [ ] SLA je Postkorb · alte Reportings als Muster · neue Wettbewerbsbedingungen, sobald es sie gibt
 - [ ] Rückmeldung: wofür stehen die Blätter „GDms" und „GVms"?
+- [ ] Altersvorsorgedepot: Regeln und Vergütung erst ab Januar 2027 verlässlich – dann nachliefern und einbauen
 
 ## D0000 · Erledigt (Version 2.6)
 
