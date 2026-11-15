@@ -8,7 +8,7 @@
   Y.rechne = function (p, jahr) {
     var raus = { abgelehnt: 1, widerruf: 1, absage: 1, storno: 1 }, liste = [];
     (p.antraege || []).forEach(function (a) {
-      if (!a.eingang || +a.eingang.slice(0, 4) !== +jahr || raus[a.status] || (a.vorgang !== 'neu' && a.vorgang !== 'mehr')) return;
+      if (!a.eingang || raus[a.status] || (a.vorgang !== 'neu' && a.vorgang !== 'mehr') || M.produktionsjahr(a, p) !== +jahr) return;
       var b = M.beitrag(a); if (!(b > 0)) return;
       var pers = {}, be = false, vn = M.vnName(a);
       a.positionen.forEach(function (ps, i) { pers[(ps.personennummer || ps.person || (i === 0 ? vn : vn)).toString().trim().toLowerCase() || 'vn'] = 1; if (M.beTarif(ps.tarif)) be = true; });

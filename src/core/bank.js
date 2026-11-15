@@ -37,6 +37,18 @@
     }).sort(function (a, b) { return (b.bank ? 1 : 0) - (a.bank ? 1 : 0) || b.prod - a.prod; });
   };
 
+  /**
+   * Bonus für Genossenschaftsbanken 2026: Bonusstufe nach KV-Nettoproduktion (Voll + Zusatz), Grundbonus 0,5 MB (Stufe 1) bzw. 1,0 MB (ab Stufe 2)
+   * auf die KV-Produktion, Sonderbonus Zusatzversicherung nach Stufe auf die Zusatz-Produktion.
+   */
+  K.STUFEN = [[2000, 0.5, 0.2], [3500, 1, 0.3], [7000, 1, 1.5], [10000, 1, 2.4], [15000, 1, 3.4], [20000, 1, 5.9]];
+  K.bonus = function (kv, zusatz) {
+    var stufe = 0; K.STUFEN.forEach(function (s, i) { if (kv >= s[0]) stufe = i + 1; });
+    var s = stufe ? K.STUFEN[stufe - 1] : null, naechste = K.STUFEN[stufe] || null;
+    return { stufe: stufe, grundMB: s ? s[1] : 0, sonderMB: s ? s[2] : 0, grund: s ? U.runde(kv * s[1]) : 0, sonder: s ? U.runde(Math.max(0, zusatz) * s[2]) : 0,
+      gesamt: s ? U.runde(kv * s[1] + Math.max(0, zusatz) * s[2]) : 0, fehlt: naechste ? U.runde(Math.max(0, naechste[0] - kv)) : null, naechsteAb: naechste ? naechste[0] : null };
+  };
+
   /** Ziel (Planproduktion im Jahr) und Zeitzielerreichungsgrad: Stand gegen den zeitanteiligen Plan. */
   K.ziel = function (p, bank) {
     var e = (p.banken && p.banken[bank.nr]) || {}, plan = e.ziel != null && e.ziel !== '' ? +e.ziel : null;
@@ -57,15 +69,18 @@
   K.reporting = function (p, bank) {
     var z = K.ziel(p, bank), e0 = function (v) { return v == null ? '' : v; }, monat = bank.stand ? U.MONATE[bank.stand - 1] : '–';
     var unter = 'Vermittler-Nr. ' + bank.nr + ' · Stand ' + monat + ' ' + p.jahr + ' · erstellt am ' + U.fmtDatum(U.heute()) + ' · aus der Provisionsabrechnung des betreuenden Außendienstpartners';
+    var bo = K.bonus(bank.kv, bank.zusatz), f12 = bank.stand ? 12 / bank.stand : 0, boHr = K.bonus(bank.kv * f12, bank.zusatz * f12);
     var blatt1 = [
       ['Produktion in € MB', '', ''], ['Krankenversicherung', bank.kv, bank.stand ? U.runde(bank.kv * 12 / bank.stand) : ''], ['  davon Zusatzversicherung', bank.zusatz, bank.stand ? U.runde(bank.zusatz * 12 / bank.stand) : ''],
       ['  davon aus Dynamik', bank.dynamik, ''], ['Unfallversicherung', bank.uv, bank.stand ? U.runde(bank.uv * 12 / bank.stand) : ''], ['Lebensversicherung', bank.lv, bank.stand ? U.runde(bank.lv * 12 / bank.stand) : ''],
       ['Gesamt', bank.prod, bank.hr], ['', '', ''], ['Planproduktion im Jahr', e0(z.plan), ''], ['Zeitziel bis ' + monat, e0(z.zeitziel), ''], ['Zeitzielerreichungsgrad in %', z.grad != null ? Math.round(z.grad * 100) : '', z.hrGrad != null ? Math.round(z.hrGrad * 100) : ''],
+      ['', '', ''], ['Bonus der Bank 2026 (aus diesem Geschäft)', '', ''], ['Bonusstufe', bo.stufe, boHr.stufe], ['Grundbonus in MB', bo.grundMB, boHr.grundMB], ['Grundbonus in €', bo.grund, boHr.grund],
+      ['Sonderbonus Zusatz in MB', bo.sonderMB, boHr.sonderMB], ['Sonderbonus Zusatz in €', bo.sonder, boHr.sonder], ['Gesamtbonus in €', bo.gesamt, boHr.gesamt], ['Fehlbetrag zur nächsten Bonusstufe', bo.fehlt == null ? '' : bo.fehlt, ''],
       ['', '', ''], ['Stück', '', ''], ['Verträge mit Buchungen', bank.vertraege, ''], ['Versicherte Personen mit Buchungen', bank.personen, ''], ['Neue Personen (Abschluss)', bank.neuePersonen, '']];
     var b = Object.keys(bank.bereiche).filter(function (k) { return Math.abs(bank.bereiche[k]) > 0.005; }).sort(function (x, y) { return bank.bereiche[y] - bank.bereiche[x]; });
     return [
       { name: 'Bankenreporting', titel: 'Bankenreporting ' + p.jahr + ' · ' + (z.name || bank.nr), unter: unter, spalten: [{ t: '', b: 38 }, { t: 'Januar bis ' + monat, typ: 'euro', b: 18 }, { t: 'Hochrechnung ' + p.jahr, typ: 'euro', b: 18 }], zeilen: blatt1,
-        farbe: function (w, r, c) { return c === 0 && /^(Produktion|Stück|Gesamt)/.test(w[0]) ? 'akzent' : null; } },
+        farbe: function (w, r, c) { return c === 0 && /^(Produktion|Stück|Gesamt$|Bonus der Bank)/.test(w[0]) ? 'akzent' : null; } },
       { name: 'Verlauf', titel: 'Produktion je Monat und Produkt · ' + (z.name || bank.nr), unter: unter, spalten: [{ t: 'Monat / Produkt', b: 28 }, { t: 'Produktion', typ: 'euro', b: 16 }],
         zeilen: U.MONATE.slice(0, Math.max(bank.stand, 1)).map(function (m, i) { return [m, bank.monate[i]]; }).concat([['', '']], b.map(function (k) { return [M.bereich[k] ? M.bereich[k].name : k, bank.bereiche[k]]; })) }];
   };

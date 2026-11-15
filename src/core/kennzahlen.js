@@ -72,9 +72,10 @@
       if (!K.passt(a, filter)) return;
       var am = M.ampel(a, p.einstellungen, heute, !!(erg && erg.proAntrag[a.id] && erg.proAntrag[a.id].buendel.length));
       if (am.stufe) { jahr.ampel[am.stufe]++; if (am.stufe !== 'gruen' || a.status === 'eingereicht') jahr.warten.push({ antrag: a, ampel: am }); }
-      var r = erg ? erg.proAntrag[a.id] : null;
+      var r = erg ? erg.proAntrag[a.id] : null, zj = M.zaehlt(a, p, r, heute);
+      if (zj.jahr !== +p.jahr) return;   // gehört in ein anderes Produktionsjahr (Produktionsschluss, Beginn, Jahreswechsel)
       plus(jahr, a, r);
-      if (a.eingang && +a.eingang.slice(0, 4) === +p.jahr) plus(monate[+a.eingang.slice(5, 7) - 1], a, r);
+      plus(monate[zj.monat], a, r);
     });
     // Provision laut Abrechnung je Buchungsmonat (gefilterte Provisionsarten)
     var erlaubt = {}; (p.einstellungen.provisionsarten || []).forEach(function (x) { erlaubt[x] = 1; });

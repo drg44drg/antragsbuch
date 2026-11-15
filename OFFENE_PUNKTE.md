@@ -86,7 +86,19 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
-## D0000 · Erledigt (Version 3.8)
+## D0000 · Erledigt (Version 3.9)
+
+Verlustfreier Import (idempotent): neue Abrechnung ergänzt, zählt nichts doppelt, löscht nichts; fehlende Zeilen bleiben und werden markiert ·
+Produktionsjahr mit Produktionsschluss (Standard 18.12., je Jahr einstellbar): Verarbeitung bis zum Schluss zählt im Jahr, später im Folgejahr, Beginn ab 2.1. im Folgejahr ·
+Jahreswechsel in derselben Datei mit Archiv je Jahr und Rückwechsel; offene Anträge ziehen mit; Vorjahreswerte für die Planung ·
+Bankenbonus 2026 (Stufen, Grundbonus, Sonderbonus Zusatz, Fehlbetrag) im Reiter Banken und im Reporting.
+
+Gemessen: Abrechnung der Führungskraft 3,2 MB / 30.991 Zeilen → 7,7 MB in der Projektdatei (262 Byte je Zeile), Einlesen 1,5 s.
+Offen dazu: Markierte „fehlende" Zeilen gezielt löschen können · Jahreswechsel-Hinweis in der Übersicht ab dem Produktionsschluss ·
+Veränderungsdienst in die Antragsliste integrieren (Teil des geplanten Menü-Umbaus) · altes Antragsbuch beim zweiten Einlesen: Dubletten zum Bestätigen vorlegen.
+Dokumente (später, nach getesteter Version): Anleitung für ADP als PDF · Unterlage für Führungskräfte · Fibel mit Fachbegriffen.
+
+## Erledigt (Version 3.8)
 
 Reiter „Banken" (erscheint, sobald die Abrechnung Beteiligte enthält): je Bank Produktion, KV/UV/LV, Zusatz, Dynamik, Stück, Hochrechnung, Monatsverlauf, Kreisdiagramm nach Produkt,
 Planproduktion je Bank mit Zeitzielerreichungsgrad, Übersicht als Excel, Reporting je Bank als Excel und Druck/PDF.

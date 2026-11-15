@@ -39,7 +39,9 @@
         var c = h('button.chip' + (z.spezial === id ? '.aktiv' : ''), { type: 'button', onclick: function () { z.spezial = z.spezial === id ? '' : id; App.zeige('antraege'); } }, textC, h('b', null, String(zahl)));
         return zahl || z.spezial === id ? c : null;
       }
-      el.appendChild(h('div.leiste', null, h('div.suche', null, D.icon('suche'), suche), fM, fB, fS, fA, chip('ohneNr', 'Ohne Vertragsnr.', erg.ohneNr.length), chip('nb', 'Nachbearbeitung', nbOffen), chip('rekla', 'Reklamiert', p.antraege.filter(M.reklaOffen).length), h('span.frei'),
+      var andereJahre = p.antraege.filter(function (x) { return M.produktionsjahr(x, p, erg.proAntrag[x.id]) !== +p.jahr; }).length;
+      el.appendChild(h('div.leiste', null, h('div.suche', null, D.icon('suche'), suche), fM, fB, fS, fA,
+        andereJahre ? h('button.chip' + (z.alleJahre ? '.aktiv' : ''), { type: 'button', title: 'Anträge, die in ein anderes Produktionsjahr als ' + p.jahr + ' fallen (Produktionsschluss, Beginn, Jahreswechsel)', onclick: function () { z.alleJahre = !z.alleJahre; App.zeige('antraege'); } }, 'Andere Jahre ', h('b', null, andereJahre)) : null, chip('ohneNr', 'Ohne Vertragsnr.', erg.ohneNr.length), chip('nb', 'Nachbearbeitung', nbOffen), chip('rekla', 'Reklamiert', p.antraege.filter(M.reklaOffen).length), h('span.frei'),
         D.exportBtn('Antraege_' + p.jahr, function () { return Object.assign({ name: 'Anträge', titel: 'Anträge ' + p.jahr, unter: AB.ansichten.uebersicht.unter() + ' · Stand ' + U.fmtDatum(U.heute()) }, AB.kennzahlen.tabelleAntraege(p, erg, tab.zeilen())); },
           function () { return AB.kennzahlen.exportAntraege(p, erg, tab.zeilen()); }),
         D.btn('', drucke, { icon: 'druck', titel: 'Drucken oder als PDF speichern' })));
@@ -82,6 +84,7 @@
       function filtere() {
         var q = U.falte(z.suche || '').split(/\s+/).filter(Boolean);
         tab.setze(p.antraege.filter(function (a) {
+          if (!z.alleJahre && andereJahre && M.produktionsjahr(a, p, R(a)) !== +p.jahr) return false;
           if (z.monat !== '' && z.monat != null && (!a.eingang || +a.eingang.slice(5, 7) - 1 !== +z.monat || +a.eingang.slice(0, 4) !== +p.jahr)) return false;
           if (z.bereich && a.bereich !== z.bereich) return false;
           if ((z.tarif || z.beihilfe) && !AB.kennzahlen.passt(a, { tarif: z.tarif, beihilfe: z.beihilfe })) return false;

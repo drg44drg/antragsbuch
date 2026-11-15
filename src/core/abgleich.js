@@ -198,7 +198,8 @@
         if (r.vollStorno && !a.statusManuell && (a.status === 'eingereicht' || a.status === 'policiert' || a.status === 'abgerechnet')) { ziel = 'storno'; datum = r.stDatum; }
         else if (a.status === 'eingereicht' || a.status === 'policiert' || (a.status === 'reklamiert' && letzteQuelle(a) === 'reklamation')) { ziel = 'abgerechnet'; datum = r.bdat; }
         else if (a.status === 'storno' && !r.vollStorno && !a.statusManuell && letzteQuelle(a) === 'abgleich') { ziel = 'abgerechnet'; datum = r.bdat; }
-      } else if (!a.statusManuell && letzteQuelle(a) === 'abgleich' && (a.status === 'abgerechnet' || a.status === 'storno')) {
+      } else if (!a.statusManuell && letzteQuelle(a) === 'abgleich' && (a.status === 'abgerechnet' || a.status === 'storno') && +(a.statusDatum || '').slice(0, 4) >= +p.jahr) {
+        // nur im laufenden Jahr zurücknehmen: Anträge, die in einem früheren Jahr abgerechnet wurden, bleiben nach dem Jahreswechsel abgerechnet
         var vor = M.statusVorAbgleich(a); ziel = vor.status; datum = vor.datum;
       }
       if (ziel && ziel !== a.status) erg.status.push({ id: a.id, status: ziel, datum: datum });

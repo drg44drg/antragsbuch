@@ -48,6 +48,15 @@
       rechts.appendChild(h('div.raster.r-4', null,
         kachel('Produktion', U.fmtEuro0(b.prod), 'Januar bis ' + monat, true), kachel('Hochrechnung ' + p.jahr, U.fmtEuro0(b.hr), zi.hrGrad != null ? U.fmtZahl(zi.hrGrad * 100, 0) + ' % der Planproduktion' : 'bei gleichem Verlauf'),
         kachel('Personen', String(b.personen), b.vertraege + ' Verträge · ' + b.neuePersonen + ' neu'), kachel('Meine Provision', U.fmtEuro0(b.prov + b.provLaufend), b.provLaufend ? 'davon laufend ' + U.fmtEuro0(b.provLaufend) : 'aus dem Geschäft mit dieser Bank')));
+      var bo = K.bonus(b.kv, b.zusatz), f12 = b.stand ? 12 / b.stand : 0, boHr = K.bonus(b.kv * f12, b.zusatz * f12);
+      var boZeile = function (titel, x, basisKv, basisZ) { return h('tr', null, h('td', null, h('b', null, titel)), h('td.num', { style: { textAlign: 'right' } }, x.stufe ? 'Stufe ' + x.stufe : '–'),
+        h('td.num', { style: { textAlign: 'right' } }, x.stufe ? U.fmtZahl(x.grundMB, 1) + ' MB × ' + U.fmtEuro0(basisKv) + ' = ' + U.fmtEuro0(x.grund) : '–'), h('td.num', { style: { textAlign: 'right' } }, x.stufe ? U.fmtZahl(x.sonderMB, 1) + ' MB × ' + U.fmtEuro0(basisZ) + ' = ' + U.fmtEuro0(x.sonder) : '–'),
+        h('td.num', { style: { textAlign: 'right', fontWeight: 700 } }, U.fmtEuro0(x.gesamt))); };
+      rechts.appendChild(h('div.karte.rein', null, h('div.leiste', null, h('h3', null, 'Bonus der Bank ' + p.jahr), h('span.frei'), bo.fehlt != null ? h('span.marke-s' + (bo.stufe ? '' : '.warn'), null, 'bis Stufe ' + (bo.stufe + 1) + ' fehlen ' + U.fmtEuro0(bo.fehlt)) : h('span.marke-s.gut', null, 'höchste Stufe')),
+        h('div.unter', null, 'nach den Bedingungen „Bonus für Genossenschaftsbanken 2026" · gerechnet nur aus dem Geschäft in Ihrer Abrechnung'),
+        h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['', 'Bonusstufe', 'Grundbonus', 'Sonderbonus Zusatz', 'Gesamt'].map(function (t, i) { return h('th', { style: i ? { textAlign: 'right' } : null }, t); }))),
+          h('tbody', null, boZeile('Stand bis ' + monat, bo, b.kv, b.zusatz), boZeile('Hochrechnung ' + p.jahr, boHr, b.kv * f12, b.zusatz * f12)))),
+        h('p.mini', { style: { marginTop: '8px' } }, 'Stufen ab 2.000 / 3.500 / 7.000 / 10.000 / 15.000 / 20.000 € KV-Nettoproduktion. Die Bank kann weiteres Geschäft über andere Außendienstpartner haben; der tatsächliche Bonus ist dann höher. Genossenschaftstarife und geförderte Pflege sind vom Sonderbonus ausgenommen – das ist hier nur über den Bereich „Zusatzversicherung" angenähert.')));
       rechts.appendChild(h('div.raster.r-2', null,
         h('div.karte.rein', null, h('h3', null, 'Woraus besteht die Produktion?'), h('div.unter', null, 'nach Produkt · Zusatz ' + U.fmtEuro0(b.zusatz) + ' · aus Dynamik ' + U.fmtEuro0(b.dynamik)), dRing),
         h('div.karte.rein', null, h('h3', null, 'Produktion je Monat'), h('div.unter', null, 'Nettoproduktion laut Abrechnung'), dMon)));

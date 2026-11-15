@@ -77,7 +77,7 @@
       importe: [], importZaehler: 0,
       zuordnungen: {}, ignoriert: {},
       vdienst: { zuordnungen: {}, importe: [] },
-      team: null, aktionen: [], bonus: null, ziele: {}, vorjahr: null, banken: {},
+      team: null, aktionen: [], bonus: null, ziele: {}, vorjahr: null, banken: {}, archiv: {},
       sicherungen: []
     };
   };
@@ -222,7 +222,7 @@
     var ist = {}, ein = {}, hatAbr = false, raus = { abgelehnt: 1, widerruf: 1, absage: 1, storno: 1 }, zaehlt = { neu: 1, mehr: 1, minder: 1 };
     (zeilen || []).forEach(function (x) { if (+x.bdat.slice(0, 4) !== jahr || !(+x.prod)) return; hatAbr = true; var b = M.bereichAusGruppe(x.tg); ist[b] = (ist[b] || 0) + +x.prod; });
     (p.antraege || []).forEach(function (a) {
-      if (!a.eingang || +a.eingang.slice(0, 4) !== jahr || raus[a.status] || !zaehlt[a.vorgang]) return;
+      if (!a.eingang || raus[a.status] || !zaehlt[a.vorgang] || M.produktionsjahr(a, p, null, h) !== jahr) return;
       a.positionen.forEach(function (ps) { var b = ps.bereich || a.bereich; if (b === 'pflege') b = 'voll'; ein[b] = (ein[b] || 0) + M.vorzeichen(a, +ps.beitrag || 0); });
     });
     var zeile = function (id, name, ziel, i, e) {
@@ -277,6 +277,67 @@
     return s > 0 ? pos.map(function (v) { return U.runde(v / s * 100 * 10) / 10; }) : null;
   };
   M.setzeZiel = function (p, id, wert) { if (!p.ziele) p.ziele = {}; var j = p.ziele[p.jahr] || (p.ziele[p.jahr] = {}); if (wert == null || wert === '' || isNaN(wert)) delete j[id]; else j[id] = +wert; };
+
+  // ---------- Produktionsjahr und Jahreswechsel ----------
+  /** Produktionsschluss eines Jahres (Standard 18.12.). Was danach verarbeitet wird, zählt zum Folgejahr. */
+  M.produktionsschluss = function (p, jahr) {
+    var e = (p.einstellungen && p.einstellungen.produktionsschluss) || {};
+    return e[jahr] || (jahr + '-12-18');
+  };
+  /** Datum, ab dem ein Antrag verarbeitet ist: früheste Policierung (Veränderungsdienst) oder Buchung (Abrechnung). r = Abgleichsergebnis des Antrags. */
+  M.wirksamDatum = function (a, r) {
+    var d = '';
+    (a.historie || []).forEach(function (h) { if (h.status === 'policiert' && h.datum && (!d || h.datum < d)) d = h.datum; });
+    if (!d && a.status === 'policiert') d = a.statusDatum || '';
+    var b = '';
+    if (r && r.buendel && r.buendel.length) r.buendel.forEach(function (x) { var t = x.bdat || (x.monat + '-01'); if (!b || t < b) b = t; });
+    else if (a.status === 'abgerechnet' || a.status === 'storno') b = a.statusDatum || '';
+    return d && b ? (d < b ? d : b) : (d || b);
+  };
+  /**
+   * In welches Produktionsjahr fällt ein Antrag?
+   *  – verarbeitet (policiert/abgerechnet): Jahr der Verarbeitung; nach dem Produktionsschluss das Folgejahr.
+   *  – Beginn ab dem 2. Januar eines späteren Jahres: dieses Jahr (zählt nicht im alten Jahr, auch wenn früh policiert).
+   *  – Beginn 1.1. des Folgejahres: zählt im alten Jahr, wenn bis zum Produktionsschluss policiert; sonst im Folgejahr.
+   *  – noch offen: frühestens das Jahr der Einreichung (nach dem Produktionsschluss das Folgejahr); nach einem Jahreswechsel wandert er ins neue Projektjahr mit.
+   */
+  M.produktionsjahr = function (a, p, r, heute) {
+    var w = M.wirksamDatum(a, r), j;
+    var nachSchluss = function (d) { var y = +d.slice(0, 4); return d > M.produktionsschluss(p, y) ? y + 1 : y; };
+    if (w) j = nachSchluss(w);
+    else {
+      if (!a.eingang) return +p.jahr;
+      j = nachSchluss(a.eingang);
+      var abgeschlossen = { abgelehnt: 1, widerruf: 1, absage: 1 };
+      if (!abgeschlossen[a.status]) j = Math.max(j, +p.jahr);   // offene Anträge wandern ins laufende Projektjahr mit
+    }
+    if (a.beginn && a.beginn >= (j + 1) + '-01-02') j = +a.beginn.slice(0, 4);
+    return j;
+  };
+  /** Jahr und Monat, in dem ein Antrag in den Auswertungen erscheint (Monat der Einreichung; aus einem Vorjahr herübergezogen: Januar). */
+  M.zaehlt = function (a, p, r, heute) {
+    var j = M.produktionsjahr(a, p, r, heute), ej = a.eingang ? +a.eingang.slice(0, 4) : j;
+    return { jahr: j, monat: ej === j ? +a.eingang.slice(5, 7) - 1 : ej < j ? 0 : 11 };
+  };
+  /**
+   * Jahreswechsel in derselben Datei: Abrechnung, Teamdaten, Bonus und Importliste des laufenden Jahres wandern ins Archiv,
+   * die Vorjahreswerte werden für die Planung festgehalten, alle Anträge bleiben. Ein archiviertes Jahr lässt sich wieder öffnen.
+   */
+  M.jahreswechsel = function (p, neuesJahr) {
+    neuesJahr = +neuesJahr; if (!neuesJahr || neuesJahr === +p.jahr) return false;
+    if (!p.archiv) p.archiv = {};
+    p.archiv[p.jahr] = { abrechnung: p.abrechnung || null, team: p.team || null, bonus: p.bonus || null, importe: p.importe || [], importZaehler: p.importZaehler || 0 };
+    var ziel = p.archiv[neuesJahr], vor = neuesJahr - 1 === +p.jahr ? p.archiv[p.jahr] : p.archiv[neuesJahr - 1];
+    var stufe = p.bonus && p.bonus.stufe;
+    p.jahr = neuesJahr;
+    p.abrechnung = ziel ? ziel.abrechnung : null; p.team = ziel ? ziel.team : null; p.importe = ziel ? ziel.importe || [] : []; p.importZaehler = ziel ? ziel.importZaehler || 0 : 0;
+    p.bonus = ziel && ziel.bonus ? ziel.bonus : (stufe ? Object.assign(AB.bonus.leer(), { stufe: stufe }) : null);
+    delete p.archiv[neuesJahr];
+    p.vorjahr = vor && vor.abrechnung ? M.vorjahrAus(AB.abrechnung.entpacke(vor.abrechnung), neuesJahr - 1, 'Jahreswechsel') : null;
+    if (p.vorjahr && !p.vorjahr.gesamt) p.vorjahr = null;
+    return true;
+  };
+  M.archivJahre = function (p) { return Object.keys(p.archiv || {}).map(Number).sort(); };
 
   M.vnName = function (a) {
     return (a.vn.name || '') + (a.vn.vorname ? ', ' + a.vn.vorname : '');

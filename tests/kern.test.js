@@ -379,7 +379,7 @@ test('Bonus-Vorschau: bestätigt (Reporting), gebucht (Abrechnung nach dem Stand
   antrag({ eingang: '2026-08-01', bereich: 'bkv', vorgang: 'neu', vn: { name: 'Firma Test' } }, [{ person: 'P1', tarif: 'BFRO', beitrag: 20 }, { person: 'P2', tarif: 'BFRO', beitrag: 20 }]);
   antrag({ eingang: '2026-08-03', bereich: 'zusatz', vorgang: 'minder', vn: { name: 'Demo' } }, [{ tarif: 'ZP7', beitrag: 30 }]);
   antrag({ eingang: '2026-08-04', bereich: 'voll', vorgang: 'neu', status: 'absage', vn: { name: 'Weg' } }, [{ tarif: 'AM13', beitrag: 999 }]);
-  antrag({ eingang: '2025-12-30', bereich: 'voll', vorgang: 'neu', vn: { name: 'Vorjahr' } }, [{ tarif: 'AM13', beitrag: 999 }]);
+  antrag({ eingang: '2025-06-30', bereich: 'voll', vorgang: 'neu', status: 'abgerechnet', statusDatum: '2025-07-15', vn: { name: 'Vorjahr' } }, [{ tarif: 'AM13', beitrag: 999 }]);
   const erg = { proAntrag: { [a2.id]: { buendel: [{ bdat: '2026-06-12', monat: '2026-06' }] }, [a3.id]: { buendel: [{ bdat: '2026-08-11', monat: '2026-08' }, { bdat: '2026-09-02', monat: '2026-09' }] } } };
   const zl = [{ bdat: '2026-06-12', prod: 4100, tg: 'Vollversicherung', sparte: 'KVUV' }, { bdat: '2026-08-11', prod: 450, tg: 'Vollversicherung', sparte: 'KVUV' }, { bdat: '2026-08-20', prod: 12, tg: 'Unfallversicherung', sparte: 'KVUV' }];
   const s = AB.bonus.simulation(p, zl, erg);
@@ -521,7 +521,7 @@ test('Analyse für Verkäufer: Größe der Anträge, Familien, Beitragsentlastun
   const p = M.neuesProjekt(2026), Y = AB.analyse;
   const an = (b, pos, o) => { const a = Object.assign(M.neuerAntrag(), { eingang: '2026-03-01', bereich: b, vorgang: 'neu', herkunft: 'neu', vn: { name: 'Kunde' + p.antraege.length, vorname: 'X' } }, o || {}); a.positionen = pos.map((x) => Object.assign(M.neuePosition(), { tarif: x[0], beitrag: x[1], personennummer: x[2] || '1' })); p.antraege.push(a); return a; };
   an('zusatz', [['ZP7', 20]]); an('zusatz', [['ZP9', 40]]); an('voll', [['AM13', 400], ['S1', 100]]); an('voll', [['AM13', 300, '1'], ['AM13', 150, '2'], ['AM13', 150, '3'], ['BE/500', 100, '1']]);
-  an('voll', [['AM13', 999]], { status: 'absage' }); an('zusatz', [['ZP7', 30]], { vorgang: 'minder' }); an('zusatz', [['ZP7', 77]], { eingang: '2025-05-05' });
+  an('voll', [['AM13', 999]], { status: 'absage' }); an('zusatz', [['ZP7', 30]], { vorgang: 'minder' }); an('zusatz', [['ZP7', 77]], { eingang: '2025-05-05', status: 'abgerechnet', statusDatum: '2025-06-01' });
   const o = Y.rechne(p, 2026);
   assert.deepEqual([o.n, o.summe, o.schnitt, o.median, o.kleinster, o.groesster], [4, 1260, 315, 270, 20, 700]);
   assert.deepEqual(o.klassen.map((k) => k.n), [1, 1, 0, 0, 1, 1]);
@@ -627,4 +627,52 @@ test('Banken: Auswertung je Beteiligtem aus der Abrechnung, Ziel und Zeitzielerr
   const t = K.tabelle(p, l); t.zeilen.forEach((r) => assert.equal(r.length, t.spalten.length));
   const rep = K.reporting(p, b); assert.deepEqual(rep.map((x) => x.name), ['Bankenreporting', 'Verlauf']); rep.forEach((bl) => bl.zeilen.forEach((r) => assert.equal(r.length, bl.spalten.length)));
   assert.deepEqual(rep[0].zeilen.find((r) => r[0] === 'Gesamt'), ['Gesamt', 465, 930]); assert.ok(AB.xlsxout.schreibe(rep).length > 1000);
+});
+
+test('Bankenbonus 2026: Stufe, Grundbonus, Sonderbonus Zusatz, Fehlbetrag – geprüft am Muster-Reporting', () => {
+  const B = AB.bank.bonus;
+  // Muster: Produktion 2.994 € (davon Zusatz 1.515 €) → 1.497 € + 303 €, es fehlen 506 € zur nächsten Stufe
+  assert.deepEqual((({ stufe, grundMB, sonderMB, grund, sonder, gesamt, fehlt }) => [stufe, grundMB, sonderMB, grund, sonder, gesamt, fehlt])(B(2994, 1515)), [1, 0.5, 0.2, 1497, 303, 1800, 506]);
+  // Hochrechnung 7.185 € (Zusatz 3.633 €) → 7.185 € + 5.449,50 €
+  assert.deepEqual((({ stufe, grund, sonder }) => [stufe, grund, sonder])(B(7185, 3633)), [3, 7185, 5449.5]);
+  assert.deepEqual([B(1999, 500).stufe, B(1999, 500).gesamt, B(1999, 500).fehlt, B(3500, 0).stufe, B(25000, 100).stufe, B(25000, 100).fehlt, B(25000, 100).sonder], [0, 0, 1, 2, 6, null, 590]);
+});
+
+test('Produktionsjahr: Produktionsschluss, Beginn im Folgejahr, offene Anträge und Jahreswechsel in derselben Datei', () => {
+  const p = M.neuesProjekt(2026);
+  const A = (o) => Object.assign(M.neuerAntrag(), { bereich: 'voll', vorgang: 'neu', herkunft: 'neu', vn: { name: 'M', vorname: 'A' } }, o);
+  const pol = (a, datum) => { M.setzeStatus(a, 'policiert', datum, 'vdienst'); return a; };
+  const pj = (a) => M.produktionsjahr(a, p);
+  assert.equal(M.produktionsschluss(p, 2026), '2026-12-18');
+  // im Oktober beantragt, Beginn 1.1.27, vor dem Produktionsschluss policiert → Produktion 2026
+  assert.equal(pj(pol(A({ eingang: '2026-10-05', beginn: '2027-01-01' }), '2026-12-10')), 2026);
+  // derselbe Antrag, aber erst nach dem 18.12. policiert → 2027
+  assert.equal(pj(pol(A({ eingang: '2026-10-05', beginn: '2027-01-01' }), '2026-12-22')), 2027);
+  // Beginn ab dem 2. Januar des Folgejahres → zählt nicht im alten Jahr, auch wenn früh policiert
+  assert.equal(pj(pol(A({ eingang: '2026-09-10', beginn: '2027-02-01' }), '2026-09-25')), 2027);
+  // nach dem Produktionsschluss eingereicht → Folgejahr
+  assert.equal(pj(A({ eingang: '2026-12-21', beginn: '2027-01-01' })), 2027); assert.equal(pj(A({ eingang: '2026-12-18' })), 2026);
+  // abgerechnet zählt das Buchungsdatum; die Policierung davor ist maßgeblich
+  const ab = pol(A({ eingang: '2026-11-20' }), '2026-12-15'); M.setzeStatus(ab, 'abgerechnet', '2027-01-08', 'abgleich'); assert.equal(pj(ab), 2026);
+  assert.equal(M.produktionsjahr(A({ eingang: '2026-11-20' }), p, { buendel: [{ bdat: '2026-12-30' }] }), 2027);
+  // eigener Produktionsschluss
+  p.einstellungen.produktionsschluss = { 2026: '2026-12-20' }; assert.equal(pj(A({ eingang: '2026-12-20' })), 2026); assert.equal(pj(A({ eingang: '2026-12-21' })), 2027); delete p.einstellungen.produktionsschluss;
+  // Auswertung: Monat der Einreichung, aus dem Vorjahr herübergezogen im Januar
+  assert.deepEqual(M.zaehlt(A({ eingang: '2026-03-05' }), p), { jahr: 2026, monat: 2 });
+  // Jahreswechsel: Abrechnung wandert ins Archiv, Vorjahreswerte bleiben, offene Anträge ziehen mit, abgerechnete bleiben im alten Jahr
+  const offen = A({ eingang: '2026-11-25', vn: { name: 'Offen', vorname: 'O' } }), spaet = A({ eingang: '2026-12-22', vn: { name: 'Spaet', vorname: 'S' } }), fertig = A({ eingang: '2026-05-05', vn: { name: 'Fertig', vorname: 'F' } });
+  M.setzeStatus(fertig, 'abgerechnet', '2026-06-10', 'abgleich'); p.antraege.push(offen, spaet, fertig);
+  p.abrechnung = AB.abrechnung.packe([{ bdat: '2026-06-10', prod: 400, prov: 2200, tg: 'Vollversicherung', vm: '900999', vnr: '1', pnr: '1', tarif: 'AM13', part: 'Abschluss', mbd: 400 }]); p.importe = [{ nr: 1 }]; p.importZaehler = 1;
+  p.bonus = Object.assign(AB.bonus.leer(), { stufe: '3', neueVoll: 5 }); M.setzeZiel(p, 'voll', 5000);
+  assert.deepEqual([pj(offen), pj(spaet), pj(fertig)], [2026, 2027, 2026]);
+  assert.equal(AB.kennzahlen.rechne(p, null, []).jahr.antraege, 2, '2026 zählt den offenen und den abgerechneten, nicht den nach dem Produktionsschluss');
+  assert.equal(M.jahreswechsel(p, 2027), true);
+  assert.deepEqual([p.jahr, p.abrechnung, p.importe.length, p.bonus.stufe, p.bonus.neueVoll, M.archivJahre(p), p.vorjahr.jahr, p.vorjahr.gesamt, p.antraege.length], [2027, null, 0, '3', null, [2026], 2026, 400, 3]);
+  assert.deepEqual([pj(offen), pj(spaet), pj(fertig)], [2027, 2027, 2026], 'der offene Antrag zieht ins neue Jahr mit');
+  const k27 = AB.kennzahlen.rechne(p, null, []); assert.equal(k27.jahr.antraege, 2); assert.equal(k27.monate[0].antraege, 2, 'herübergezogene Anträge stehen im Januar');
+  assert.equal(p.ziele[2026].voll, 5000); assert.equal(M.zieleStand(p, [], '2027-02-10').zeilen.find((x) => x.id === 'voll').ziel, null);
+  // zurück ins archivierte Jahr: alles wieder da
+  assert.equal(M.jahreswechsel(p, 2026), true);
+  assert.deepEqual([p.jahr, AB.abrechnung.entpacke(p.abrechnung).length, p.importe.length, p.bonus.neueVoll, M.archivJahre(p)], [2026, 1, 1, 5, [2027]]);
+  assert.equal(M.jahreswechsel(p, 2026), false);
 });

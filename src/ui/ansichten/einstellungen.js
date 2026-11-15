@@ -18,7 +18,7 @@
         h('div.karte', null, h('h3', null, 'Meine Angaben'), h('div.formraster', { style: { marginTop: '10px' } },
           D.feld('Vermittlernummer (6-stellig)', text(e.vermittlernummer, function (v) { e.vermittlernummer = v.replace(/\s/g, ''); if (v && !/^\d{6}$/.test(e.vermittlernummer)) D.toast('Die Vermittlernummer hat normalerweise sechs Ziffern, z. B. 900402.', { krit: true }); }, { inputMode: 'numeric', placeholder: 'z. B. 900402', autofocus: !e.vermittlernummer }), 's4'),
           D.feld('Name (für Ausdrucke)', text(e.name, function (v) { e.name = v; }), 's5'),
-          D.feld('Jahr', zahl(p.jahr, function (v) { p.jahr = Math.round(v); }), 's3'))),
+          D.feld('Projektjahr', h('input', { type: 'text', value: p.jahr, disabled: true, title: 'Das Jahr wechseln Sie unten in der Karte „Jahreswechsel"' }), 's3'))),
         h('div.karte', null, h('h3', null, 'Abgleich'), h('div.formraster', { style: { marginTop: '10px' } },
           D.feld('Toleranz Beitrag (€)', zahl(e.toleranzBeitrag, function (v) { e.toleranzBeitrag = Math.abs(v); }), 's3'),
           D.feld('Toleranz Provision (€)', zahl(e.toleranzProvision, function (v) { e.toleranzProvision = Math.abs(v); }), 's3'),
@@ -37,6 +37,27 @@
         slaTb.appendChild(h('tr', null, h('td', null, b.name), h('td', { style: { width: '110px' } }, zahl(s.gelb, function (n) { s.gelb = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } })),
           h('td', { style: { width: '110px' } }, zahl(s.rot, function (n) { s.rot = Math.max(0, Math.round(n)); }, { style: { textAlign: 'right' } }))));
       });
+      // Jahreswechsel in derselben Datei und Produktionsschluss
+      (function () {
+        var arch = AB.model.archivJahre(p), naechstes = +p.jahr + 1, schluss = AB.model.produktionsschluss(p, p.jahr);
+        var fS = h('input', { type: 'date', value: schluss, onchange: function () { if (App.gesperrt()) return; if (!e.produktionsschluss) e.produktionsschluss = {}; if (fS.value) e.produktionsschluss[p.jahr] = fS.value; else delete e.produktionsschluss[p.jahr]; App.geaendert(); } });
+        var wechsle = function (jahr, text) {
+          D.frage('Auf das Jahr ' + jahr + ' wechseln?', text, 'Wechseln').then(function (ja) {
+            if (!ja || App.gesperrt()) return;
+            AB.model.sichere(p, 'Vor Jahreswechsel ' + p.jahr + ' → ' + jahr); AB.model.jahreswechsel(p, jahr);
+            App.zeilen = AB.abrechnung.entpacke(p.abrechnung); App.wuerfel = null; App.wuerfelEigen = null; App.geaendert(); D.toast('Das Projekt steht jetzt auf dem Jahr ' + jahr + '.');
+          });
+        };
+        el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Jahreswechsel'), h('span.frei'), h('span.marke-s', null, 'Projektjahr ' + p.jahr)),
+          h('div.unter', null, 'Sie arbeiten in derselben Datei weiter. Beim Wechsel wandern Abrechnung, Teamdaten und Bonus-Werte des Jahres ins Archiv, die Vorjahreswerte stehen für die Planung bereit, alle Anträge bleiben erhalten.'),
+          h('div.formraster', { style: { marginTop: '10px' } },
+            D.feld('Produktionsschluss ' + p.jahr, fS, 's3'),
+            h('div.feld.s9', null, h('span', null, 'Was zählt in welchem Jahr?'), h('span.klein.muted', null, 'Was bis zum Produktionsschluss policiert oder abgerechnet ist, zählt im laufenden Jahr – auch mit Beginn 1.1. des Folgejahres. Später Verarbeitetes, später Eingereichtes und Anträge mit Beginn ab dem 2. Januar zählen im Folgejahr. Offene Anträge ziehen beim Wechsel mit.'))),
+          h('div.leiste', { style: { marginTop: '10px' } },
+            D.btn('Neues Jahr ' + naechstes + ' beginnen', function () { wechsle(naechstes, 'Die Abrechnung ' + p.jahr + ' wird archiviert und als Vorjahr für die Planung festgehalten. Offene Anträge ziehen ins Jahr ' + naechstes + ' mit, abgerechnete bleiben im Jahr ' + p.jahr + '. Sie können jederzeit ins Jahr ' + p.jahr + ' zurückwechseln. Vorher wird ein Sicherungsstand angelegt.'); }, { klasse: arch.indexOf(naechstes) >= 0 ? '' : 'haupt-btn' }),
+            arch.map(function (j) { return D.btn('Jahr ' + j + ' öffnen', function () { wechsle(j, 'Das Jahr ' + p.jahr + ' wird archiviert und das Jahr ' + j + ' mit seiner Abrechnung wieder geöffnet.'); }, { klasse: 'leise' }); }),
+            h('span.frei'), arch.length ? h('span.muted.klein', null, 'Im Archiv: ' + arch.join(', ')) : null)));
+      })();
       // Ohne Vermittlernummer steht der Cursor gleich im Feld (das autofocus-Attribut greift nach dem Starthinweis nicht mehr zuverlässig)
       if (!e.vermittlernummer) setTimeout(function () { var f = el.querySelector('input[placeholder="z. B. 900402"]'); if (f && !document.querySelector('dialog[open]')) f.focus(); }, 0);
       // Akzentfarbe: Auswahl ändert zuerst nur die Vorschau; erst „Übernehmen" schaltet das Programm um

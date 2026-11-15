@@ -74,8 +74,9 @@
       monate: { gebuchtProd: np.monate.slice(), beantragtMb: leerM(), policiertMb: leerM(), vollPoliciert: leerM(), bkvPoliciert: leerM(), vollGebucht: leerM(), vollBeantragt: leerM(), bkvGebucht: leerM(), bkvBeantragt: leerM() } };
     var sum = { voll: { gebucht: 0, beantragt: 0, policiert: 0 }, bkv: { gebucht: 0, beantragt: 0, policiert: 0 }, mbKv: 0, mbGesamt: 0, polKv: 0, polGesamt: 0 };
     (p.antraege || []).forEach(function (a) {
-      if (!a.eingang || +a.eingang.slice(0, 4) !== jahr || ende[a.status] || !zaehlt[a.vorgang]) return;
+      if (!a.eingang || ende[a.status] || !zaehlt[a.vorgang]) return;
       var r = erg && erg.proAntrag ? erg.proAntrag[a.id] : null, bdat = '';
+      var zj = M.zaehlt(a, p, r); if (zj.jahr !== jahr) return;
       if (r && r.buendel && r.buendel.length) r.buendel.forEach(function (b) { var d = b.bdat || (b.monat + '-01'); if (!bdat || d < bdat) bdat = d; });
       else if (a.status === 'abgerechnet') bdat = a.statusDatum || a.eingang;
       // Policiert (Veränderungsdienst): Ab der technischen Verarbeitung zählt der Antrag für den Bonus – oft Monate vor der Abrechnung.
@@ -103,7 +104,7 @@
         voll: Object.keys(voll).length, bkv: Object.keys(bkv).length, mbKv: U.runde(mbKv), mb: U.runde(mbGes) };
       if (!x.voll && !x.bkv && Math.abs(x.mb) < 0.005) return;
       o.liste.push(x);
-      var mE = +a.eingang.slice(5, 7) - 1, mB = wirksam && +wirksam.slice(0, 4) === jahr ? +wirksam.slice(5, 7) - 1 : mE;
+      var mE = zj.monat, mB = wirksam && +wirksam.slice(0, 4) === jahr ? +wirksam.slice(5, 7) - 1 : mE;
       // Noch nicht abgerechnet: Der Monatsbeitrag steht noch nicht in der Abrechnung und wird deshalb geschätzt dazugezählt.
       if (zustand === 'policiert' || (zustand === 'bestaetigt' && !bdat)) { o.monate.policiertMb[mB] += x.mb; if (zustand === 'policiert') { sum.polKv += x.mbKv; sum.polGesamt += x.mb; } }
       if (zustand === 'policiert') { sum.voll.policiert += x.voll; sum.bkv.policiert += x.bkv; o.monate.vollPoliciert[mB] += x.voll; o.monate.bkvPoliciert[mB] += x.bkv; }
