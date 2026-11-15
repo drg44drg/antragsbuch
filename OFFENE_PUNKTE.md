@@ -86,7 +86,19 @@ Reiter „Analyse": mittlerer, größter, kleinster Antrag, Größenklassen, je 
 Tipp-Leiste in der Übersicht (Gesundheitstag, Monatsthema, Tipp der Woche; je Tag ausblendbar) · Team: hintere Hälfte sieht den Abstand zum Mittelfeld und zum nächsten Platz ·
 Maske: Knöpfe „Partner/in" und „Kind" legen eine weitere versicherte Person mit eigener Personennummer und denselben Tarifen an.
 
-## D0000 · Erledigt (Version 3.4)
+## D0000 · Erledigt (Version 3.5)
+
+Rechenhilfe „Krankentagegeld: reicht es?" im Reiter Analyse (Bedarf je Tag, Lücke, Deckung; wird nicht gespeichert).
+
+Notiert für später:
+- Beitragstabellen: „Da ist mehr zu holen" je Tarif eine oder zwei Stufen höher (AP, ZP, SP …); Pflege pauschal etwa +20 %; höchste Stufe (z. B. ZP9) ausnehmen; alte Tarife nur soweit in den Tabellen.
+- Management-Cockpit zusätzlich: Team-Wirkung „alle eine Stufe höher" bzw. +10/20/30 % · Stück je Tarifart (AP, ZP, SP …) mit Anzeige beim Überfahren ·
+  Durchdringung: Personen mit einem, zwei, drei Tarifen · Hinweis auf zu niedriges Krankentagegeld.
+- Krankentagegeld: In der Abrechnung steht nur der Tarif (TA6, TA6u) ohne Tagessatz. Für einen Hinweis „unterversichert" muss der Tagessatz im Antrag erfasst werden
+  (Vorschlag: wie bei BE als „TA6/100") oder aus Beitragstabelle und Alter geschätzt werden – Entscheidung offen.
+- Erste Seite schlank halten: nach den Tests entscheidet die Führungskraft, welche Kacheln und Karten die Übersicht zeigt; Weiteres bleibt in Analyse und Tipps. Vorschlag: Umschalter „Einfach / Ausführlich".
+
+## Erledigt (Version 3.4)
 
 „Meine Ziele": Jahresziel je Produkt und gesamt eintragen (in der Projektdatei gespeichert), Vergleich mit dem Stand (Nettoproduktion laut Abrechnung, sonst eingetragener Beitrag),
 Soll bei gleichmäßigem Verlauf, Abstand, Fortschritt, „noch nötig je Monat" – in „Meine Produktion" und „Analyse".

@@ -44,6 +44,15 @@
     return o;
   };
 
+  /**
+   * Krankentagegeld-Bedarf (Richtwert): Im Krankheitsfall entfallen nach sechs Wochen Gehalt und Arbeitgeberzuschuss.
+   * Bedarf je Tag = (verfügbares Netto + voller Kranken- und Pflegebeitrag + ggf. eigene Rentenbeiträge) ÷ 30.
+   */
+  Y.tagegeld = function (netto, kvBeitrag, rente, vorhanden) {
+    var bedarfMonat = (+netto || 0) + (+kvBeitrag || 0) + (+rente || 0), tag = Math.ceil(bedarfMonat / 30 / 5) * 5, hat = +vorhanden || 0;
+    return { bedarfMonat: U.runde(bedarfMonat), bedarfTag: tag, vorhandenMonat: U.runde(hat * 30), lueckeTag: Math.max(0, tag - hat), lueckeMonat: U.runde(Math.max(0, bedarfMonat - hat * 30)), deckung: bedarfMonat > 0 ? Math.min(1, hat * 30 / bedarfMonat) : null };
+  };
+
   // ---------- Tipps und Gesundheitstage (nach Systemdatum, ohne Internet) ----------
   // Feste Gedenk- und Aktionstage; Angaben bitte vor Verwendung in Kundenaktionen selbst prüfen.
   Y.TAGE = [['02-04', 'Weltkrebstag', 'Vorsorge und stationäre Zusatzversicherung ansprechen'], ['03-03', 'Welttag des Hörens', 'Hörgeräte-Leistung im ambulanten Zusatztarif'],

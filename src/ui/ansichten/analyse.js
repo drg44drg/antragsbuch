@@ -36,6 +36,23 @@
           h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Bereich', 'Anträge', 'Summe', 'Mitte', 'Schnitt', 'Kleinster', 'Größter'].map(function (t, i) { return h('th', { style: i ? { textAlign: 'right' } : null }, t); }))), tb)), dB),
         h('div.karte.rein', null, h('h3', null, 'Meine zehn größten Anträge'), h('div.unter', null, 'Was haben diese Kunden gemeinsam? Klick öffnet den Antrag.'),
           h('div', { style: { overflowX: 'auto' } }, h('table.einfach', null, top)))));
+      // Krankentagegeld: reicht es? (Rechenhilfe fürs Gespräch, wird nicht gespeichert)
+      (function () {
+        var erg = h('div'), f = {}, feld = function (id, label, wert, hinweis) { f[id] = h('input', { type: 'text', inputMode: 'decimal', value: wert, style: { textAlign: 'right' }, title: hinweis || '', oninput: rechne }); return D.feld(label, f[id], 's3'); };
+        function rechne() {
+          var z = function (id) { var v = U.parseZahl(f[id].value); return isNaN(v) ? 0 : v; }, r = AB.analyse.tagegeld(z('netto'), z('kv'), z('rente'), z('hat'));
+          D.leere(erg);
+          D.anhaengen(erg, [h('div.leiste', null, h('span', null, 'Bedarf: ', h('b.num', null, U.fmtEuro0(r.bedarfMonat) + ' im Monat')), h('span', null, '≈ ', h('b.num', null, r.bedarfTag + ' € je Tag')), h('span.frei'),
+            r.lueckeTag > 0 ? h('span.marke-s.warn', null, 'Lücke ' + r.lueckeTag + ' € je Tag · ' + U.fmtEuro0(r.lueckeMonat) + ' im Monat') : h('span.marke-s.gut', null, 'bedarfsgerecht')),
+            h('div', { style: { position: 'relative', height: '10px', borderRadius: '99px', background: 'var(--surface-2)', margin: '8px 0 2px' } }, h('div.hb.dia', { style: { position: 'absolute', left: 0, top: 0, bottom: 0, width: ((r.deckung || 0) * 100) + '%', borderRadius: '99px', background: r.lueckeTag > 0 ? 'var(--warn)' : 'var(--good)' } })),
+            h('div.klein.muted', null, 'Das vorhandene Tagegeld deckt ' + U.fmtZahl((r.deckung || 0) * 100, 0) + ' % des Bedarfs.')]);
+        }
+        el.appendChild(h('div.karte.rein', null, h('h3', null, 'Krankentagegeld: reicht es?'), h('div.unter', null, 'Rechenhilfe fürs Gespräch – die Angaben werden nicht gespeichert. Vorbelegt ist ein Angestellter an der Versicherungspflichtgrenze 2026.'),
+          h('div.formraster', { style: { marginTop: '10px' } }, feld('netto', 'Verfügbares Netto im Monat (€)', '4.100', 'Netto nach Abzug des eigenen Anteils am Krankenversicherungsbeitrag'), feld('kv', 'Kranken- und Pflegebeitrag gesamt (€)', '800', 'voller Beitrag einschließlich des Arbeitgeberzuschusses, der im Krankheitsfall entfällt'),
+            feld('rente', 'Eigene Renten-/Vorsorgebeiträge (€)', '0', 'falls im Krankheitsfall weitergezahlt werden soll'), feld('hat', 'Vorhandenes Tagegeld (€ je Tag)', '100')), erg,
+          h('p.mini', { style: { marginTop: '8px' } }, 'Richtwert: Bedarf je Tag = (Netto + voller Kranken- und Pflegebeitrag + eigene Vorsorgebeiträge) ÷ 30, auf 5 € aufgerundet. Zum Vergleich: Das gesetzliche Krankengeld ist 2026 auf 135,63 € je Tag brutto begrenzt (70 % der Beitragsbemessungsgrenze von 5.812,50 €), nach Abzug der Sozialbeiträge rund 3.550 € im Monat. Keine Steuer- oder Rechtsberatung.')));
+        rechne();
+      })();
       el.appendChild(h('p.mini', null, 'Gezählt werden Neugeschäft und Mehrbeiträge des Jahres ohne abgelehnte, widerrufene und stornierte Anträge. „Mitte" ist der Median: die Hälfte Ihrer Anträge liegt darunter, die Hälfte darüber. Die Provision ist mit Ihren Provisionsregeln gerechnet und unverbindlich.'));
       requestAnimationFrame(function () {
         G.balken(dK, { titel: 'Anträge je Größenklasse', kategorien: o.klassen.map(function (k) { return k.name.replace(' €', ''); }), kategorienLang: o.klassen.map(function (k) { return k.name; }), format: function (v) { return U.fmtZahl(v, 0); }, hoehe: 220,

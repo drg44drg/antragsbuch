@@ -566,3 +566,11 @@ test('Meine Ziele je Produkt: speichern, Soll bei gleichmäßigem Verlauf, Stand
   M.setzeZiel(p, 'zusatz', null); assert.equal(p.ziele[2026].zusatz, undefined); assert.equal(zus(M.zieleStand(p, zl, '2026-06-15')).ziel, null);
   assert.deepEqual(M.migriere({ format: 'antragsbuch', schema: 1, jahr: 2026, antraege: [], einstellungen: {} }).ziele, {});
 });
+
+test('Krankentagegeld-Bedarf: Richtwert je Tag, Lücke und Deckung', () => {
+  const r = AB.analyse.tagegeld(4100, 800, 0, 100);
+  assert.deepEqual([r.bedarfMonat, r.bedarfTag, r.vorhandenMonat, r.lueckeTag, r.lueckeMonat], [4900, 165, 3000, 65, 1900]);
+  assert.ok(Math.abs(r.deckung - 3000 / 4900) < 1e-9);
+  assert.deepEqual((({ lueckeTag, lueckeMonat, deckung }) => [lueckeTag, lueckeMonat, deckung])(AB.analyse.tagegeld(3000, 600, 0, 150)), [0, 0, 1]);
+  assert.equal(AB.analyse.tagegeld(0, 0, 0, 0).deckung, null);
+});
