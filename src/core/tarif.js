@@ -25,7 +25,7 @@
   var SCHAETZUNG = [
     [/^Voll/, /^BE/, 'Beitragsentlastung'], [/^Voll/, /^B/, 'Ergänzung'], [/^Voll/, /^TA/, 'Krankentagegeld'], [/^Voll/, /^A/, 'Ambulant'],
     [/^Voll/, /^[SRW]/, 'Stationär'], [/^Voll/, /^Z/, 'Zahn'], [/Art Leben|Art Schaden/, /^P/, 'Pflegezusatz'], [/Art Leben|Art Schaden/, /^Z/, 'Zahn'],
-    [/Art Leben|Art Schaden/, /^S/, 'Stationär'], [/Art Leben|Art Schaden/, /^A/, 'Ambulant'], [/^Unfall/, /./, 'Unfall'], [/^Leben/, /^SBU/, 'Berufsunfähigkeit'], [/^Leben/, /./, 'Leben']
+    [/Art Leben|Art Schaden/, /^S/, 'Stationär'], [/Art Leben|Art Schaden/, /^A/, 'Ambulant'], [/^Unfall/, /./, 'Unfall'], [/^Leben|^SDL/, /^SBU/, 'Berufsunfähigkeit'], [/^Leben|^SDL/, /./, 'Leben']
   ];
 
   /** → { beschreibung, kategorie, beihilfe, zusatz, zielgruppe, welt, weltName, hinweis, sicher } */

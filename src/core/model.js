@@ -12,7 +12,7 @@
     { id: 'bkv', name: 'bKV/Firmentarife', kurz: 'bKV', gruppen: ['Firmentarife'] },
     { id: 'gruppe', name: 'Gruppentarife', kurz: 'Gruppe', gruppen: ['Gruppentarife'] },
     { id: 'pflege', name: 'Pflegepflicht', kurz: 'Pflege', gruppen: ['Vollversicherung', 'Pflegeversicherung', 'Zusatzversicherung (Art Leben)'] },
-    { id: 'leben', name: 'Leben', kurz: 'Leben', gruppen: ['Lebensversicherung (Standard)', 'SDL (Standard)'] },
+    { id: 'leben', name: 'Leben', kurz: 'Leben', gruppen: ['Lebensversicherung (Standard)', 'SDL (Standard)', 'SDL (Beitragssenkungsplan)'] },
     { id: 'unfall', name: 'Unfall', kurz: 'Unfall', gruppen: ['Unfallversicherung'] },
     { id: 'gkv', name: 'GKV (mhplus-Mitgliedschaft)', kurz: 'GKV', gruppen: [] }
   ];

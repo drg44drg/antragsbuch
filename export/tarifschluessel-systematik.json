@@ -1,0 +1,7775 @@
+{
+ "format": "tarifschluessel-systematik",
+ "version": 1,
+ "erstellt": "2026-11-16",
+ "quelle": "Antragsbuch: Tarifverzeichnis aus dem Tarifschlüssel des Versicherers (Stand 11.06.2021), Regeln aus src/core/tarif.js und src/core/model.js",
+ "hinweis": "Nur Produktbezeichnungen und Regeln. Keine Kunden- oder Vermittlerdaten.",
+ "anleitung": [
+  "1. Tarif und Tarifgruppe trimmen. Tarif exakt in \"tarife\" suchen (Groß-/Kleinschreibung beachten).",
+  "2. Nicht gefunden: Kern = Tarif bis zum ersten Leerzeichen, \"/\" oder \"(\". Der Reihe nach suchen: Kern, Kern+a, Kern+n, Kern+u, Kern+z; danach Stamm (Kern ohne Ziffern am Ende, nur wenn er sich vom Kern unterscheidet und nicht leer ist): Stamm, Stamm+a, Stamm+n, Stamm+u. Erster Treffer gilt als Tariffamilie (sicher = true, welt bleibt leer).",
+  "3. Gefunden: kategorie = erste Regel aus \"regeln.kategorieAusBeschreibung\", deren Muster in der Beschreibung vorkommt. beihilfe, zusatz, zielgruppe nach \"regeln.merkmaleAusBeschreibung\".",
+  "4. Auch als Familie nicht gefunden: kategorie = erste Regel aus \"regeln.schaetzung\", bei der beide Muster passen (Tarifgruppe und Tarif). sicher = false. Passt nichts, bleibt die Kategorie leer und die Sparte heißt \"Sonstige\".",
+  "5. Tarifwelt: letzter Buchstabe a, n, u oder z nach \"regeln.tarifwelt\", nur bei exaktem Treffer oder wenn die Tarifgruppe mit \"Voll\" beginnt, nie bei Tariffamilie.",
+  "6. Bereich (für Farben und Summen) = \"tarifgruppen[Tarifgruppe]\". Unbekannte Tarifgruppe = \"zusatz\". Kategorie \"Pflegepflicht\" wird rot dargestellt und zählt zum Bereich voll; Kategorie \"Pflegezusatz\" wird orange dargestellt.",
+  "7. Sparte für Auswertungen = (\"Beihilfe · \" wenn beihilfe) + kategorie, ohne Kategorie \"Sonstige\"."
+ ],
+ "bereiche": [
+  {
+   "id": "voll",
+   "name": "Vollversicherung",
+   "kurz": "Voll",
+   "farbe": "grün",
+   "hex": "#1baf7a"
+  },
+  {
+   "id": "zusatz",
+   "name": "Zusatzversicherung",
+   "kurz": "Zusatz",
+   "farbe": "lila",
+   "hex": "#6250d6"
+  },
+  {
+   "id": "bkv",
+   "name": "bKV/Firmentarife",
+   "kurz": "bKV",
+   "farbe": "grau",
+   "hex": "#8b8a9b"
+  },
+  {
+   "id": "gruppe",
+   "name": "Gruppentarife",
+   "kurz": "Gruppe",
+   "farbe": "rosa",
+   "hex": "#e87ba4"
+  },
+  {
+   "id": "leben",
+   "name": "Leben",
+   "kurz": "Leben",
+   "farbe": "blau",
+   "hex": "#2a78d6"
+  },
+  {
+   "id": "unfall",
+   "name": "Unfall",
+   "kurz": "Unfall",
+   "farbe": "gelb",
+   "hex": "#eda100"
+  },
+  {
+   "id": "gkv",
+   "name": "GKV (mhplus-Mitgliedschaft)",
+   "kurz": "GKV",
+   "farbe": "türkis",
+   "hex": "#17a2b0"
+  }
+ ],
+ "sonderfarben": {
+  "Pflegepflicht": {
+   "farbe": "rot",
+   "hex": "#d03b3b",
+   "bereich": "voll"
+  },
+  "Pflegezusatz": {
+   "farbe": "orange",
+   "hex": "#eb6834"
+  }
+ },
+ "tarifgruppen": {
+  "Vollversicherung": "voll",
+  "Pflegeversicherung": "voll",
+  "Zusatzversicherung (Art Leben)": "zusatz",
+  "Zusatzversicherung (Art Schaden)": "zusatz",
+  "Auslandskrankenversicherung": "zusatz",
+  "Firmentarife": "bkv",
+  "Gruppentarife": "gruppe",
+  "Lebensversicherung (Standard)": "leben",
+  "SDL (Standard)": "leben",
+  "SDL (Beitragssenkungsplan)": "leben",
+  "Unfallversicherung": "unfall"
+ },
+ "tarifgruppeUnbekannt": "zusatz",
+ "regeln": {
+  "kategorieAusBeschreibung": [
+   {
+    "muster": "Pflegepflicht",
+    "kategorie": "Pflegepflicht"
+   },
+   {
+    "muster": "Pflege",
+    "kategorie": "Pflegezusatz"
+   },
+   {
+    "muster": "Beitragsentlastung",
+    "kategorie": "Beitragsentlastung"
+   },
+   {
+    "muster": "Krankentagegeld",
+    "kategorie": "Krankentagegeld"
+   },
+   {
+    "muster": "Krankenhaustagegeld",
+    "kategorie": "Krankenhaustagegeld"
+   },
+   {
+    "muster": "otlagentarif",
+    "kategorie": "Sozialtarif · Notlagentarif"
+   },
+   {
+    "muster": "asistarif",
+    "kategorie": "Sozialtarif · Basistarif"
+   },
+   {
+    "muster": "Standardtarif",
+    "kategorie": "Sozialtarif · Standardtarif"
+   },
+   {
+    "muster": "Unfall",
+    "kategorie": "Unfall"
+   },
+   {
+    "muster": "Ausland",
+    "kategorie": "Ausland"
+   },
+   {
+    "muster": "Sterbegeld|Renten|Beitragsfreistellung",
+    "kategorie": "Leben und Vorsorge"
+   },
+   {
+    "muster": "Zahn",
+    "kategorie": "Zahn"
+   },
+   {
+    "muster": "Naturheil|Heilpraktiker",
+    "kategorie": "Naturheilverfahren"
+   },
+   {
+    "muster": "Vorsorgetarif",
+    "kategorie": "Vorsorge"
+   },
+   {
+    "muster": "mbulant",
+    "kategorie": "Ambulant"
+   },
+   {
+    "muster": "tationär",
+    "kategorie": "Stationär"
+   },
+   {
+    "muster": "Gesetzlicher Zuschlag",
+    "kategorie": "Gesetzlicher Zuschlag"
+   },
+   {
+    "muster": "Ergänzungstarif",
+    "kategorie": "Ergänzung"
+   },
+   {
+    "muster": "Optionstarif",
+    "kategorie": "Option"
+   }
+  ],
+  "merkmaleAusBeschreibung": {
+   "beihilfe": "Beihilfe|Beamtenanwärter",
+   "zusatz": {
+    "muster": "Ergänzungs|Zusatz|Zahnersatz|GKV|mhplus|Tagegeld|tagegeld",
+    "nichtWenn": "Beihilfe|Beamtenanwärter"
+   },
+   "zielgruppe": [
+    {
+     "muster": "Firmen",
+     "wert": "Firmen (bKV)"
+    },
+    {
+     "muster": "gen\\. Organisationen|Gruppen",
+     "wert": "Gruppenversicherung"
+    },
+    {
+     "muster": "Kooperationspartner",
+     "wert": "Kooperationspartner"
+    },
+    {
+     "muster": "mhplus",
+     "wert": "mhplus"
+    },
+    {
+     "muster": "GKV",
+     "wert": "GKV-Mitglieder"
+    }
+   ]
+  },
+  "schaetzung": [
+   {
+    "tarifgruppe": "^Voll",
+    "tarif": "^BE",
+    "kategorie": "Beitragsentlastung"
+   },
+   {
+    "tarifgruppe": "^Voll",
+    "tarif": "^B",
+    "kategorie": "Ergänzung"
+   },
+   {
+    "tarifgruppe": "^Voll",
+    "tarif": "^TA",
+    "kategorie": "Krankentagegeld"
+   },
+   {
+    "tarifgruppe": "^Voll",
+    "tarif": "^A",
+    "kategorie": "Ambulant"
+   },
+   {
+    "tarifgruppe": "^Voll",
+    "tarif": "^[SRW]",
+    "kategorie": "Stationär"
+   },
+   {
+    "tarifgruppe": "^Voll",
+    "tarif": "^Z",
+    "kategorie": "Zahn"
+   },
+   {
+    "tarifgruppe": "Art Leben|Art Schaden",
+    "tarif": "^P",
+    "kategorie": "Pflegezusatz"
+   },
+   {
+    "tarifgruppe": "Art Leben|Art Schaden",
+    "tarif": "^Z",
+    "kategorie": "Zahn"
+   },
+   {
+    "tarifgruppe": "Art Leben|Art Schaden",
+    "tarif": "^S",
+    "kategorie": "Stationär"
+   },
+   {
+    "tarifgruppe": "Art Leben|Art Schaden",
+    "tarif": "^A",
+    "kategorie": "Ambulant"
+   },
+   {
+    "tarifgruppe": "^Unfall",
+    "tarif": ".",
+    "kategorie": "Unfall"
+   },
+   {
+    "tarifgruppe": "^Leben|^SDL",
+    "tarif": "^SBU",
+    "kategorie": "Berufsunfähigkeit"
+   },
+   {
+    "tarifgruppe": "^Leben|^SDL",
+    "tarif": ".",
+    "kategorie": "Leben"
+   }
+  ],
+  "tarifwelt": {
+   "muster": "^[A-Z0-9][A-Za-z0-9]*?([anuz])$",
+   "werte": {
+    "a": "Alte Tarifwelt (Bisex, vor 2009)",
+    "n": "Neue Tarifwelt (Bisex, 2009–2013)",
+    "u": "Unisex",
+    "z": "Modifizierte Kostensätze"
+   }
+  },
+  "dynamik": {
+   "muster": "^PG\\d[AS]?D",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  "beitragsentlastung": {
+   "mitStufe": "^BE\\s*[\\/ \\-]?\\s*(\\d+(?:[.,]\\d+)?)\\s*[a-z]?$",
+   "ohneStufe": "^BE(\\s*[\\/\\-]?\\s*(MAX)?|[aunz])?$",
+   "grossKleinEgal": true,
+   "schreibweise": "BE/<Stufe>"
+  }
+ },
+ "musterHinweis": "Alle Muster sind reguläre Ausdrücke, die in JavaScript und Python gleich arbeiten. Gesucht wird irgendwo im Text (search), Anker stehen im Muster.",
+ "tarife": [
+  {
+   "tarif": "Ba",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Bund)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BW1a",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BW2a",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BR30a",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BREa",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BWa",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "ST",
+   "beschreibung": "Standardtarif",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "Za",
+   "beschreibung": "Zahnergänzungstarif - Beihilfeberechtigte",
+   "kategorie": "Zahn",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "5A0",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "5A1",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "5A2",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "A20a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "6A",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "6Z",
+   "beschreibung": "Zahnergänzungstarif",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "A25a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "AG",
+   "beschreibung": "Ambulanter Ergänzungstarif - GKV-Mitglieder",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "AZa",
+   "beschreibung": "Zahnergänzungstarif",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A55a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A60a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A100a",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A80a",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A50a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A30a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A40a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A103a",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A105a",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "AEa",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A35a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A45a",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S102a",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S50a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S30a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "SG2",
+   "beschreibung": "Stationärer Ergänzungstarif - GKV-Mitglieder (* = Optionstarif)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "5S",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SG1",
+   "beschreibung": "Stationärer Ergänzungstarif - GKV-Mitglieder (* = Optionstarif)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "S101a",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "10",
+   "beschreibung": "Krankenhaustagegeldtarif",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "S103a",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S40a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S15a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S20a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S25a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S35a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S45a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S55a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "S60a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "SEa",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "Wa",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A107a",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A109a",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "A75a",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "TA2",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TA4",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TA6",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TA13",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TA26",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TA52",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PV",
+   "beschreibung": "Pflegetagegeldtarif (zum 01.04.1997 in PE1 überführt)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG20",
+   "beschreibung": "Zahnersatztarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG30",
+   "beschreibung": "Zahnersatztarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "A80Ba",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BZa",
+   "beschreibung": "Zahnergänzungstarif - Beamtenanwärter",
+   "kategorie": "Zahn",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BA30a",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BAEa",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BS30a",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BSEa",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "ZS75a",
+   "beschreibung": "Zahnergänzungstarif zu Tarif A75",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "L1",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan)",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "K1",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan)",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ZEa",
+   "beschreibung": "Zahnergänzungstarif - Beihilfeberechtigte (Zahnersatz)",
+   "kategorie": "Zahn",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BEa",
+   "beschreibung": "Beitragsentlastungstarif",
+   "kategorie": "Beitragsentlastung",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "AG80",
+   "beschreibung": "Ambulanter Ergänzungstarif - GKV-Mitglieder",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG50",
+   "beschreibung": "Zahnersatztarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "WG",
+   "beschreibung": "Ambulanter Ergänzungstarif - GKV-Mitglieder",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "AVa",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte (Selbstbeteiligungsvariante)",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "PE1",
+   "beschreibung": "Pflegetagegeldtarif",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PE2",
+   "beschreibung": "Pflegetagegeldtarif",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "R50a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "R45a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "R40a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "R35a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "AR",
+   "beschreibung": "Auslandsreisekrankenversicherung",
+   "kategorie": "Ausland",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ARU",
+   "beschreibung": "Auslandsreiseunfallversicherung",
+   "kategorie": "Ausland",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PN",
+   "beschreibung": "Pflegepflichtversicherung (Bestand)",
+   "kategorie": "Pflegepflicht",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PB",
+   "beschreibung": "Pflegepflichtversicherung - Beihilfeberechtigte (Bestand)",
+   "kategorie": "Pflegepflicht",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PPN",
+   "beschreibung": "Pflegepflichtversicherung (Neuzugang)",
+   "kategorie": "Pflegepflicht",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PPB",
+   "beschreibung": "Pflegepflichtversicherung - Beihilfeberechtigte (Neuzugang)",
+   "kategorie": "Pflegepflicht",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "WGG",
+   "beschreibung": "Ambulanter Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AGG",
+   "beschreibung": "Ambulanter Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SGG",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZGG",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "R30a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "R25a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "R20a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "R15a",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "REa",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "VT",
+   "beschreibung": "Gesetzlicher Zuschlag (10%)",
+   "kategorie": "Gesetzlicher Zuschlag",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "M1",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan)",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST00",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST70",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 70%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST60",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 60%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST50",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST45",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 45%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST40",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 40%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST35",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 35%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST30",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST25",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 25%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST20",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST15",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST10",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST09",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST08",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST07",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST06",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST05",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST04",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST03",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST02",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ST01",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "N1Z",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan) - 01.01.2004 - 31.12.2006",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ZH40",
+   "beschreibung": "Zahnersatz- u. Heilpraktikertarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "V80",
+   "beschreibung": "Auslandskrankenversicherung",
+   "kategorie": "Ausland",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "V09",
+   "beschreibung": "Auslandskrankenversicherung",
+   "kategorie": "Ausland",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "WGF",
+   "beschreibung": "Ambulanter Ergänzungstarif (Gruppenversicherung Firmen)",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "SG1F",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung Firmen) *=Optionstarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "SG2F",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung Firmen) *=Optionstarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG3F",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "ZH4F",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "AGF",
+   "beschreibung": "Ambulanter Ergänzungstarif (Gruppenversicherung Firmen)",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "TZ",
+   "beschreibung": "Rentenversicherungstarif - 01.01.2004 - 31.12.2004",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AG8K",
+   "beschreibung": "Ambulanter Ergänzungstarif für Kooperationspartner",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "WGK",
+   "beschreibung": "Ambulanter Ergänzungstarif für Kooperationspartner",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG2K",
+   "beschreibung": "Zahnersatztarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG3K",
+   "beschreibung": "Zahnersatztarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG5K",
+   "beschreibung": "Zahnersatztarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "ZH4K",
+   "beschreibung": "Zahnersatz- und Heilpraktikertarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "10K",
+   "beschreibung": "Krankenhaustagegeldtarif für Kooperationspartner",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "AGZK",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "AGZG",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung (Gruppenvers. gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AGZF",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "AGZ",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SGPG",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SG1G",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SG2G",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG3G",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZH4G",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "TY",
+   "beschreibung": "Rentenversicherung - 01.01.2005 - 31.12.2006",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "10F",
+   "beschreibung": "Krankenhaustagegeld (Gruppenversicherung Firmen)",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "10G",
+   "beschreibung": "Krankenhaustagegeld (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SG1O",
+   "beschreibung": "Stationärer Ergänzungstarif (Optionstarif)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SG2O",
+   "beschreibung": "Stationärer Ergänzungstarif (Optionstarif)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "UB",
+   "beschreibung": "Unfallversicherung Ergänzungstarif - Basis",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "UT",
+   "beschreibung": "Unfallversicherung Ergänzungstarif - Top",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "U100",
+   "beschreibung": "Unfallversicherung Invaliditätstarif (Linear)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "U350",
+   "beschreibung": "Unfallversicherung Invaliditätstarif (Progression 350)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "U500",
+   "beschreibung": "Unfallversicherung Invaliditätstarif (Progression 500)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "UBG",
+   "beschreibung": "Unfallversicherung Ergänzungstarif - Basis (Gruppenv. gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "UTG",
+   "beschreibung": "Unfallversicherung Ergänzungstarif - Top (Gruppenv. gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "U10G",
+   "beschreibung": "Unfallversicherung Inval.tarif (Linear - Gruppenv. gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "U35G",
+   "beschreibung": "Unfallversicherung Inval.tarif (Progress. 350 - Gruppenv. gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "U50G",
+   "beschreibung": "Unfallversicherung Inval.tarif (Progress. 500 - Gruppenv. gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "PE3",
+   "beschreibung": "Pflegetagegeldtarif",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "GKVP",
+   "beschreibung": "Ergänzungstarif für Versicherte der GEK",
+   "kategorie": "Ergänzung",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "UBF",
+   "beschreibung": "Unfallversicherung Ergänzungstarif - Basis (Gruppenversicherung Firmen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "UTF",
+   "beschreibung": "Unfallversicherung Ergänzungstarif - Top (Gruppenversicherung Firmen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "U10F",
+   "beschreibung": "Unfallversicherung Inval.tarif (Linear - Gruppenversicherung Firmen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "U35F",
+   "beschreibung": "Unfallversicherung Inval.tarif (Progress. 350 - Gruppenversicherung Firmen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "U50F",
+   "beschreibung": "Unfallversicherung Inval.tarif (Progress. 500 - Gruppenversicherung Firmen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "N1Y",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan) - 01.01.2007 - 31.12.2007",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "WGZ2",
+   "beschreibung": "Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "WGZ3",
+   "beschreibung": "Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "WGZ4",
+   "beschreibung": "Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TX",
+   "beschreibung": "Rentenversicherung - 01.01.2007 - 31.12.2007",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN",
+   "beschreibung": "Standardtarif Nichtversicherte",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN00",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN70",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 70%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN60",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 60%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN50",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN45",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 45%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN40",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 40%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN35",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 35%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN30",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN25",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 25%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN20",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN15",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN10",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 70% / 55%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN09",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 60% / 45%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN08",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 55% / 40%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN07",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 50% / 35%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN06",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 45% / 30%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN05",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 40% / 25%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN04",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 35% / 20%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN03",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 30% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN02",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 25% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SN01",
+   "beschreibung": "Standardtarif Nichtversicherte - Beihilfeberechtigte - Leistungsstufe 20% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ZGPG",
+   "beschreibung": "Zahnergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "UR",
+   "beschreibung": "Unfallversicherung Assistancetarif - Reha",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "UH",
+   "beschreibung": "Unfallversicherung Assistancetarif - Haushaltshilfen",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "UF",
+   "beschreibung": "Unfallversicherung Assistancetarif - Familienpolice",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "UK",
+   "beschreibung": "Unfallversicherung Assistancetarif - Kinder",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "URG",
+   "beschreibung": "Unfallversicherung Ass.tarif - Reha (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "UHG",
+   "beschreibung": "Unfallversicherung Ass.tarif - Haushaltsh. (Gruppenvers. gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "UFG",
+   "beschreibung": "Unfallversicherung Ass.tarif - Fam.police (Gruppenvers. gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "UKG",
+   "beschreibung": "Unfallversicherung Ass.tarif - Kinder (Gruppenvers. gen. Organisationen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "URF",
+   "beschreibung": "Unfallversicherung Ass.tarif - Reha (Gruppenversicherung Frimen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "UHF",
+   "beschreibung": "Unfallversicherung Ass.tarif - Haushaltsh. (Gruppenversicherung Firmen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "UFF",
+   "beschreibung": "Unfallversicherung Ass.tarif - Fam.police (Gruppenversicherung Firmen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "UKF",
+   "beschreibung": "Unfallversicherung Ass.tarif - Kinder (Gruppenversicherung Firmen)",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "N1X",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan) - 01.01.2008 - 31.12.2011",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TW",
+   "beschreibung": "Rentenversicherung - 01.01.2008 - 31.12.2011",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "OPT",
+   "beschreibung": "Optionstarif",
+   "kategorie": "Option",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT",
+   "beschreibung": "Basistarif - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT00",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT70",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 70%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT60",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 60%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT50",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT45",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 45%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT40",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 40%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT35",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 35%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT30",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT25",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 25%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT20",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT15",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT10",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT09",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT08",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT07",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT06",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT05",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT04",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT03",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT02",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BT01",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC",
+   "beschreibung": "Schattenbasistarif - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC00",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC70",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 70%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC60",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 60%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC50",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC45",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 45%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC40",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 40%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC35",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 35%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC30",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC25",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 25%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC20",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC15",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC10",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC09",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC08",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC07",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC06",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC05",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC04",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC03",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC02",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SC01",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AGM",
+   "beschreibung": "Ambulanter Ergänzungstarif \"mhplus\"",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "WGM",
+   "beschreibung": "Ambulanter Ergänzungstarif \"mhplus\"",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "AGZM",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG3M",
+   "beschreibung": "Zahnersatztarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "ZH4M",
+   "beschreibung": "Zahnersatztarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "SG1M",
+   "beschreibung": "Stationärer Ergänzungstarif \"mhplus\", * = Optionstarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "SG2M",
+   "beschreibung": "Stationärer Ergänzungstarif \"mhplus\", * = Optionstarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "10M",
+   "beschreibung": "Krankenhaustagegeldtarif \"mhplus\"",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "UBM",
+   "beschreibung": "Unfallversicherung Ergänzungstarif - Basis - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "UTM",
+   "beschreibung": "Unfallversicherung Ergänzungstarif - Top - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "U10M",
+   "beschreibung": "Unfallversicherung Inval.tarif - Linear - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "U35M",
+   "beschreibung": "Unfallversicherung Inval.tarif - Progression 350 - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "U50M",
+   "beschreibung": "Unfallversicherung Inval.tarif - Progression 500 - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "URM",
+   "beschreibung": "Unfallversicherung Assistancetarif - Reha - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "UHM",
+   "beschreibung": "Unfallversicherung Assistancetarif - Haushaltshilfen - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "UFM",
+   "beschreibung": "Unfallversicherung Assistancetarif - Familienpolice - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "UKM",
+   "beschreibung": "Unfallversicherung Assistancetarif - Kinder - \"mhplus\"",
+   "kategorie": "Unfall",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG5M",
+   "beschreibung": "Zahnersatztarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG7M",
+   "beschreibung": "Zahnersatztarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "ZGBM",
+   "beschreibung": "Zahnbehandlungstarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG5G",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG7G",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZGBG",
+   "beschreibung": "Zahnbehandlungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG5F",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG7F",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "ZGBF",
+   "beschreibung": "Zahnbehandlungstarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG70",
+   "beschreibung": "Zahnersatztarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "ZGB",
+   "beschreibung": "Zahnbehandlungstarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "ZG7K",
+   "beschreibung": "Zahnersatztarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "ZGBK",
+   "beschreibung": "Zahnbehandlungstarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "NH",
+   "beschreibung": "Naturheilverfahren - GKV-Mitglieder",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "NHK",
+   "beschreibung": "Naturheilverfahren für Kooperationspartner",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "NHG",
+   "beschreibung": "Naturheilverfahren (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "NHF",
+   "beschreibung": "Naturheilverfahren (Gruppenversicherung Firmen)",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "NHM",
+   "beschreibung": "Naturheilverfahren \"mhplus\"",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "NTW",
+   "beschreibung": "Sterbegeldtarif ohne Gesundheitsprüfung - 01.01.2011 - 31.12.2012",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "NTPW",
+   "beschreibung": "Sterbegeldtarif ohne Gesundheitsprüfung - \"mhplus\" - 01.01.2011 - 31.12.2012",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "PS0A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 0 (häusliche / teilstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS1A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 1 (häusliche / teilstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS2A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 2 (häusliche / teilstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS3A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 3 (häusliche / teilstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS0S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 0 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS1S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 1 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS2S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 2 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS3S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 3 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PSU",
+   "beschreibung": "Pflegeergänzungstarif - Unfallkomponente",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS0AD",
+   "beschreibung": "Pflegeergänzungstarif - PS0A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS1AD",
+   "beschreibung": "Pflegeergänzungstarif - PS1A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS2AD",
+   "beschreibung": "Pflegeergänzungstarif - PS2A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS3AD",
+   "beschreibung": "Pflegeergänzungstarif - PS3A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS0SD",
+   "beschreibung": "Pflegeergänzungstarif - PS0S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS1SD",
+   "beschreibung": "Pflegeergänzungstarif - PS1S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS2SD",
+   "beschreibung": "Pflegeergänzungstarif - PS2S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PS3SD",
+   "beschreibung": "Pflegeergänzungstarif - PS3S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SG1K",
+   "beschreibung": "Stationärer Ergänzungstarif für Kooperationspartner",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "SG2K",
+   "beschreibung": "Stationärer Ergänzungstarif für Kooperationspartner",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "N1W",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan) - 01.01.2012 - 31.12.2012",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TV",
+   "beschreibung": "Rentenversicherung - 01.01.2012 - 31.12.2012",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TG6",
+   "beschreibung": "Krankentagegeldtarif - GKV-Mitglieder",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "TG6K",
+   "beschreibung": "Krankentagegeldtarif - GKV-Mitglieder für Kooperationspartner",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "TG6G",
+   "beschreibung": "Krankentagegeldtarif - GKV-Mitglieder (Gruppenvers. gen. Organisationen)",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "TG6F",
+   "beschreibung": "Krankentagegeldtarif - GKV-Mitglieder (Gruppenversicherung Firmen)",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "TG6M",
+   "beschreibung": "Krankentagegeldtarif - GKV-Mitglieder \"mhplus\"",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "N1",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan) - 01.12.2012 - 31.12.2014",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "T",
+   "beschreibung": "Rentenversicherung - 01.12.2012 - 31.12.2014",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "NTV",
+   "beschreibung": "Sterbegeldtarif ohne Gesundheitsprüfung - 01.12.2012 - 31.12.2014",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "NTPV",
+   "beschreibung": "Sterbegeldtarif ohne Gesundheitsprüfung - \"mhplus\" - 01.12.2012 - 31.12.2014",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "PZ",
+   "beschreibung": "Geförderter Pflegevorsorgetarif (\"Pflegebahr\")",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PZM",
+   "beschreibung": "Geförderter Pflegevorsorgetarif - \"mhplus\" (\"Pflegebahr\")",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "BA50a",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BA50n",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BA50u",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BS50a",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BS50n",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BS50u",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BR50a",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistung)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "a"
+  },
+  {
+   "tarif": "BR50n",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistung)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BR50u",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistung)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "NLT",
+   "beschreibung": "Notlagentarif",
+   "kategorie": "Sozialtarif · Notlagentarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "NLT50",
+   "beschreibung": "Notlagentarif - Beihilfeberechtigte - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Notlagentarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "NLT30",
+   "beschreibung": "Notlagentarif - Beihilfeberechtigte - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Notlagentarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "NLT20",
+   "beschreibung": "Notlagentarif - Beihilfeberechtigte - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Notlagentarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SCN",
+   "beschreibung": "Schattennotlagentarif - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Notlagentarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SCN50",
+   "beschreibung": "Schattennotlagentarif - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Notlagentarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SCN30",
+   "beschreibung": "Schattennotlagentarif - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Notlagentarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SCN20",
+   "beschreibung": "Schattennotlagentarif - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Notlagentarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "V",
+   "beschreibung": "Vorsorgetarif für GKV-Versicherte",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "VK",
+   "beschreibung": "Vorsorgetarif für Kooperationspartner",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Kooperationspartner",
+   "welt": ""
+  },
+  {
+   "tarif": "VG",
+   "beschreibung": "Vorsorgetarif (Gruppenversicherung genossenschaftliche Organisationen)",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "VF",
+   "beschreibung": "Vorsorgetarif (Gruppenversicherung Firmen)",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": ""
+  },
+  {
+   "tarif": "VM",
+   "beschreibung": "Vorsorgetarif \"mhplus\"",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "VP",
+   "beschreibung": "Vorsorgetarif für Privatversicherte",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "N1U",
+   "beschreibung": "Sterbegeldtarif (Beitragssenkungsplan) - ab 01.01.2015",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "TT",
+   "beschreibung": "Rentenversicherung - ab 01.01.2015",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "NTU",
+   "beschreibung": "Sterbegeldtarif ohne Gesundheitsprüfung - ab 01.01.2015",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "NTPU",
+   "beschreibung": "Sterbegeldtarif ohne Gesundheitsprüfung - \"mhplus\" - ab 01.01.2015",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": ""
+  },
+  {
+   "tarif": "TG6R",
+   "beschreibung": "Krankentagegeldtarif (ohne Risikoprüfung) - GKV-Mitglieder",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": ""
+  },
+  {
+   "tarif": "PG1A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 1",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG2A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 2",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG3A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 3",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG4A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 4",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG5A",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 5",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG1S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 1 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG2S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 2 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG3S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 3 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG4S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 4 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG5S",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 5 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PGU",
+   "beschreibung": "Pflegeergänzungstarif - Unfallkomponente",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PG1AD",
+   "beschreibung": "Pflegeergänzungstarif - PG1A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG2AD",
+   "beschreibung": "Pflegeergänzungstarif - PG2A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG3AD",
+   "beschreibung": "Pflegeergänzungstarif - PG3A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG4AD",
+   "beschreibung": "Pflegeergänzungstarif - PG4A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG5AD",
+   "beschreibung": "Pflegeergänzungstarif - PG5A (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG1SD",
+   "beschreibung": "Pflegeergänzungstarif - PG1S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG2SD",
+   "beschreibung": "Pflegeergänzungstarif - PG2S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG3SD",
+   "beschreibung": "Pflegeergänzungstarif - PG3S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG4SD",
+   "beschreibung": "Pflegeergänzungstarif - PG4S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG5SD",
+   "beschreibung": "Pflegeergänzungstarif - PG5S (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "AM10",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AM11",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AM12",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AM13",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AM30",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AM31",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AM32",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AM33",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "S1",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "S1DD",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "S3",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "Z9",
+   "beschreibung": "Zahnergänzungstarif",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "Z8",
+   "beschreibung": "Zahnergänzungstarif",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "Z6",
+   "beschreibung": "Zahnergänzungstarif",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "Z6SB",
+   "beschreibung": "Zahnergänzungstarif",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PEV1",
+   "beschreibung": "Pflegetagegeldtarif - ab Pflegegrad 1",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PEV3",
+   "beschreibung": "Pflegetagegeldtarif - ab Pflegegrad 3",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "PEV4",
+   "beschreibung": "Pflegetagegeldtarif - ab Pflegegrad 4",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AGGz",
+   "beschreibung": "Ambulanter Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "WGGz",
+   "beschreibung": "Ambulanter Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "NHGz",
+   "beschreibung": "Naturheilverfahren (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "VGz",
+   "beschreibung": "Vorsorgetarif (Gruppenversicherung genossenschaftliche Organisationen)",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "AGZGz",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung (Gruppenvers. gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG3Gz",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZH4Gz",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG5Gz",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG7Gz",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZGBGz",
+   "beschreibung": "Zahnbehandlungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "SG1Gz",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "SG2Gz",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "10Gz",
+   "beschreibung": "Krankenhaustagegeld (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "TG6Gz",
+   "beschreibung": "Krankentagegeldtarif - GKV-Mitglieder (Gruppenvers. gen. Organisationen)",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZGPGz",
+   "beschreibung": "Zahnergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "SGPGz",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "z"
+  },
+  {
+   "tarif": "AGFz",
+   "beschreibung": "Ambulanter Ergänzungstarif (Gruppenversicherung Firmen)",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "WGFz",
+   "beschreibung": "Ambulanter Ergänzungstarif (Gruppenversicherung Firmen)",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "NHFz",
+   "beschreibung": "Naturheilverfahren (Gruppenversicherung Firmen)",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "VFz",
+   "beschreibung": "Vorsorgetarif (Gruppenversicherung Firmen)",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "AGZFz",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG3Fz",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZH4Fz",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG5Fz",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG7Fz",
+   "beschreibung": "Zahnersatztarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZGBFz",
+   "beschreibung": "Zahnbehandlungstarif (Gruppenversicherung Firmen)",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "SG1Fz",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung Firmen) *=Optionstarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "SG2Fz",
+   "beschreibung": "Stationärer Ergänzungstarif (Gruppenversicherung Firmen) *=Optionstarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "10Fz",
+   "beschreibung": "Krankenhaustagegeld (Gruppenversicherung Firmen)",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "TG6Fz",
+   "beschreibung": "Krankentagegeldtarif - GKV-Mitglieder (Gruppenversicherung Firmen)",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "z"
+  },
+  {
+   "tarif": "AGMz",
+   "beschreibung": "Ambulanter Ergänzungstarif \"mhplus\"",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "WGMz",
+   "beschreibung": "Ambulanter Ergänzungstarif \"mhplus\"",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "NHMz",
+   "beschreibung": "Naturheilverfahren \"mhplus\"",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "VMz",
+   "beschreibung": "Vorsorgetarif \"mhplus\"",
+   "kategorie": "Vorsorge",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "AGZMz",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG3Mz",
+   "beschreibung": "Zahnersatztarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZH4Mz",
+   "beschreibung": "Zahnersatztarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG5Mz",
+   "beschreibung": "Zahnersatztarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZG7Mz",
+   "beschreibung": "Zahnersatztarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "ZGBMz",
+   "beschreibung": "Zahnbehandlungstarif \"mhplus\"",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "SG1Mz",
+   "beschreibung": "Stationärer Ergänzungstarif \"mhplus\", * = Optionstarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "SG2Mz",
+   "beschreibung": "Stationärer Ergänzungstarif \"mhplus\", * = Optionstarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "10Mz",
+   "beschreibung": "Krankenhaustagegeldtarif \"mhplus\"",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "TG6Mz",
+   "beschreibung": "Krankentagegeldtarif - GKV-Mitglieder \"mhplus\"",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "z"
+  },
+  {
+   "tarif": "Bn",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Bund)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BW1n",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BW2n",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BR30n",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BREn",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BWn",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "Zn",
+   "beschreibung": "Zahnergänzungstarif - Beihilfeberechtigte",
+   "kategorie": "Zahn",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A20n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A25n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "AZn",
+   "beschreibung": "Zahnergänzungstarif",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A55n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A60n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A100n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A80n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A50n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A30n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A40n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A103n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A105n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "AEn",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A35n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A45n",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S102n",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S50n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S30n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S101n",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S103n",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S40n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S15n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S20n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S25n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S35n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S45n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S55n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "S60n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "SEn",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "Wn",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A107n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A109n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A75n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A210n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A220n",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "Z250n",
+   "beschreibung": "Zahnergänzungstarif zu Tarif A210n/A220n",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "Z260n",
+   "beschreibung": "Zahnergänzungstarif zu Tarif A210n/A220n",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "A80Bn",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BZn",
+   "beschreibung": "Zahnergänzungstarif - Beamtenanwärter",
+   "kategorie": "Zahn",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BA30n",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BAEn",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BS30n",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BSEn",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "ZS75n",
+   "beschreibung": "Zahnergänzungstarif zu Tarif A75",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "ZEn",
+   "beschreibung": "Zahnergänzungstarif - Beihilfeberechtigte (Zahnersatz)",
+   "kategorie": "Zahn",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "BEn",
+   "beschreibung": "Beitragsentlastungstarif",
+   "kategorie": "Beitragsentlastung",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "AVn",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte (Selbstbeteiligungsvariante)",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "R50n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "R45n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "R40n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "R35n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "R30n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "R25n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "R20n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "R15n",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "REn",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "n"
+  },
+  {
+   "tarif": "STu",
+   "beschreibung": "Standardtarif",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST00u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST70u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 70%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST60u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 60%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST50u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST45u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 45%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST40u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 40%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST35u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 35%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST30u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST25u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 25%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST20u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST15u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST10u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST09u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST08u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST07u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST06u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST05u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST04u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST03u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST02u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ST01u",
+   "beschreibung": "Standardtarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%",
+   "kategorie": "Sozialtarif · Standardtarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BTu",
+   "beschreibung": "Basistarif - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT00u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT70u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 70%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT60u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 60%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT50u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT45u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 45%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT40u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 40%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT35u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 35%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT30u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT25u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 25%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT20u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT15u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT10u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT09u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT08u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT07u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT06u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT05u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT04u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT03u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT02u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BT01u",
+   "beschreibung": "Basistarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SCu",
+   "beschreibung": "Schattenbasistarif - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC00u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 100%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC70u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 70%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC60u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 60%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC50u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 50%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC45u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 45%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC40u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 40%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC35u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 35%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC30u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 30%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC25u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 25%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC20u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 20%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC15u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC10u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 70% / 55%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC09u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 60% / 45%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC08u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 55% / 40%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC07u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 50% / 35%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC06u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 45% / 30%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC05u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 40% / 25%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC04u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 35% / 20%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC03u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 30% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC02u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 25% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SC01u",
+   "beschreibung": "Schattenbasistarif - Beihilfeberechtigte - Leistungsstufe 20% / 15%",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A100u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A103u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A105u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A107u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A109u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A80u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A80Bu",
+   "beschreibung": "Ambulanter Basistarif",
+   "kategorie": "Sozialtarif · Basistarif",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A75u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A210u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A220u",
+   "beschreibung": "Ambulanter Tarif",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S101u",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S102u",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S103u",
+   "beschreibung": "Stationärer Tarif",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "AZu",
+   "beschreibung": "Zahnergänzungstarif",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZS75u",
+   "beschreibung": "Zahnergänzungstarif zu Tarif A75u",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "Z250u",
+   "beschreibung": "Zahnergänzungstarif zu Tarif A210u/A220u",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "Z260u",
+   "beschreibung": "Zahnergänzungstarif zu Tarif A210u/A220u",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A60u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A55u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A50u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A45u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A40u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A35u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A30u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A25u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "A20u",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "AVu",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte (Selbstbeteiligungsvariante)",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "AEu",
+   "beschreibung": "Ambulanter Tarif - Beihilfeberechtigte",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S60u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S55u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S50u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S45u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S40u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S35u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S30u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S25u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S20u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "S15u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SEu",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "R50u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "R45u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "R40u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "R35u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "R30u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "R25u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "R20u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "R15u",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "REu",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "Wu",
+   "beschreibung": "Stationärer Tarif - Beihilfeberechtigte (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "Zu",
+   "beschreibung": "Zahnergänzungstarif - Beihilfeberechtigte",
+   "kategorie": "Zahn",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "Bu",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Bund)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BW1u",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BW2u",
+   "beschreibung": "Ergänzungstarif - Beihilfeberechtigte (Baden-Württemberg)",
+   "kategorie": "Ergänzung",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BA30u",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BAEu",
+   "beschreibung": "Ambulanter Tarif - Beamtenanwärter",
+   "kategorie": "Ambulant",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BS30u",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BSEu",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BR30u",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BREu",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Regelleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BWu",
+   "beschreibung": "Stationärer Tarif - Beamtenanwärter (Wahlleistungen)",
+   "kategorie": "Stationär",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BZu",
+   "beschreibung": "Zahnergänzungstarif - Beamtenanwärter",
+   "kategorie": "Zahn",
+   "beihilfe": true,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "V80u",
+   "beschreibung": "Auslandsversicherung",
+   "kategorie": "Ausland",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "V09u",
+   "beschreibung": "Auslandsversicherung",
+   "kategorie": "Ausland",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "AG80u",
+   "beschreibung": "Ambulanter Ergänzungstarif - GKV-Mitglieder",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "WGu",
+   "beschreibung": "Ambulanter Ergänzungstarif - GKV-Mitglieder",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "WGZ2u",
+   "beschreibung": "Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "WGZ3u",
+   "beschreibung": "Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "WGZ4u",
+   "beschreibung": "Ergänzungstarif Ambulant / Zahnersatz für Senioren ab 55 Jahre",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "NHu",
+   "beschreibung": "Naturheilverfahren - GKV-Mitglieder",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "SG1u",
+   "beschreibung": "Stationärer Ergänzungstarif - GKV-Mitglieder (* = Optionstarif)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "SG2u",
+   "beschreibung": "Stationärer Ergänzungstarif - GKV-Mitglieder (* = Optionstarif)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "SG1Ou",
+   "beschreibung": "Stationärer Ergänzungstarif (Optionstarif)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "SG2Ou",
+   "beschreibung": "Stationärer Ergänzungstarif (Optionstarif)",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "AGZu",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZG70u",
+   "beschreibung": "Zahnersatztarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZG50u",
+   "beschreibung": "Zahnersatztarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZG30u",
+   "beschreibung": "Zahnersatztarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZG20u",
+   "beschreibung": "Zahnersatztarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZH40u",
+   "beschreibung": "Zahnersatz- u. Heilpraktikertarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZGBu",
+   "beschreibung": "Zahnbehandlungstarif - GKV-Mitglieder",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "GKV-Mitglieder",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS0Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 0 (häusliche / teilstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS1Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 1 (häusliche / teilstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS2Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 2 (häusliche / teilstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS3Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 3 (häusliche / teilstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS0Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 0 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS1Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 1 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS2Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 2 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS3Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegestufe 3 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PSUu",
+   "beschreibung": "Pflegeergänzungstarif - Unfallkomponente",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS0ADu",
+   "beschreibung": "Pflegeergänzungstarif - PS0Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS1ADu",
+   "beschreibung": "Pflegeergänzungstarif - PS1Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS2ADu",
+   "beschreibung": "Pflegeergänzungstarif - PS2Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS3ADu",
+   "beschreibung": "Pflegeergänzungstarif - PS3Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS0SDu",
+   "beschreibung": "Pflegeergänzungstarif - PS0Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS1SDu",
+   "beschreibung": "Pflegeergänzungstarif - PS1Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS2SDu",
+   "beschreibung": "Pflegeergänzungstarif - PS2Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PS3SDu",
+   "beschreibung": "Pflegeergänzungstarif - PS3Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "BEu",
+   "beschreibung": "Beitragsentlastungstarif",
+   "kategorie": "Beitragsentlastung",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "10u",
+   "beschreibung": "Krankenhaustagegeldtarif",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "TA2u",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "TA4u",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "TA6u",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "TA13u",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "TA26u",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "TA52u",
+   "beschreibung": "Krankentagegeldtarif",
+   "kategorie": "Krankentagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "AG8Ku",
+   "beschreibung": "Ambulanter Ergänzungstarif für Kooperationspartner",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "WGKu",
+   "beschreibung": "Ambulanter Ergänzungstarif für Kooperationspartner",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "NHKu",
+   "beschreibung": "Naturheilverfahren für Kooperationspartner",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "SG1Ku",
+   "beschreibung": "Stationärer Ergänzungstarif für Kooperationspartner",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "SG2Ku",
+   "beschreibung": "Stationärer Ergänzungstarif für Kooperationspartner",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "AGZKu",
+   "beschreibung": "Ergänzungstarif für Zahnbehandlung für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZG7Ku",
+   "beschreibung": "Zahnersatztarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZG5Ku",
+   "beschreibung": "Zahnersatztarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZG3Ku",
+   "beschreibung": "Zahnersatztarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZG2Ku",
+   "beschreibung": "Zahnersatztarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZH4Ku",
+   "beschreibung": "Zahnersatz- und Heilpraktikertarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "ZGBKu",
+   "beschreibung": "Zahnbehandlungstarif für Kooperationspartner",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "10Ku",
+   "beschreibung": "Krankenhaustagegeldtarif für Kooperationspartner",
+   "kategorie": "Krankenhaustagegeld",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Kooperationspartner",
+   "welt": "u"
+  },
+  {
+   "tarif": "NHGu",
+   "beschreibung": "Naturheilverfahren (Gruppenversicherung gen. Organisationen)",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": "u"
+  },
+  {
+   "tarif": "NHFu",
+   "beschreibung": "Naturheilverfahren (Gruppenversicherung Firmen)",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Firmen (bKV)",
+   "welt": "u"
+  },
+  {
+   "tarif": "NHMu",
+   "beschreibung": "Naturheilverfahren \"mhplus\"",
+   "kategorie": "Naturheilverfahren",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "mhplus",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG1Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 1",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG2Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 2",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG3Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 3",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG4Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 4",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG5Au",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 5",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG1Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 1 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG2Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 2 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG3Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 3 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG4Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 4 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG5Su",
+   "beschreibung": "Pflegeergänzungstarif - Pflegegrad 5 (vollstationäre Pflege)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PGUu",
+   "beschreibung": "Pflegeergänzungstarif - Unfallkomponente",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u"
+  },
+  {
+   "tarif": "PG1ADu",
+   "beschreibung": "Pflegeergänzungstarif - PG1Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG2ADu",
+   "beschreibung": "Pflegeergänzungstarif - PG2Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG3ADu",
+   "beschreibung": "Pflegeergänzungstarif - PG3Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG4ADu",
+   "beschreibung": "Pflegeergänzungstarif - PG4Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG5ADu",
+   "beschreibung": "Pflegeergänzungstarif - PG5Au (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG1SDu",
+   "beschreibung": "Pflegeergänzungstarif - PG1Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG2SDu",
+   "beschreibung": "Pflegeergänzungstarif - PG2Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG3SDu",
+   "beschreibung": "Pflegeergänzungstarif - PG3Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG4SDu",
+   "beschreibung": "Pflegeergänzungstarif - PG4Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "PG5SDu",
+   "beschreibung": "Pflegeergänzungstarif - PG5Su (mit Dynamik ohne Altersbegrenzung)",
+   "kategorie": "Pflegezusatz",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": "u",
+   "hinweis": "mit Dynamik über das 70. Lebensjahr"
+  },
+  {
+   "tarif": "AP5",
+   "beschreibung": "ambulante Zusatzversicherung - Einzelversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AP7",
+   "beschreibung": "ambulante Zusatzversicherung - Einzelversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AP9",
+   "beschreibung": "ambulante Zusatzversicherung - Einzelversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AP1",
+   "beschreibung": "ambulante Zusatzversicherung - Einzelversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SPU",
+   "beschreibung": "stationäre Zusatzversicherung - Einzelversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SP2",
+   "beschreibung": "stationäre Zusatzversicherung - Einzelversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "SP1",
+   "beschreibung": "stationäre Zusatzversicherung - Einzelversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP5",
+   "beschreibung": "Zahnzusatzversicherung - Einzelversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP7",
+   "beschreibung": "Zahnzusatzversicherung - Einzelversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP9",
+   "beschreibung": "Zahnzusatzversicherung - Einzelversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP1",
+   "beschreibung": "Zahnzusatzversicherung - Einzelversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AP5F",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP7F",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP9F",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP1F",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SPUF",
+   "beschreibung": "stationäre Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SP2F",
+   "beschreibung": "stationäre Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SP1F",
+   "beschreibung": "stationäre Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP5F",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP7F",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP9F",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP1F",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP5O",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP7O",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP9O",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP1O",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SPUO",
+   "beschreibung": "stationäre Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SP2O",
+   "beschreibung": "stationäre Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SP1O",
+   "beschreibung": "stationäre Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP5O",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP7O",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP9O",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP1O",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP5FR",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP7FR",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP9FR",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP1FR",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SPUFR",
+   "beschreibung": "stationäre Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SP2FR",
+   "beschreibung": "stationäre Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SP1FR",
+   "beschreibung": "stationäre Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP5FR",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP7FR",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP9FR",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP1FR",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP5OR",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP7OR",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP9OR",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AP1OR",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SPUOR",
+   "beschreibung": "stationäre Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SP2OR",
+   "beschreibung": "stationäre Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "SP1OR",
+   "beschreibung": "stationäre Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Stationär",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP5OR",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP7OR",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP9OR",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZP1OR",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "BFRO",
+   "beschreibung": "Beitragsfreistellungstarif",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "BFROR",
+   "beschreibung": "Beitragsfreistellungstarif",
+   "kategorie": "Leben und Vorsorge",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "welt": ""
+  },
+  {
+   "tarif": "AB1F",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB1O",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB1FR",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB1OR",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB2F",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB2O",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB2FR",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB2OR",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB3F",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB3O",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB3FR",
+   "beschreibung": "ambulante Zusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "AB3OR",
+   "beschreibung": "ambulante Zusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Ambulant",
+   "beihilfe": false,
+   "zusatz": true,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB1F",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB1O",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB1FR",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB1OR",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB2F",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB2O",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB2FR",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB2OR",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB3F",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB3O",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB3FR",
+   "beschreibung": "Zahnzusatzversicherung - fakultative Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  },
+  {
+   "tarif": "ZB3OR",
+   "beschreibung": "Zahnzusatzversicherung - obligatorische Gruppenversicherung",
+   "kategorie": "Zahn",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "Gruppenversicherung",
+   "welt": ""
+  }
+ ],
+ "ergaenzungAusAbrechnungen": [
+  {
+   "tarif": "BTv",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "BTv",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "BTw",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "BTw",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "BTx",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "DTu",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "DTu",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "DTv",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "M2",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N0Nt",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N0Nv",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N1w",
+   "tarifgruppe": "SDL (Beitragssenkungsplan)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N1x",
+   "tarifgruppe": "SDL (Beitragssenkungsplan)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N1y",
+   "tarifgruppe": "SDL (Beitragssenkungsplan)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N1z",
+   "tarifgruppe": "SDL (Beitragssenkungsplan)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N2x",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N2z",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N3x",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N3x",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N3y",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "N3z",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "S",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUv",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUv",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUw",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUx",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUx",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUy",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUy",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUz",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "SBUz",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Berufsunfähigkeit",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "Tu",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "Tu",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "Tv",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "Tv",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "Tw",
+   "tarifgruppe": "SDL (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "Tw",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  },
+  {
+   "tarif": "Ty",
+   "tarifgruppe": "Lebensversicherung (Standard)",
+   "kategorie": "Leben",
+   "beihilfe": false,
+   "zusatz": false,
+   "zielgruppe": "",
+   "sicher": false,
+   "herkunft": "geschätzt aus Tarifgruppe und Kürzel"
+  }
+ ]
+}
