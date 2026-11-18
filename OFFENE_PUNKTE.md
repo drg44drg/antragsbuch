@@ -362,3 +362,7 @@ Offen:
 - Anlaufzeit und Einarbeitungspauschale (500 € für höchstens 12 Monate) brauchen den Tätigkeitsbeginn des Untervermittlers als Eingabe.
 - Verkaufshilfen Voll- und Zusatzversicherung liegen vor (Tarifübersichten). Noch nicht ausgewertet für Tipps, Tarifauswahl und Vertriebs-Pakete.
 - Verlauf der Auswertung als Diagramm (Tageskurve gegen Zeitziel).
+
+## Version 4.3 (selbst geführte Antragslisten)
+
+Bestätigt (18.11.2026): Spalte „Provision“ in selbst geführten Listen ist die erwartete Provision. „FF“ heißt Fortführung; der Bereich bleibt zur Prüfung markiert, weil er aus dem Kürzel allein nicht hervorgeht.
