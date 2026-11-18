@@ -242,6 +242,6 @@
         p.sicherungen.length ? h('table.einfach', null, sb) : h('div.muted.klein', null, 'Noch keine Sicherungsstände.')));
       el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Urheberrecht'), h('span.frei'), h('span.marke-s', null, AB.RECHTE.kurz)),
         h('p', { style: { margin: '8px 0 6px' } }, AB.RECHTE.lang),
-        h('div.muted.klein', null, 'Rechteinhaber: ' + AB.RECHTE.inhaber + '. Fragen zu Nutzung und Weitergabe richten Sie bitte an ihn.')));
+        h('div.muted.klein', null, 'Rechteinhaber: ' + AB.RECHTE.inhaber + ' · Anfragen zu Nutzung, Lizenz und Weitergabe: ' + AB.RECHTE.kontakt)));
     } };
 })(globalThis.AB = globalThis.AB || {});

@@ -3,7 +3,7 @@
   --bg: #f1f2f7; --surface: #ffffff; --surface-2: #f6f6fb; --line: #e3e4ee; --line-2: #d2d3e0;
   --text: #15141c; --text-2: #55546a; --text-3: #85849a;
   --accent: #6250d6; --accent-2: #7a69ea; --accent-ink: #ffffff; --accent-soft: #ece9fc;
-  --s1: #6250d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #2a78d6; --s0: #b9b8c8; --p-grau: #8b8a9b; --p-tuerkis: #17a2b0;
+  --s1: #6250d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #2a78d6; --s0: #b9b8c8; --p-grau: #8b8a9b; --p-tuerkis: #01aaae; --p-voll: #66c430; --p-zusatz: #9f158d; --p-leben: #0066b3; --p-pflegezusatz: #f57e2f;
   --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --crit: #d03b3b;
   --good-ink: #006300; --crit-ink: #b02a2a; --warn-ink: #7a5200;
   --shadow: 0 1px 2px rgba(20, 18, 40, .05), 0 8px 24px rgba(20, 18, 40, .06);
@@ -17,7 +17,7 @@
     --bg: #0b0a12; --surface: #15141f; --surface-2: #1b1a28; --line: #272636; --line-2: #37364a;
     --text: #f2f1f7; --text-2: #b8b6ca; --text-3: #8785a0;
     --accent: #9085e9; --accent-2: #a79df2; --accent-ink: #120f22; --accent-soft: #252148;
-    --s1: #9085e9; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #3987e5; --s0: #4a4960; --p-grau: #9c9bb0; --p-tuerkis: #1f9aa8;
+    --s1: #9085e9; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #3987e5; --s0: #4a4960; --p-grau: #9c9bb0; --p-tuerkis: #1bb5b8; --p-voll: #74c943; --p-zusatz: #c04bb0; --p-leben: #3d8fd6; --p-pflegezusatz: #f58a43;
     --good-ink: #3fc63f; --crit-ink: #f08a8a; --warn-ink: #fab219;
     --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .35);
     --glow: 0 0 0 1px rgba(144, 133, 233, .25), 0 8px 30px rgba(98, 80, 214, .25);
@@ -28,7 +28,7 @@
   --bg: #0b0a12; --surface: #15141f; --surface-2: #1b1a28; --line: #272636; --line-2: #37364a;
   --text: #f2f1f7; --text-2: #b8b6ca; --text-3: #8785a0;
   --accent: #9085e9; --accent-2: #a79df2; --accent-ink: #120f22; --accent-soft: #252148;
-  --s1: #9085e9; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #3987e5; --s0: #4a4960; --p-grau: #9c9bb0; --p-tuerkis: #1f9aa8;
+  --s1: #9085e9; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #3987e5; --s0: #4a4960; --p-grau: #9c9bb0; --p-tuerkis: #1bb5b8; --p-voll: #74c943; --p-zusatz: #c04bb0; --p-leben: #3d8fd6; --p-pflegezusatz: #f58a43;
   --good-ink: #3fc63f; --crit-ink: #f08a8a; --warn-ink: #fab219;
   --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .35);
   --glow: 0 0 0 1px rgba(144, 133, 233, .25), 0 8px 30px rgba(98, 80, 214, .25);
@@ -172,7 +172,7 @@ body.zieht #ziehschirm { display: grid; }
 
 /* ---------- Dialog ---------- */
 dialog { border: 1px solid var(--line); border-radius: 22px; background: var(--surface); color: var(--text); padding: 0; box-shadow: 0 30px 80px rgba(0, 0, 0, .35); max-width: min(1040px, 96vw); width: 100%; max-height: 94vh; }
-dialog.schmal { max-width: 560px; } dialog.mittel { max-width: 780px; }
+dialog.schmal { max-width: 560px; } dialog.mittel { max-width: 780px; } dialog.breit { max-width: 1040px; width: calc(100vw - 48px); }
 dialog::backdrop { background: rgba(10, 8, 25, .5); backdrop-filter: blur(3px); }
 dialog[open] { animation: auf .22s cubic-bezier(.2, .9, .3, 1.15); display: flex; flex-direction: column; }
 @keyframes auf { from { opacity: 0; transform: translateY(14px) scale(.98); } }

@@ -18,7 +18,7 @@
   }
   App.mitWorker = function () { return !!worker; };
   // Rechtehinweis: an einer Stelle gepflegt, angezeigt im Starthinweis, in den Einstellungen und in der Hilfe
-  AB.RECHTE = { inhaber: 'Lukas Dragowski', jahr: '2026',
+  AB.RECHTE = { inhaber: 'Lukas Dragowski', jahr: '2026', kontakt: 'lukas.dragowski@gmail.com',
     kurz: '© 2026 Lukas Dragowski. Alle Rechte vorbehalten.',
     lang: 'Das Antragsbuch ist urheberrechtlich geschützt. Es wird nur berechtigten Nutzern zur eigenen Arbeit überlassen. Ohne schriftliche Zustimmung des Rechteinhabers darf es weder ganz noch in Teilen kopiert, weitergegeben, veröffentlicht, verändert, nachgebaut oder in andere Programme übernommen werden. Ein Lizenz- oder Passwortschutz darf nicht entfernt oder umgangen werden. Ihre eigenen Daten gehören Ihnen und bleiben jederzeit exportierbar.' };
   App.lies = function (bytes, name, opt) {
@@ -407,24 +407,53 @@
     if (!blaetter.length) { D.toast('„' + name + '" enthält keine Tabelle.', { krit: true }); return; }
     var bi = 0; blaetter.forEach(function (b, i) { if (b.zeilen.length > blaetter[bi].zeilen.length) bi = i; });
     var jd = /(20\d\d)/.exec(name), jahrFeld = h('input', { type: 'text', inputMode: 'numeric', value: jd ? jd[1] : String(App.p.jahr), style: { width: '90px' }, 'aria-label': 'Jahr der Einträge' });
-    var d = D.dialog('Spalten zuordnen', { klasse: 'mittel' }), box = h('div'), wahl = {}, kopf = -1;
+    var d = D.dialog('Spalten zuordnen', { klasse: 'breit' }), box = h('div'), wahl = {}, kopf = -1;
+    var BUCHST = function (i) { var t = ''; i++; while (i > 0) { var m = (i - 1) % 26; t = String.fromCharCode(65 + m) + t; i = Math.floor((i - 1) / 26); } return t; };
+    var zeigeWert = function (v) { return v == null || v === '' ? '' : typeof v === 'number' ? U.fmtZahl(v, Math.round(v) === v ? 0 : 2) : String(v).slice(0, 34); };
     function zeichne() {
       var b = blaetter[bi], z = b.zeilen; if (kopf < 0 || kopf >= z.length) kopf = Math.max(0, L.rateKopf(z));
-      var sp = L.ordneFrei(z[kopf]), spalten = (z[kopf] || []).map(function (c, i) { return [String(i), (c == null || c === '' ? 'Spalte ' + (i + 1) : String(c).slice(0, 40))]; });
-      var beispiel = function (i) { for (var q = kopf + 1; q < Math.min(z.length, kopf + 8); q++) { var v = (z[q] || [])[i]; if (v != null && v !== '') return String(v).slice(0, 28); } return ''; };
+      var breite = 0; z.slice(kopf, kopf + 30).forEach(function (r) { breite = Math.max(breite, (r || []).length); });
+      var kz = z[kopf] || [], daten = z.slice(kopf + 1).filter(function (r) { return r && r.some(function (c) { return c != null && c !== ''; }); }).slice(0, 5);
+      var kopfText = function (i) { return kz[i] == null || kz[i] === '' ? '(ohne Überschrift)' : String(kz[i]).slice(0, 30); };
+      var beispiel = function (i) { for (var q = 0; q < daten.length; q++) { var v = daten[q][i]; if (v != null && v !== '') return zeigeWert(v); } return ''; };
+      var sp = L.ordneFrei(kz), spalten = [];
+      for (var c = 0; c < breite; c++) spalten.push([String(c), 'Spalte ' + BUCHST(c) + ': ' + kopfText(c) + (beispiel(c) ? '  ·  z. B. ' + beispiel(c) : '')]);
       D.leere(box); wahl = {};
+      // 1) So sieht Ihre Datei aus: Kopfzeile und die ersten Einträge
+      var marke = {}, kopfZellen = [];
+      var roh = h('table.einfach', { style: { fontSize: '12px', whiteSpace: 'nowrap' } },
+        h('thead', null, h('tr', null, h('th', null, ''), Array.from({ length: breite }, function (_, i) { var m = h('div', { style: { fontWeight: 400, color: 'var(--accent)', fontSize: '11px', minHeight: '14px' } }); marke[i] = m; var th = h('th', null, BUCHST(i) + ' · ' + kopfText(i), m); kopfZellen[i] = th; return th; }))),
+        h('tbody', null, daten.map(function (r, n) { return h('tr', null, h('td.muted', null, String(n + 1)), Array.from({ length: breite }, function (_, i) { return h('td', null, zeigeWert(r[i])); })); })));
+      // 3) So liest die App die ersten Einträge
+      var ergebnis = h('div');
+      function auswahl() { var o = {}; Object.keys(wahl).forEach(function (k) { o[k] = +wahl[k].value; }); return o; }
+      function aktualisiere() {
+        var a = auswahl();
+        Object.keys(marke).forEach(function (i) { marke[i].textContent = ''; kopfZellen[i].style.background = ''; });
+        L.SPALTEN_FREI.forEach(function (def) { var i = a[def.id]; if (i >= 0 && marke[i]) { marke[i].textContent = (marke[i].textContent ? marke[i].textContent + ', ' : '→ ') + def.titel; kopfZellen[i].style.background = 'var(--accent-soft, rgba(98,80,214,.12))'; } });
+        D.leere(ergebnis);
+        if (a.name < 0 || (a.beitrag < 0 && a.tarif < 0)) { ergebnis.appendChild(h('div.meldung.warn', null, 'Bitte mindestens Kunde und Beitrag oder Tarif zuordnen. Dann erscheint hier, wie die App Ihre ersten Einträge liest.')); return; }
+        var probe = L.liesFrei({ frei: true, blatt: { name: b.name, zeilen: z.slice(0, kopf + 1).concat(z.slice(kopf + 1, kopf + 12)) }, kopf: kopf, sp: a, jahr: +jahrFeld.value || App.p.jahr }, +jahrFeld.value || App.p.jahr).antraege.slice(0, 3);
+        ergebnis.appendChild(h('table.einfach', { style: { fontSize: '12px' } }, h('thead', null, h('tr', null, ['Eingang', 'Kunde', 'Bereich', 'Vorgang', 'Tarif', 'Beitrag', 'Provision', 'Status'].map(function (t) { return h('th', null, t); }))),
+          h('tbody', null, probe.map(function (x) { return h('tr', null, [U.fmtDatum(x.eingang), M.vnName(x), M.name('bereich', x.bereich), M.name('vorgang', x.vorgang), x.positionen[0].tarif, x.positionen[0].beitrag == null ? '–' : U.fmtEuro(x.positionen[0].beitrag), x.provisionManuell == null ? '–' : U.fmtEuro(x.provisionManuell), M.name('status', x.status)].map(function (t) { return h('td', null, t); })); }))));
+      }
       D.anhaengen(box, [
-        h('p.muted', { style: { margin: '0 0 10px' } }, 'Die App hat in „' + name + '" keine bekannte Kopfzeile gefunden. Ordnen Sie unten zu, welche Ihrer Spalten was bedeutet. Pflicht sind Kunde und Beitrag oder Tarif. Was fehlt, bleibt leer.'),
+        h('p.muted', { style: { margin: '0 0 10px' } }, 'Die App hat in „' + name + '" keine bekannte Kopfzeile gefunden. Oben sehen Sie Ihre Datei, darunter ordnen Sie zu, welche Spalte was bedeutet. Unten zeigt die App sofort, wie sie Ihre ersten Einträge liest.'),
         h('div.formraster', null,
           blaetter.length > 1 ? D.feld('Blatt', D.auswahl(blaetter.map(function (x, i) { return [String(i), x.name]; }), String(bi), function (v) { bi = +v; kopf = -1; zeichne(); }), 's4') : null,
-          D.feld('Kopfzeile ist Zeile', D.auswahl(z.slice(0, 15).map(function (_, i) { return [String(i), String(i + 1)]; }), String(kopf), function (v) { kopf = +v; zeichne(); }), 's2'),
+          D.feld('Überschriften stehen in Zeile', D.auswahl(z.slice(0, 15).map(function (r, i) { return [String(i), String(i + 1) + ': ' + (r || []).filter(function (c) { return c != null && c !== ''; }).slice(0, 3).map(zeigeWert).join(' | ').slice(0, 50)]; }), String(kopf), function (v) { kopf = +v; zeichne(); }), 's5'),
           D.feld('Jahr der Einträge', jahrFeld, 's2')),
-        h('table.einfach', { style: { marginTop: '10px' } }, h('thead', null, h('tr', null, h('th', null, 'Bedeutung im Antragsbuch'), h('th', null, 'Ihre Spalte'), h('th', null, 'Beispiel aus Ihrer Datei'))),
-          h('tbody', null, L.SPALTEN_FREI.map(function (def) {
-            var bsp = h('span.muted.klein'), sel = D.auswahl([['-1', '– nicht vorhanden –']].concat(spalten), String(sp[def.id] == null ? -1 : sp[def.id]), function (v) { bsp.textContent = +v >= 0 ? beispiel(+v) : ''; });
-            wahl[def.id] = sel; bsp.textContent = sp[def.id] >= 0 ? beispiel(sp[def.id]) : '';
-            return h('tr', null, h('td', null, def.titel, def.pflicht ? h('i.muted', null, ' (wichtig)') : null), h('td', null, sel), h('td', null, bsp));
-          })))]);
+        h('h4', { style: { margin: '12px 0 6px' } }, '1. So sieht Ihre Datei aus'),
+        h('div', { style: { overflowX: 'auto', maxWidth: '100%', border: '1px solid var(--line)', borderRadius: '8px' } }, roh),
+        h('h4', { style: { margin: '14px 0 6px' } }, '2. Welche Spalte bedeutet was?'),
+        h('table.einfach', null, h('tbody', null, L.SPALTEN_FREI.map(function (def) {
+          var sel = D.auswahl([['-1', '– nicht vorhanden –']].concat(spalten), String(sp[def.id] == null ? -1 : sp[def.id]), aktualisiere, { style: { maxWidth: '420px' } });
+          wahl[def.id] = sel;
+          return h('tr', null, h('td', { style: { width: '190px' } }, h('b', null, def.titel), def.pflicht ? h('i.muted', null, ' wichtig') : null, h('div.mini', null, 'z. B. ' + def.namen.split(', ').slice(0, 3).join(', '))), h('td', null, sel));
+        }))),
+        h('h4', { style: { margin: '14px 0 6px' } }, '3. So liest die App Ihre ersten Einträge'), ergebnis]);
+      jahrFeld.onchange = aktualisiere;
+      aktualisiere();
     }
     zeichne();
     D.anhaengen(d.rumpf, box);

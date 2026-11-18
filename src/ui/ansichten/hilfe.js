@@ -139,7 +139,7 @@
         h('table.einfach', null, h('thead', null, h('tr', null, h('th', null, 'Bedeutung'), h('th', null, 'So darf die Spalte heißen'))),
           h('tbody', null, AB.altbuch.SPALTEN_FREI.map(function (x) { return h('tr', null, h('td', null, x.titel, x.pflicht ? ' *' : ''), h('td', null, x.namen)); }))),
         h('p.mini', null, '* wichtig. Datum ohne Jahr (z. B. 16.01.) ist erlaubt, das Jahr kommt aus dem Dateinamen. „45,07 + 12,88" wird addiert. Ein Monatsname in „Datum Provision" bedeutet abgerechnet. In der Spalte „Tarif" erkennt die App Kürzel wie GV, BE, TA, KiNA, ZP7, Erh., Umst. Was sie nicht sicher deuten kann, steht danach unter Nachbearbeitung „offen".'))),
-      abschnitt('Urheberrecht', h('p', null, AB.RECHTE.kurz + ' ' + AB.RECHTE.lang)),
+      abschnitt('Urheberrecht', h('p', null, AB.RECHTE.kurz + ' ' + AB.RECHTE.lang + ' Kontakt: ' + AB.RECHTE.kontakt)),
       abschnitt('Tasten', liste('ul', ['N – neuer Antrag', '/ – in die Suche springen', 'F3 / F4 – Kundensuche nach Nummer / Name', 'Enter – speichern · Strg+Enter – speichern & nächster', 'Alt+P – weitere Position · Esc – Dialog schließen'])))));
   } };
 })(globalThis.AB = globalThis.AB || {});

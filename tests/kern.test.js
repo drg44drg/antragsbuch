@@ -799,3 +799,16 @@ test('Eigene Antragsliste: Spaltennamen-Varianten, Status-Spalte, lockere Erkenn
   assert.equal(r.antraege[0].eingang, '2025-01-01'); assert.match(r.antraege[0].bemerkung, /kein Eingangsdatum/);
   assert.equal(L.rateKopf([['Titel'], [], ['A', 'B', 'C'], [1, 2, 3]]), 2);
 });
+
+test('Agenturmodell: Bankgeschäft mit festem Overhead, laufende anteilig, Phase der Grundvergütung', () => {
+  const G = AB.agentur;
+  const z = [{ bdat: '2026-03-01', part: 'Abschluss', bfProv: 'Ganze', fProv: 7, prov: 700, prod: 100 }, { bdat: '2026-03-02', part: 'Abschluss', bfProv: 'Ganze', fProv: 3.5, prov: 350, prod: 100 },
+    { bdat: '2026-03-03', part: 'Bestand', bfProv: 'Prozent', fProv: 10, prov: 20, prod: 0 }];
+  const anteilig = G.abrechnungUv(z, 2026, { mb: 5.5 }, 7), fest = G.abrechnungUv(z, 2026, { mb: 5.5, bank: 'fest', laufend: 'anteilig' }, 7);
+  assert.equal(anteilig.anspruch, AB.util.runde(550 + 275 + 20));
+  assert.equal(fest.anspruch, AB.util.runde(550 + 100 * 2 + 20 * 5.5 / 7));
+  const ph = G.gpPhase('2024-07-03', '2026-11-18', 7000);
+  assert.deepEqual([ph.phase, ph.anlaufBis, ph.einarbeitung, ph.einarbeitungBis, ph.zweitesVollesJahr, ph.gp, ph.frueherStaffel], ['anlauf', '2026-12-31', false, '2025-07-03', 2026, 1500, 2250]);
+  const sp = G.gpPhase('2023-01-01', '2026-02-01', 9500); assert.deepEqual([sp.phase, sp.gp, sp.zweitesVollesJahr], ['staffel', 2750, 2024]);
+  assert.equal(G.gpPhase('', '2026-01-01', 0), null);
+});

@@ -77,6 +77,25 @@
   G.gpNachProduktion = function (produktion) { for (var i = 0; i < G.GP_STAFFEL.length; i++) if (produktion >= G.GP_STAFFEL[i][0]) return G.GP_STAFFEL[i][1]; return 0; };
   /** Nächste Schwelle der Staffel: { ab, gp, fehlt } oder null, wenn die höchste erreicht ist. */
   G.gpNaechste = function (produktion) { var n = null; G.GP_STAFFEL.forEach(function (x) { if (produktion < x[0]) n = { ab: x[0], gp: x[1], fehlt: U.runde(x[0] - produktion) }; }); return n; };
+  /**
+   * Phase der ergänzenden Grundvergütung nach dem Nachtrag „selbständiger Untervermittler":
+   * fest 1.500 € bis 31.12. des übernächsten Jahres nach Tätigkeitsbeginn, danach Staffel nach Netto-KV-Eigenproduktion.
+   * Einarbeitungspauschale 500 € höchstens 12 Monate ab Beginn. Überprüfung auf Verlangen nach 12 Monaten oder zum 31.12. des Folgejahres.
+   * Entfällt, wenn im zweiten vollständigen Kalenderjahr unter 6.000 € erreicht werden.
+   * → { phase: 'anlauf'|'staffel', anlaufBis, einarbeitungBis, einarbeitung (bool), pruefung12, pruefungFolgejahr, zweitesVollesJahr, gp }
+   */
+  G.gpPhase = function (beginn, stichtag, kvProduktion) {
+    if (!beginn) return null;
+    var y = +beginn.slice(0, 4), m = +beginn.slice(5, 7), d = +beginn.slice(8, 10);
+    var plusMonate = function (n) { var mm = m - 1 + n, yy = y + Math.floor(mm / 12); mm = mm % 12; return yy + '-' + ('0' + (mm + 1)).slice(-2) + '-' + ('0' + d).slice(-2); };
+    var o = { anlaufBis: (y + 2) + '-12-31', einarbeitungBis: plusMonate(12), pruefung12: plusMonate(12), pruefungFolgejahr: (y + 1) + '-12-31',
+      zweitesVollesJahr: (d === 1 && m === 1) ? y + 1 : y + 2 };
+    o.phase = stichtag <= o.anlaufBis ? 'anlauf' : 'staffel';
+    o.einarbeitung = stichtag < o.einarbeitungBis;
+    o.gp = o.phase === 'anlauf' ? G.GP_ANLAUF : G.gpNachProduktion(kvProduktion || 0);
+    o.frueherStaffel = o.phase === 'anlauf' && (kvProduktion || 0) >= 6000 ? G.gpNachProduktion(kvProduktion) : 0;
+    return o;
+  };
   G.stufe = function (id) { return G.MODELL.filter(function (x) { return x.id === id; })[0] || null; };
 
   /**
@@ -96,7 +115,14 @@
     (zeilen || []).forEach(function (z) {
       if (jahr && +z.bdat.slice(0, 4) !== +jahr) return;
       var mo = +z.bdat.slice(5, 7) - 1, lauf = z.part === 'Bestand' || z.bfProv === 'Prozent', prov = +z.prov || 0;
-      var an = lauf ? prov : anteil == null ? 0 : prov * anteil;
+      var an;
+      if (lauf) an = uv.laufend === 'anteilig' && anteil != null ? prov * anteil : uv.laufend === 'anteilig' ? 0 : prov;
+      else if (anteil == null) an = 0;
+      else if (uv.bank === 'fest' && z.bfProv === 'Ganze' && z.fProv > 0) {
+        // Fester Overhead: Die Agentur behält je Buchung (MB der Agentur − weitergegebene MB), auch bei Bankgeschäft mit niedrigerem Satz.
+        var oh = Math.max(0, agMb - (+uv.mb || 0)), basis = prov / z.fProv;
+        an = basis * Math.max(0, z.fProv - oh);
+      } else an = prov * anteil;
       [o, o.monate[mo]].forEach(function (x) {
         x.n++; x.produktion += +z.prod || 0;
         if (lauf) x.laufend += prov; else x.brutto += prov;

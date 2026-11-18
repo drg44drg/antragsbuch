@@ -377,3 +377,15 @@ Offen:
 - ADP-Anleitung: Tabelle der Spaltennamen als eigene Seite aufnehmen.
 - Kontaktweg für Nutzungsanfragen (E-Mail oder Telefon) im Rechtehinweis, falls gewünscht.
 - Arbeitsrechtliche Frage klären: Ist das Programm im Rahmen der Tätigkeit für den Versicherer entstanden (§ 69b UrhG)?
+
+## Version 4.5 (Prospektfarben, Zuordnungsfenster, Agentur-Schalter)
+
+Erledigt:
+- Produktfarben aus den Verkaufshilfen: Voll #66C430 (GesundheitsFAIR), Zusatz #9F158D (PrivatEXTRA), Leben #0066B3 (Markenblau), Pflegezusatz #F57E2F, GKV #01AAAE. bKV grau, Pflegepflicht rot, Gruppe rosa, Unfall gelb bleiben.
+- „Spalten zuordnen“ zeigt die Datei (Kopfzeile + 5 Einträge), Beispielwerte in jeder Auswahl, Markierung der zugeordneten Spalten und eine Live-Vorschau der ersten drei gelesenen Anträge.
+- Rechtehinweis mit Kontakt lukas.dragowski@gmail.com.
+- Agentur: Tätigkeitsbeginn je Untervermittler (Anlaufzeit, Einarbeitungspauschale, Prüftermine, zweites volles Kalenderjahr), Schalter Bankgeschäft (anteilig / fester Overhead) und laufende Provisionen (voll / anteilig).
+
+Offen:
+- SalesBook PKV (59 Seiten) und Umstellungsmatrizen auswerten: Tipps, Gesprächsleitfaden, Umstellungsprüfung im Antrag.
+- Unterfarben der Zusatzversicherung (Zahn grün, Ambulant orange, Stationär türkis) für die Kategorie-Auswertung.
