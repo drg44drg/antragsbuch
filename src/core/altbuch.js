@@ -5,7 +5,8 @@
   var MONATE = ['januar', 'februar', 'maerz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember'];
 
   /** Blatt mit dem alten Antragsbuch finden → { blatt, kopf, sp:{…}, jahr } oder null */
-  L.finde = function (blaetter) {
+  L.finde = function (blaetter) { return L.findeKlassisch(blaetter) || L.findeFrei(blaetter); };
+  L.findeKlassisch = function (blaetter) {
     for (var b = 0; b < blaetter.length; b++) {
       var zl = blaetter[b].zeilen;
       for (var r = 0; r < Math.min(8, zl.length); r++) {
@@ -34,7 +35,9 @@
   }
 
   /** Einträge lesen → { antraege:[…], jahr, uebersprungen } (noch nicht im Projekt). */
-  L.lies = function (fund, jahr) {
+  L.lies = function (fund, jahr, dateiname) {
+    if (!fund.jahr && dateiname) { var jd = /(20\d\d)/.exec(dateiname); if (jd) fund.jahr = +jd[1]; }
+    if (fund.frei) return L.liesFrei(fund, jahr);
     var M = AB.model, zl = fund.blatt.zeilen, sp = fund.sp, monat = null, sonder = '', out = [], uebersprungen = 0;
     jahr = fund.jahr || jahr || new Date().getFullYear();
     for (var r = fund.kopf + 1; r < zl.length; r++) {
@@ -70,5 +73,128 @@
       out.push(an);
     }
     return { antraege: out, jahr: jahr, uebersprungen: uebersprungen };
+  };
+
+  // ---------- Frei geführte Liste: eine Zeile je Antrag, Spalten nach Kopfzeile ----------
+  // Typisch: „Datum Vertrag | MNR | Name | Tarife | MB | GV | Bank | Provision | Datum Provision“, Datum ohne Jahr.
+  var KOPF_FREI = {
+    datum: function (c) { return /datum|eingang/.test(c) && !/prov|abger|bezahlt/.test(c); },
+    name: function (c) { return /^(name|kunde|antragsteller|vn\b|versicherungsnehmer)/.test(c); },
+    tarif: function (c) { return /^(tarif|sparte|produkt)/.test(c); },
+    beitrag: function (c) { return /^(mb|beitrag|monatsbeitrag|mehrbeitrag)\b/.test(c); },
+    prov: function (c) { return /^provision\b/.test(c) && !/datum/.test(c); },
+    vnr: function (c) { return /^(mnr|vnr|vers\.?\s*nr|vertragsn|mitglied|vertrag$)/.test(c) && !/datum/.test(c); },
+    gv: function (c) { return /^(gv|gruppenvertrag|gvnr)\b/.test(c); },
+    bank: function (c) { return /^bank/.test(c); },
+    provDatum: function (c) { return /datum.*prov|prov.*datum|abgerechnet|ausgezahlt|bezahlt/.test(c); },
+    bemerkung: function (c) { return /^(bemerkung|notiz|info)/.test(c); }
+  };
+  L.findeFrei = function (blaetter) {
+    for (var b = 0; b < blaetter.length; b++) {
+      var zl = blaetter[b].zeilen;
+      for (var r = 0; r < Math.min(12, zl.length); r++) {
+        var k = (zl[r] || []).map(function (c) { return U.falte(c == null ? '' : c).trim(); }), sp = {};
+        // Provisionsabrechnung oder Bestandsliste des Versicherers ist keine selbst geführte Liste
+        if (k.some(function (c) { return /provisionsart|buchungsdatum|^tarifgruppe|vermittlernummer|monatsbeitragsdifferenz/.test(c); })) continue;
+        Object.keys(KOPF_FREI).forEach(function (f) { sp[f] = k.findIndex(function (c) { return c && KOPF_FREI[f](c); }); });
+        // Mindestens Datum, Name, Tarif, Beitrag und Provision – sonst ist es eher eine andere Liste (z. B. Veränderungsdienst)
+        if (sp.datum < 0 || sp.name < 0 || sp.tarif < 0 || sp.beitrag < 0 || sp.prov < 0) continue;
+        var jm = /(20\d\d)/.exec(blaetter[b].name || '');
+        return { frei: true, blatt: blaetter[b], kopf: r, sp: sp, jahr: jm ? +jm[1] : null };
+      }
+    }
+    return null;
+  };
+  var MON_FREI = ['jan', 'feb', 'mae', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dez'];
+  function monatAus(v) { var f = U.falte(v).trim().replace(/^mar/, 'mae'); if (f.length < 3) return -1; return MON_FREI.indexOf(f.slice(0, 3)); }
+  function text(v) { return v == null ? '' : String(v).trim(); }
+  /** Betrag aus Zahl oder Text: „45,07 + 12,88" wird addiert, „101,24 €" gelesen. → { wert, rest } (rest = nicht gelesener Text) */
+  L.betragAus = function (v) {
+    if (typeof v === 'number') return { wert: U.runde(v), rest: '' };
+    var t = text(v); if (!t || t === '-') return { wert: null, rest: '' };
+    var rein = t.replace(/€|eur/gi, '').trim();
+    if (/^-?\s*\d[\d.,]*(\s*[+\-]\s*\d[\d.,]*)*$/.test(rein)) {
+      var summe = 0, teile = rein.replace(/\s+/g, '').match(/[+\-]?\d[\d.,]*/g) || [];
+      teile.forEach(function (x) { summe += U.parseZahl(x); });
+      return { wert: U.runde(summe), rest: teile.length > 1 ? t : '' };
+    }
+    var eur = /(-?\d[\d.]*,\d{1,2})\s*(€|eur)/i.exec(t);
+    if (eur) return { wert: U.runde(U.parseZahl(eur[1])), rest: t };
+    var vorn = /^(-?\d[\d.]*(?:,\d+)?)\b/.exec(t);
+    if (vorn) return { wert: U.runde(U.parseZahl(vorn[1])), rest: t };
+    return { wert: null, rest: t };
+  };
+  /** Freitext der Tarif-Spalte deuten → { bereich, vorgang, tarif, herkunft, sicher, grund } */
+  L.deuteFrei = function (roh, gv, prov) {
+    var s = U.falte(roh).trim(), o = { bereich: '', vorgang: 'neu', tarif: '', herkunft: '', sicher: true, grund: '' };
+    if (/storno/.test(s)) o.vorgang = 'storno'; else if (/minder|reduz/.test(s)) o.vorgang = 'minder';
+    else if (/dynamik/.test(s)) o.vorgang = 'dynamik';
+    else if (/erh|mehrb/.test(s)) o.vorgang = 'mehr';
+    else if (/umst|option/.test(s)) o.vorgang = prov ? 'mehr' : 'umstellung';
+    var code = /\b(zp\d|ap\d|sp\d|spu|zb\d|ab\d|pg\d\w*|pz\d\w*|tg\d|ta\d*|be|kt\d*)\b/i.exec(roh || '');
+    if (/kina|kinder\s*nach/.test(s)) { o.bereich = /^gv|gv-/.test(s) || gv ? 'gruppe' : 'voll'; o.herkunft = 'kind'; }
+    else if (/^gv\b|gv-|gruppe/.test(s)) o.bereich = 'gruppe';
+    else if (/bkv|firm/.test(s)) o.bereich = 'bkv';
+    else if (/mhplus|gkv/.test(s)) o.bereich = 'gkv';
+    else if (/leben|^lv\b/.test(s)) o.bereich = 'leben';
+    else if (/unfall|^uv\b/.test(s)) o.bereich = 'unfall';
+    else if (/zusatz|\b(zp|ap|sp|zb|ab|pg|pz)\d|\bspu\b/.test(s)) o.bereich = 'zusatz';
+    else if (/(^|\W)(be|ta|kt)(\W|\d|$)|beitragsentl|tagegeld|voll|awv|umst\.?\s*\d{2,3}|^\d{2,3}$|option/.test(s)) o.bereich = 'voll';
+    else if (gv) o.bereich = 'gruppe';
+    if (!o.bereich) { o.bereich = 'zusatz'; o.sicher = false; o.grund = s ? 'Bereich aus „' + text(roh) + '" nicht erkennbar' : 'Tarif fehlt'; }
+    if (/^ff\b/.test(s)) { o.sicher = false; o.grund = 'Fortführung: Bereich bitte prüfen'; }
+    o.tarif = code ? (code[1].toUpperCase() === 'BE' ? 'BE/' : code[1].toUpperCase()) : text(roh);
+    return o;
+  };
+  L.liesFrei = function (fund, jahr) {
+    var M = AB.model, zl = fund.blatt.zeilen, sp = fund.sp, out = [], uebersprungen = 0, geschaetzt = 0, letztesDatum = '';
+    jahr = fund.jahr || jahr || new Date().getFullYear();
+    var zelle = function (z, f) { return sp[f] >= 0 ? z[sp[f]] : null; };
+    for (var r = fund.kopf + 1; r < zl.length; r++) {
+      var z = zl[r] || [], name = text(zelle(z, 'name')), tarifRoh = text(zelle(z, 'tarif')), bt = L.betragAus(zelle(z, 'beitrag'));
+      if (!name && !tarifRoh && bt.wert == null) continue;
+      if (/^(summe|gesamt|total)/i.test(name) || /^(summe|gesamt)/i.test(text(z[0]))) { uebersprungen++; continue; }
+      var hinweise = [], dv = zelle(z, 'datum'), datum = '';
+      var m = typeof dv === 'string' ? /^\s*(\d{1,2})\.(\d{1,2})\.?\s*(\d{2,4})?\s*$/.exec(dv) : null;
+      if (m) { var y = m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : jahr; datum = y + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2); }
+      else datum = U.parseDatum(dv);
+      if (!datum) { if (!letztesDatum) { uebersprungen++; continue; } datum = letztesDatum; hinweise.push('Datum aus der Zeile darüber'); }
+      letztesDatum = datum;
+      var pr = L.betragAus(zelle(z, 'prov')), gvRoh = zelle(z, 'gv'), gv = '', gvFremd = false;
+      // Gruppenvertragsnummern sind ganze Zahlen mit mindestens fünf Stellen. Steht dort ein Betrag, ist die Spalte anders benutzt.
+      if (/^\d{5,}$/.test(text(gvRoh).replace(/\.0$/, ''))) gv = text(gvRoh).replace(/\.0$/, '');
+      else if (text(gvRoh)) { var gb = L.betragAus(gvRoh); if (bt.wert == null && gb.wert != null) { bt = gb; hinweise.push('Beitrag aus Spalte GV'); } else { gvFremd = true; hinweise.push('Spalte GV: ' + text(gvRoh)); } }
+      var d = L.deuteFrei(tarifRoh, gv, pr.wert);
+      var an = M.neuerAntrag(), teile = name.split(',');
+      an.quelle = 'altbuch'; an.eingang = datum;
+      an.vn = { name: (teile[0] || '').trim() || 'Ohne Name (Zeile ' + (r + 1) + ')', vorname: teile.slice(1).join(',').trim() };
+      an.bereich = d.bereich; an.vorgang = d.vorgang; an.herkunft = d.herkunft;
+      an.vertragsnummer = text(zelle(z, 'vnr')).replace(/\.0$/, '');
+      if (gv && /\d/.test(gv)) an.gruppenvertrag = gv;
+      if (/^(ja|j|x|1)$/i.test(text(zelle(z, 'bank')))) an.bank = { aktiv: true, anteil: 50 };
+      var pos = M.neuePosition(); pos.tarif = d.tarif || 'unbekannt';
+      pos.beitrag = bt.wert == null ? null : (d.vorgang === 'minder' || d.vorgang === 'storno' ? Math.abs(bt.wert) : bt.wert);
+      an.positionen = [pos];
+      an.provisionManuell = pr.wert;
+      if (bt.rest) hinweise.push('Beitrag: ' + bt.rest);
+      if (pr.rest) hinweise.push('Provision: ' + pr.rest);
+      if (bt.wert == null) hinweise.push('Beitrag fehlt');
+      // Status: Monat in „Datum Provision" = abgerechnet; sonst eingereicht
+      var pd = zelle(z, 'provDatum'), status = 'eingereicht', statusDatum = datum, mo = typeof pd === 'string' ? monatAus(pd) : -1, pdDatum = U.parseDatum(pd);
+      if (mo >= 0) { var ein = +datum.slice(5, 7) - 1, yj = +datum.slice(0, 4) + (mo < ein - 1 ? 1 : 0); status = 'abgerechnet'; statusDatum = yj + '-' + ('0' + (mo + 1)).slice(-2) + '-01'; if (statusDatum < datum) statusDatum = datum; }
+      else if (pdDatum) { status = 'abgerechnet'; statusDatum = pdDatum; }
+      else if (text(pd)) {
+        var pt = U.falte(pd);
+        if (/abgelehnt/.test(pt)) status = 'abgelehnt'; else if (/widerruf/.test(pt)) status = 'widerruf'; else if (/storno/.test(pt)) status = 'storno';
+        hinweise.push(text(pd));
+      }
+      an.status = status; an.statusDatum = statusDatum; an.statusManuell = false;
+      an.historie = [{ status: status, datum: statusDatum, am: an.erstellt, quelle: 'altbuch', notiz: 'aus eigener Liste' }];
+      var unklar = !d.sicher || bt.wert == null || gvFremd || /keine\s*polic|fehl|!/i.test(text(pd) + ' ' + pr.rest);
+      if (unklar) { geschaetzt++; an.nachbearbeitung = { status: 'offen', text: [d.grund].concat(hinweise).filter(Boolean).join(' · ') || 'Bitte prüfen', datum: U.heute() }; }
+      an.bemerkung = [tarifRoh ? 'Liste: ' + tarifRoh : '', text(zelle(z, 'bemerkung'))].concat(hinweise, ['eigene Liste Zeile ' + (r + 1)]).filter(Boolean).join(' · ');
+      out.push(an);
+    }
+    return { antraege: out, jahr: jahr, uebersprungen: uebersprungen, geschaetzt: geschaetzt, frei: true };
   };
 })(globalThis.AB = globalThis.AB || {});

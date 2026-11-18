@@ -750,3 +750,38 @@ test('Auswertung „Nettoproduktion FD": erkennen, lesen, Verlauf; Staffel der G
   assert.deepEqual([5999, 6000, 9000, 12000, 20000].map(G.gpNachProduktion), [0, 2250, 2750, 3000, 3250]);
   assert.deepEqual(G.gpNaechste(7000), { ab: 9000, gp: 2750, fehlt: 2000 }); assert.equal(G.gpNaechste(15000), null);
 });
+
+test('Selbst geführte Liste als altes Antragsbuch: Kopf erkennen, Freitext deuten, Beträge und Monate lesen', async () => {
+  const L = AB.altbuch;
+  const zeilen = [[], ['Datum Vertrag', 'MNR', 'Name, Vorname', 'Tarife', 'MB', 'GV', 'Bank', 'Provision', 'Datum Provision'], [],
+    ['16.01.', 111111, 'Muster, Anna', 'BE', 75.41, null, null, 452.46, 'Januar'],
+    ['19.01.', null, 'Probe, Clara', 'GV-Paket', 48.21, 997043, null, 144.63, 'Februar'],
+    [null, 222222, 'Probe, Ben', 'TA-Erhöhg.', 6.21, null, 'ja', 18.63],
+    ['03.02.', '333-444', 'Test, Dieter', null, '45,07 + 12,88', null, null, '12,88+12,88'],
+    ['16.03.', 555555, 'Vorlage, Eva', 'AWV-Ende, Zusatz', null, 256.1, null, 'mal 2,8   101,24 €'],
+    ['26.04.', 666666, 'Kind, Kai', 'KiNA', 175, null, null, 1054.26],
+    ['10.05.', 777777, 'Fort, Fritz', 'FF aus GV 997043', 43, null, null, null, '!'],
+    ['12.11.', 888888, 'Spät, Sara', 'Erh. ZP7', 20, null, null, 120, 'Januar']];
+  const bl = [{ name: 'Tabelle1', zeilen }];
+  const f = L.finde(bl); assert.ok(f && f.frei); assert.equal(L.findeKlassisch(bl), null);
+  // ohne Provisionsspalte ist es keine Antragsliste (z. B. Veränderungsdienst)
+  assert.equal(L.findeFrei([{ name: 'x', zeilen: [['Datum', 'Name', 'Tarif', 'Beitrag']] }]), null);
+  const r = L.lies(f, 2026, 'Antragsbuch_2025-XY.xlsx'), a = r.antraege;
+  assert.equal(r.jahr, 2025); assert.equal(a.length, 8); assert.ok(r.frei);
+  assert.deepEqual([a[0].eingang, a[0].bereich, a[0].vorgang, a[0].positionen[0].tarif, a[0].status, a[0].statusDatum, a[0].provisionManuell], ['2025-01-16', 'voll', 'neu', 'BE/', 'abgerechnet', '2025-01-16', 452.46]);
+  assert.deepEqual([a[1].bereich, a[1].gruppenvertrag, a[1].statusDatum], ['gruppe', '997043', '2025-02-01']);
+  assert.deepEqual([a[2].eingang, a[2].bereich, a[2].vorgang, a[2].bank.aktiv, a[2].status], ['2025-01-19', 'voll', 'mehr', true, 'eingereicht']);
+  assert.match(a[2].bemerkung, /Datum aus der Zeile darüber/);
+  assert.deepEqual([a[3].positionen[0].beitrag, a[3].provisionManuell, a[3].vertragsnummer, a[3].nachbearbeitung.status], [57.95, 25.76, '333-444', 'offen']);
+  assert.deepEqual([a[4].positionen[0].beitrag, a[4].provisionManuell, a[4].bereich, a[4].gruppenvertrag], [256.1, 101.24, 'zusatz', '']);
+  assert.deepEqual([a[5].bereich, a[5].herkunft], ['voll', 'kind']);
+  assert.equal(a[6].nachbearbeitung.status, 'offen');
+  assert.deepEqual([a[7].vorgang, a[7].positionen[0].tarif, a[7].statusDatum], ['mehr', 'ZP7', '2026-01-01']);
+  assert.deepEqual(L.betragAus('22,90 - Hinweis'), { wert: 22.9, rest: '22,90 - Hinweis' });
+  assert.deepEqual(L.betragAus('-'), { wert: null, rest: '' });
+});
+
+test('Selbst geführte Liste: eine Provisionsabrechnung wird nicht als Liste erkannt', () => {
+  const kopf = AB.abrechnung.SPALTEN.map((s) => s[1]);
+  assert.equal(AB.altbuch.finde([{ name: 'abrechnung', zeilen: [kopf, kopf.map(() => '1')] }]), null);
+});
