@@ -389,3 +389,14 @@ Erledigt:
 Offen:
 - SalesBook PKV (59 Seiten) und Umstellungsmatrizen auswerten: Tipps, Gesprächsleitfaden, Umstellungsprüfung im Antrag.
 - Unterfarben der Zusatzversicherung (Zahn grün, Ambulant orange, Stationär türkis) für die Kategorie-Auswertung.
+
+## Version 4.6 (Agentur-Abrechnung auf beiden Seiten)
+
+Erledigt:
+- Reiter „Agentur“ für beide Rollen. Untervermittler: stellt ein, was er je Sparte (Kranken, Leben, Unfall) beansprucht, Bankgeschäft, laufende Provisionen, Stufe und Grundpauschale; erzeugt aus seiner Provisionsabrechnung die Abrechnungsdatei für die Agentur (Zeitraum frei: Jahr, Quartal, Monate).
+- Agenturleiter: stellt je Untervermittler ein, was ihm zusteht; rechnet aus der Abrechnung des Untervermittlers oder aus der eigenen Abrechnung (Buchungen mit Beteiligung der Nummer); prüft die Datei des Untervermittlers Buchung für Buchung (stimmt, Abweichung, nicht bei mir, nicht gefordert, ohne Satz), Summen je Sparte, Excel.
+- „Was die nächste Stufe bringen würde“: im Agenturmodell und für ADP in „Meine Produktion“.
+- Fehler behoben: „Zusatzversicherung (Art Leben)“ zählt zu Kranken, nicht zu Leben.
+
+Offen:
+- Leben im Agenturmodell: ‰ der Bewertungssumme oder % der Provision, je nach Vertrag (beides einstellbar).

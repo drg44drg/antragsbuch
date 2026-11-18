@@ -206,7 +206,7 @@
    */
   M.stufenStand = function (stufeId, ist, monate) {
     var i = M.KARRIERE.findIndex(function (k) { return k.id === stufeId; }); if (i < 0 || !(monate > 0)) return null;
-    var zeile = function (k) { var soll = k.wert * monate / 12; return { id: k.id, kurz: k.kurz, name: k.name, wertung: k.wert, jeMonat: U.runde(k.wert / 12), soll: U.runde(soll), diff: U.runde(ist - soll),
+    var zeile = function (k) { var soll = k.wert * monate / 12; return { id: k.id, kurz: k.kurz, name: k.name, wertung: k.wert, mb: k.mb, fixum: k.fixum, jeMonat: U.runde(k.wert / 12), soll: U.runde(soll), diff: U.runde(ist - soll),
       quote: soll > 0 ? ist / soll : null, hochrechnung: U.runde(ist / monate * 12), restJeMonat: monate < 12 ? U.runde(Math.max(0, k.wert - ist) / (12 - monate)) : null }; };
     return { monate: monate, ist: U.runde(ist), eigene: zeile(M.KARRIERE[i]), naechste: M.KARRIERE[i + 1] ? zeile(M.KARRIERE[i + 1]) : null };
   };

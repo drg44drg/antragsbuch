@@ -47,19 +47,17 @@
           Object.keys(ag.untervermittler).forEach(function (nr) {
             var u = ag.untervermittler[nr];
             tb.appendChild(h('tr', null, h('td', null, h('b', null, nr)), h('td', null, text(u.name, function (v) { u.name = v; }, { placeholder: 'Name', style: { padding: '5px 8px' } })),
-              h('td', null, D.auswahl([['mb', 'Monatsbeiträge je Euro Beitrag'], ['prozent', 'Prozent meiner Provision']], u.art || 'mb', function (v) { u.art = v; App.geaendert({ still: true }); }, { style: { padding: '5px 8px' } })),
-              h('td', { style: { width: '120px' } }, zahlF(u.wert, function (v) { u.wert = v; }, 'Satz')),
               h('td', { style: { width: '44px' } }, D.btn('', function () { delete ag.untervermittler[nr]; App.geaendert({ still: true }); zeichneUv(); }, { icon: 'x', klasse: 'leise klein-btn', titel: 'Untervermittler entfernen' }))));
           });
           var neuNr = h('input', { type: 'text', inputMode: 'numeric', placeholder: 'Vermittlernummer, z. B. 900385', style: { width: '240px' } });
-          D.anhaengen(uvBox, [h('div', { style: { overflowX: 'auto', marginTop: '10px' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Nummer', 'Name', 'Anspruch gerechnet als', 'Satz', ''].map(function (t) { return h('th', null, t); }))), tb)),
-            h('div.leiste', { style: { marginTop: '8px' } }, neuNr, D.btn('Untervermittler hinzufügen', function () { var n = neuNr.value.replace(/\D/g, ''); if (n.length < 5) { neuNr.classList.add('fehler'); return; } if (!ag.untervermittler[n]) ag.untervermittler[n] = { name: '', art: 'mb', wert: null }; App.geaendert({ still: true }); zeichneUv(); }, { klasse: 'klein-btn', icon: 'plus' }))]);
+          D.anhaengen(uvBox, [h('div', { style: { overflowX: 'auto', marginTop: '10px' } }, h('table.einfach', null, h('thead', null, h('tr', null, ['Nummer', 'Name', ''].map(function (t) { return h('th', null, t); }))), tb)),
+            h('div.leiste', { style: { marginTop: '8px' } }, neuNr, D.btn('Untervermittler hinzufügen', function () { var n = neuNr.value.replace(/\D/g, ''); if (n.length < 5) { neuNr.classList.add('fehler'); return; } if (!ag.untervermittler[n]) ag.untervermittler[n] = { name: '' }; App.geaendert({ still: true }); zeichneUv(); }, { klasse: 'klein-btn', icon: 'plus' }))]);
         }
-        el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Unternehmeragentur'), h('span.frei'), h('span.marke-s' + (ag.modus ? '.gut' : ''), null, ag.modus === 'agenturist' ? 'Agenturist' : ag.modus === 'untervermittler' ? 'Untervermittler' : 'aus')),
-          h('div.unter', null, 'Für Agenturen, in denen der Agenturist die Gesamtabrechnung erhält und seine Untervermittler mit ihm abrechnen.'),
+        el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Unternehmeragentur'), h('span.frei'), h('span.marke-s' + (ag.modus ? '.gut' : ''), null, ag.modus === 'agenturist' ? 'Agenturleiter' : ag.modus === 'untervermittler' ? 'Untervermittler' : 'aus')),
+          h('div.unter', null, 'Für Unternehmeragenturen: Agenturleiter und Untervermittler stellen jeweils ein, wie abgerechnet wird. Die Abrechnung entsteht im Reiter „Agentur“.'),
           h('div.formraster', { style: { marginTop: '10px' } }, D.feld('Meine Rolle', D.auswahl(Object.keys(AB.agentur.MODI).map(function (k) { return [k, AB.agentur.MODI[k]]; }), ag.modus || '', function (v) { ag.modus = v; App.geaendert(); }), 's7')),
-          ag.modus === 'untervermittler' ? h('p.klein.muted', { style: { marginTop: '8px' } }, 'In der Antragsliste Anträge anhaken und „An Agenturist senden" wählen. Die Prüfdatei enthält Position, Vertragsnummer, Kunde, Tarife, Beitrag und die geforderte Provision nach Ihren Provisionsregeln – keine Bemerkungen.') : null,
-          ag.modus === 'agenturist' ? h('p.klein.muted', { style: { marginTop: '8px' } }, 'Legen Sie fest, was jedem Untervermittler laut Vertrag zusteht. Die Prüfdateien lesen Sie über „Einlesen" ein; das Ergebnis steht im Reiter „Agentur".') : null, uvBox));
+          ag.modus === 'untervermittler' ? h('p.klein.muted', { style: { marginTop: '8px' } }, 'Im Reiter „Agentur“ stellen Sie ein, was Sie je Sparte beanspruchen, und erzeugen aus Ihrer Provisionsabrechnung die Datei für die Agentur. Einzelne Anträge können Sie weiterhin in der Antragsliste über „An Agenturist senden“ schicken.') : null,
+          ag.modus === 'agenturist' ? h('p.klein.muted', { style: { marginTop: '8px' } }, 'Legen Sie hier Ihre Untervermittler an. Was jedem zusteht (je Sparte), stellen Sie im Reiter „Agentur“ ein. Steht der Untervermittler in Ihrer Abrechnung als Beteiligter, rechnet die App direkt daraus; sonst lesen Sie seine Abrechnung ein.') : null, uvBox));
         zeichneUv();
       })();
       // Jahreswechsel in derselben Datei und Produktionsschluss

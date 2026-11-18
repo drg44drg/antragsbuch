@@ -278,7 +278,7 @@
   App.einleseDialog = function () {
     var d = D.dialog('Datei einlesen', { klasse: 'mittel' });
     D.anhaengen(d.rumpf, [h('p.muted', { style: { margin: 0 } }, 'Ziehen Sie die Datei auf das passende Feld oder klicken Sie darauf. Die App prüft den Inhalt und fragt nach, wenn die Datei nicht zum Feld passt.'),
-      h('div.importfelder', null, App.IMPORTARTEN.concat(App.p && AB.agentur.einstellung(App.p).modus === 'agenturist' ? [{ id: 'agentur', titel: 'Prüfdatei eines Untervermittlers', text: 'Die Datei, die Ihr Untervermittler aus seinem Antragsbuch für die Abrechnung mit Ihnen exportiert hat.', arten: ['agenturdatei'], icon: 'team', endung: '.json' }, { id: 'uvabrechnung', titel: 'Abrechnung eines Untervermittlers', text: 'Die Provisionsabrechnung, die der Versicherer für Ihren Untervermittler erstellt. Sie ersetzt nicht Ihre eigene Abrechnung.', arten: ['abrechnung'], icon: 'abgleich', endung: '.csv,.txt,.xlsx,.xlsm' }] : []).map(function (art) {
+      h('div.importfelder', null, App.IMPORTARTEN.concat(App.p && AB.agentur.einstellung(App.p).modus === 'agenturist' ? [{ id: 'agentur', titel: 'Datei eines Untervermittlers', text: 'Die Abrechnungs- oder Prüfdatei, die Ihr Untervermittler aus seinem Antragsbuch für Sie erzeugt hat.', arten: ['agenturdatei'], icon: 'team', endung: '.json' }, { id: 'uvabrechnung', titel: 'Abrechnung eines Untervermittlers', text: 'Die Provisionsabrechnung, die der Versicherer für Ihren Untervermittler erstellt. Sie ersetzt nicht Ihre eigene Abrechnung.', arten: ['abrechnung'], icon: 'abgleich', endung: '.csv,.txt,.xlsx,.xlsm' }] : []).map(function (art) {
         var wahl = h('input', { type: 'file', hidden: true, multiple: art.id !== 'projekt' && art.id !== 'altbuch', accept: art.endung, onchange: function () { var fs = Array.from(wahl.files); wahl.value = ''; nimm(fs); } });
         function nimm(dateien) { if (!dateien.length) return; d.zu(); App.importiere(dateien, { erwartet: art }); }
         var feld = h('button.importfeld', { type: 'button', 'data-art': art.id, onclick: function () { wahl.click(); },
@@ -335,7 +335,7 @@
         if (!p.agenturAbr) p.agenturAbr = {};
         var schon = !!p.agenturAbr[fremd];
         p.agenturAbr[fremd] = { gepackt: r.gepackt, datei: name, datum: new Date().toISOString(), anzahl: r.anzahl, jahre: r.jahre };
-        if (!agE.untervermittler[fremd]) agE.untervermittler[fremd] = { name: '', art: 'modell', wert: null };
+        if (!agE.untervermittler[fremd]) agE.untervermittler[fremd] = { name: '' };
         App.agenturZeilen = null; App.zustand.agentur = { nr: fremd }; App.ansicht = 'agentur'; App.geaendert({ ohneRechnen: true });
         D.toast('Abrechnung des Untervermittlers ' + fremd + ' abgelegt: ' + U.fmtZahl(r.anzahl, 0) + ' Zeilen' + (schon ? ' (ersetzt die frühere Datei)' : '') + '.');
         return;
@@ -360,15 +360,15 @@
       r.warnungen.forEach(function (w) { D.toast(w, { krit: true }); });
     } else if (r.art === 'agenturdatei') {
       var ag = AB.agentur.einstellung(p), dt = r.datei;
-      if (ag.modus !== 'agenturist' && !(await D.frage('Prüfdatei eines Untervermittlers', '„' + name + '" ist eine Prüfdatei von ' + (dt.name || dt.von || 'einem Untervermittler') + '. Soll dieses Projekt als Agenturist geführt werden (Unternehmeragentur)?', 'Als Agenturist einlesen'))) return;
+      if (ag.modus !== 'agenturist' && !(await D.frage('Prüfdatei eines Untervermittlers', '„' + name + '" ist eine Datei des Untervermittlers ' + (dt.name || dt.von || '') + '. Soll dieses Projekt als Agenturleiter geführt werden (Unternehmeragentur)?', 'Als Agenturleiter einlesen'))) return;
       if (!dt.von) throw new Error('In der Prüfdatei fehlt die Vermittlernummer des Untervermittlers.');
       ag.modus = 'agenturist';
       if (!p.agenturEingang) p.agenturEingang = {};
       var ersetzt = !!p.agenturEingang[dt.von];
       p.agenturEingang[dt.von] = dt;
-      if (!ag.untervermittler[dt.von]) ag.untervermittler[dt.von] = { name: dt.name || '', art: 'mb', wert: null };
+      if (!ag.untervermittler[dt.von]) ag.untervermittler[dt.von] = { name: dt.name || '' };
       App.zustand.agentur = { nr: dt.von }; App.ansicht = 'agentur'; App.geaendert();
-      D.toast('Prüfdatei von ' + dt.von + ' eingelesen: ' + dt.posten.length + ' Posten' + (ersetzt ? ' (ersetzt die frühere Datei)' : '') + '.');
+      D.toast((dt.art === 'abrechnung' ? 'Abrechnungsdatei' : 'Prüfdatei') + ' von ' + dt.von + ' eingelesen: ' + (dt.posten || dt.zeilen).length + (dt.art === 'abrechnung' ? ' Buchungen' : ' Posten') + (ersetzt ? ' (ersetzt die frühere Datei)' : '') + '.');
     } else if (r.art === 'fdbericht') {
       var fb = r.bericht;
       if (App.modus() !== 'mgmt') {

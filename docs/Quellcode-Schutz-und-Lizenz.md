@@ -58,13 +58,13 @@ zu einer Arbeit von Tagen statt Minuten. Ein Fachmann kommt trotzdem durch.
 ## Rechtlicher Schutz
 
 - **Urheberrecht:** Computerprogramme sind nach §§ 69a ff. UrhG geschützt, ohne Anmeldung. Kopieren, Umarbeiten und Verbreiten
-  braucht Ihre Zustimmung. Ein Vermerk in der App („© Jahr Name, alle Rechte vorbehalten") schafft Klarheit; er ist noch nicht eingebaut,
-  weil ich den Namen nicht ohne Ihre Vorgabe in die Datei schreibe.
+  braucht Ihre Zustimmung. Der Vermerk „© 2026 Lukas Dragowski. Alle Rechte vorbehalten." steht im Dateikopf, im Starthinweis,
+  unter Einstellungen → Urheberrecht und in der Hilfe (seit Version 4.4).
 - **Wer ist Urheber?** Sie haben die Anforderungen entwickelt und das Werk beauftragt; der Programmtext ist mit KI-Unterstützung entstanden.
   Ob und wie weit KI-erzeugter Code urheberrechtlich geschützt ist, ist rechtlich nicht abschließend geklärt. Das spricht für einen
   **Lizenzvertrag**, der unabhängig vom Urheberrecht trägt.
-- **Arbeitgeber/Versicherer:** Wenn die App im Rahmen Ihrer Tätigkeit entstanden ist, können Rechte beim Unternehmen liegen oder
-  Nebentätigkeitsregeln greifen. Vor einem Verkauf klären.
+- **Arbeitgeber/Versicherer:** Der Rechteinhaber ist selbstständiger Handelsvertreter nach § 84 HGB und hat die App aus eigener Initiative
+  entwickeln lassen; § 69b UrhG (Arbeitnehmer) greift damit nicht. Zu prüfen bleibt nur, ob der Vertretervertrag eine Klausel zu Arbeitsergebnissen enthält.
 - **Lizenzvertrag (eine Seite):** einfaches, nicht übertragbares Nutzungsrecht für eine Vermittlernummer und ein Jahr; kein Weitergeben,
   kein Verändern; Hilfsmittel ohne Gewähr für die Richtigkeit, maßgeblich bleibt die Abrechnung des Versicherers; Haftung im zulässigen Rahmen begrenzt;
   Daten bleiben beim Nutzer; nach Ablauf Lesemodus.
@@ -84,4 +84,3 @@ zu einer Arbeit von Tagen statt Minuten. Ein Fachmann kommt trotzdem durch.
 - Laufzeit der Lizenzen: Kalenderjahr oder zwölf Monate ab Ausstellung?
 - Testzeitraum, Vorwarnung, Kulanz: Vorgaben 30 / 30 / 14 Tage übernehmen?
 - Soll je ADP eine persönliche Kopie mit Kennung erzeugt werden?
-- Copyright-Vermerk: unter welchem Namen?

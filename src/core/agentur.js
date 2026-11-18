@@ -3,7 +3,7 @@
   'use strict';
   var U = AB.util, M = AB.model, G = AB.agentur = {};
   G.FORMAT = 'antragsbuch-agentur';
-  G.MODI = { '': 'aus', agenturist: 'Ich bin Agenturist (erhalte die Gesamtabrechnung)', untervermittler: 'Ich bin Untervermittler (rechne mit dem Agenturisten ab)' };
+  G.MODI = { '': 'aus', agenturist: 'Ich bin Agenturleiter (rechne mit meinen Untervermittlern ab)', untervermittler: 'Ich bin Untervermittler (rechne mit der Agentur ab)' };
   G.einstellung = function (p) { var e = p.einstellungen.agentur || (p.einstellungen.agentur = { modus: '', untervermittler: {} }); if (!e.untervermittler) e.untervermittler = {}; return e; };
 
   /**
@@ -18,7 +18,7 @@
           beitrag: M.beitrag(a), eingang: a.eingang || '', beginn: a.beginn || '', status: a.status, provision: U.runde(soll.betrag), laufend: !!soll.laufend };
       }) };
   };
-  G.istDatei = function (o) { return !!(o && o.format === G.FORMAT && Array.isArray(o.posten)); };
+  G.istDatei = function (o) { return !!(o && o.format === G.FORMAT && (Array.isArray(o.posten) || (o.art === 'abrechnung' && Array.isArray(o.zeilen)))); };
 
   /**
    * Prüfung beim Agenturisten: jeder Posten gegen die eigene Abrechnung.
@@ -144,6 +144,108 @@
     var z = function (n, x) { return [n, x.produktion, x.brutto, x.laufend, x.anspruch == null ? '' : x.anspruch, x.overhead == null ? '' : x.overhead, x.n]; };
     return { spalten: sp, zeilen: a.monate.map(function (x, i) { return z(U.MONATE[i], x); }).filter(function (r, i) { return i <= a.letzter; }), summe: z('Summe', a) };
   };
+
+  // ---------- Abrechnungsregeln je Sparte (Agenturleiter: was dem Untervermittler zusteht; Untervermittler: was er beansprucht) ----------
+  G.SPARTEN = [
+    { id: 'kv', name: 'Kranken', arten: [['anteil', 'MB vom Satz der Agentur'], ['prozent', '% der gebuchten Provision']] },
+    { id: 'lv', name: 'Leben', arten: [['prozent', '% der gebuchten Provision'], ['promille', '‰ der Bewertungssumme']] },
+    { id: 'unfall', name: 'Unfall', arten: [['prozent', '% der gebuchten Provision'], ['anteil', 'MB vom Satz der Agentur']] }
+  ];
+  G.sparteVon = function (z) {
+    // „Zusatzversicherung (Art Leben)" ist Krankenversicherung nach Art der Lebensversicherung, keine Lebensversicherung
+    if (/^LV$/i.test(String(z.sparte || '').trim()) || /^(lebensversicherung|sdl)/i.test(String(z.tg || '').trim())) return 'lv';
+    if (/unfall/i.test(z.tg || '')) return 'unfall';
+    return 'kv';
+  };
+  /** Regeln vervollständigen. r: { agMb, kv:{art,wert}, lv:{…}, unfall:{…}, bank: ''|'fest', laufend: ''|'anteilig' } */
+  G.regeln = function (r) {
+    r = r || {};
+    G.SPARTEN.forEach(function (s) { if (!r[s.id]) r[s.id] = { art: s.arten[0][0], wert: null }; });
+    if (r.agMb == null) r.agMb = G.AGENTUR_MB; if (r.bank == null) r.bank = ''; if (r.laufend == null) r.laufend = '';
+    return r;
+  };
+  /** Anspruch aus einer Buchung. → { sparte, lauf, an } (an = null, wenn für die Sparte kein Satz eingestellt ist) */
+  G.anspruchZeile = function (z, r) {
+    var sp = G.sparteVon(z), lauf = z.part === 'Bestand' || z.bfProv === 'Prozent', prov = +z.prov || 0, rg = r[sp], agMb = +r.agMb > 0 ? +r.agMb : G.AGENTUR_MB;
+    if (lauf && r.laufend !== 'anteilig') return { sparte: sp, lauf: true, an: prov };
+    if (!rg || rg.wert == null || rg.wert === '') return { sparte: sp, lauf: lauf, an: null };
+    var w = +rg.wert, an;
+    if (rg.art === 'prozent') an = prov * w / 100;
+    else if (rg.art === 'promille') an = lauf ? prov * 0 : (+z.bwsd || 0) * w / 1000;
+    else if (r.bank === 'fest' && !lauf && z.bfProv === 'Ganze' && z.fProv > 0) an = prov / z.fProv * Math.max(0, z.fProv - Math.max(0, agMb - w));
+    else an = prov * Math.min(1, w / agMb);
+    return { sparte: sp, lauf: lauf, an: an };
+  };
+  /** Buchungen eines Untervermittlers in der Abrechnung des Agenturleiters: eigene Vermittlernummer oder als Beteiligter genannt. */
+  G.zeilenFuer = function (zeilen, nr) { nr = String(nr); return (zeilen || []).filter(function (z) { return z.vm === nr || (z.beteil || '').indexOf(nr) >= 0; }); };
+  G.schluessel = function (z) { return [U.normVnr(z.vnr), z.pnr || '', z.tarif, z.bdat, (+z.mbd || 0).toFixed(2), (+z.prov || 0).toFixed(2)].join('|'); };
+  /**
+   * Abrechnung im Zeitraum (Monate von–bis, 0–11). → { summe, sparten:{kv,lv,unfall}, monate:[12], zeilen:[…], letzter, monateMitDaten, fehlt:{sparte:1} }
+   * je Summe: prov (gebucht), an (Anspruch Untervermittler), oh (Overhead Agentur), prod (gewertete Produktion), n, offen (Buchungen ohne Satz)
+   */
+  G.abrechnung = function (zeilen, r, opt) {
+    opt = opt || {}; r = G.regeln(r);
+    var von = opt.von == null ? 0 : +opt.von, bis = opt.bis == null ? 11 : +opt.bis;
+    var leer = function () { return { prov: 0, an: 0, oh: 0, prod: 0, n: 0, offen: 0 }; };
+    var o = { summe: leer(), sparten: { kv: leer(), lv: leer(), unfall: leer() }, monate: [], zeilen: [], letzter: -1, erster: 12, fehlt: {} };
+    for (var m = 0; m < 12; m++) o.monate.push(leer());
+    (zeilen || []).forEach(function (z) {
+      if (opt.jahr && +z.bdat.slice(0, 4) !== +opt.jahr) return;
+      var mo = +z.bdat.slice(5, 7) - 1; if (mo < von || mo > bis) return;
+      var a = G.anspruchZeile(z, r), prov = +z.prov || 0;
+      [o.summe, o.sparten[a.sparte], o.monate[mo]].forEach(function (x) { x.n++; x.prod += +z.prod || 0; x.prov += prov; if (a.an == null) x.offen++; else { x.an += a.an; x.oh += prov - a.an; } });
+      if (a.an == null) o.fehlt[a.sparte] = 1;
+      if (mo > o.letzter) o.letzter = mo; if (mo < o.erster) o.erster = mo;
+      o.zeilen.push({ k: G.schluessel(z), vnr: z.vnr, pnr: z.pnr || '', tarif: z.tarif, bdat: z.bdat, sparte: a.sparte, part: z.part, prov: U.runde(prov), an: a.an == null ? null : U.runde(a.an) });
+    });
+    var rd = function (x) { ['prov', 'an', 'oh', 'prod'].forEach(function (k) { x[k] = U.runde(x[k]); }); };
+    rd(o.summe); G.SPARTEN.forEach(function (s) { rd(o.sparten[s.id]); }); o.monate.forEach(rd);
+    o.monateMitDaten = o.letzter >= 0 ? o.letzter - o.erster + 1 : 0;
+    return o;
+  };
+  /** Was eine höhere Stufe im selben Zeitraum gebracht hätte: Kranken-Satz und Grundpauschale nach dem Agenturmodell. */
+  G.naechsteStufe = function (zeilen, r, opt, stufeId) {
+    var i = G.MODELL.findIndex(function (x) { return x.id === stufeId; }); if (i < 0 || !G.MODELL[i + 1]) return null;
+    var jetzt = G.MODELL[i], dann = G.MODELL[i + 1], r2 = JSON.parse(JSON.stringify(G.regeln(r)));
+    if (r2.kv.art !== 'anteil') return null;
+    r2.kv.wert = dann.mb;
+    var a1 = G.abrechnung(zeilen, r, opt), a2 = G.abrechnung(zeilen, r2, opt), mon = a1.monateMitDaten;
+    return { stufe: dann, provision: U.runde(a2.summe.an - a1.summe.an), gp: U.runde((dann.gp - jetzt.gp) * mon), monate: mon, ab: dann.produktion };
+  };
+  /** Abrechnungsdatei des Untervermittlers für den Agenturleiter: je Buchung Schlüssel, Sparte, gebuchte Provision und Anspruch. */
+  G.erzeugeAbrechnung = function (p, erg, r, opt) {
+    return { format: G.FORMAT, version: 2, art: 'abrechnung', erstellt: new Date().toISOString(), jahr: +p.jahr, von: String(p.einstellungen.vermittlernummer || ''), name: p.einstellungen.name || '',
+      zeitraum: { von: opt.von, bis: opt.bis }, regeln: r, summe: erg.summe, sparten: erg.sparten,
+      zeilen: erg.zeilen.map(function (x) { return { k: x.k, vnr: x.vnr, tarif: x.tarif, bdat: x.bdat, sparte: x.sparte, prov: x.prov, an: x.an }; }) };
+  };
+  G.istAbrechnungsdatei = function (o) { return !!(o && o.format === G.FORMAT && o.art === 'abrechnung' && Array.isArray(o.zeilen)); };
+  /**
+   * Abrechnungsdatei des Untervermittlers gegen die eigene Rechnung des Agenturleiters, Buchung für Buchung.
+   * Urteil: ok | abweichung | fehlt (Buchung nicht in der Abrechnung des Agenturleiters) | offen (dort kein Satz für die Sparte) | nichtGefordert (nur beim Agenturleiter)
+   */
+  G.vergleicheAbrechnung = function (datei, erg, tol) {
+    tol = tol == null ? 0.02 : tol;
+    var pool = {}; erg.zeilen.forEach(function (x) { (pool[x.k] || (pool[x.k] = [])).push(x); });
+    var o = { zeilen: [], summe: {}, anzahl: { ok: 0, abweichung: 0, fehlt: 0, offen: 0, nichtGefordert: 0 } };
+    var sum = function (sp) { return o.summe[sp] || (o.summe[sp] = { gefordert: 0, anspruch: 0, differenz: 0 }); };
+    datei.zeilen.forEach(function (x) {
+      var l = pool[x.k], own = l && l.length ? l.shift() : null, gef = +x.an || 0;
+      var r = { vnr: x.vnr, tarif: x.tarif, bdat: x.bdat, sparte: x.sparte, prov: x.prov, gefordert: U.runde(gef), anspruch: own ? own.an : null, differenz: null };
+      r.urteil = !own ? 'fehlt' : own.an == null ? 'offen' : Math.abs(gef - own.an) <= tol ? 'ok' : 'abweichung';
+      if (own && own.an != null) r.differenz = U.runde(gef - own.an);
+      o.zeilen.push(r); o.anzahl[r.urteil]++;
+      ['gesamt', x.sparte].forEach(function (sp) { var s = sum(sp); s.gefordert += gef; s.anspruch += own && own.an != null ? own.an : 0; });
+    });
+    Object.keys(pool).forEach(function (k) { pool[k].forEach(function (own) {
+      o.zeilen.push({ vnr: own.vnr, tarif: own.tarif, bdat: own.bdat, sparte: own.sparte, prov: own.prov, gefordert: 0, anspruch: own.an, differenz: own.an == null ? null : U.runde(-own.an), urteil: 'nichtGefordert' });
+      o.anzahl.nichtGefordert++;
+      ['gesamt', own.sparte].forEach(function (sp) { sum(sp).anspruch += own.an || 0; });
+    }); });
+    Object.keys(o.summe).forEach(function (k) { var s = o.summe[k]; s.gefordert = U.runde(s.gefordert); s.anspruch = U.runde(s.anspruch); s.differenz = U.runde(s.gefordert - s.anspruch); });
+    o.zeilen.sort(function (a, b) { return a.bdat < b.bdat ? -1 : a.bdat > b.bdat ? 1 : 0; });
+    return o;
+  };
+  G.URTEIL_ABR = { ok: 'stimmt überein', abweichung: 'Abweichung', fehlt: 'nicht in meiner Abrechnung', offen: 'kein Satz für die Sparte', nichtGefordert: 'nicht gefordert' };
 
   G.URTEIL = { ok: 'stimmt überein', abweichung: 'Abweichung', fehlt: 'nicht in der Abrechnung', ohneNr: 'Vertragsnummer fehlt' };
 

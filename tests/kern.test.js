@@ -812,3 +812,28 @@ test('Agenturmodell: Bankgeschäft mit festem Overhead, laufende anteilig, Phase
   const sp = G.gpPhase('2023-01-01', '2026-02-01', 9500); assert.deepEqual([sp.phase, sp.gp, sp.zweitesVollesJahr], ['staffel', 2750, 2024]);
   assert.equal(G.gpPhase('', '2026-01-01', 0), null);
 });
+
+test('Agentur: Regeln je Sparte, Abrechnung im Zeitraum, nächste Stufe, Abrechnungsdatei und Vergleich', () => {
+  const G = AB.agentur, R = AB.util.runde;
+  const z = [{ vm: '900385', vnr: '1', pnr: '1', tarif: 'A30', tg: 'Vollversicherung', bdat: '2026-01-10', part: 'Abschluss', bfProv: 'Ganze', fProv: 7, prov: 700, mbd: 100, prod: 100 },
+    { vm: '900385', vnr: '2', pnr: '1', tarif: 'SBU', tg: 'Lebensversicherung (Standard)', sparte: 'LV', bdat: '2026-02-10', part: 'Abschluss', bfProv: 'Ganze', fProv: 0, prov: 1000, mbd: 0, bwsd: 40000, prod: 0 },
+    { vm: '900385', vnr: '3', pnr: '1', tarif: 'UV1', tg: 'Unfallversicherung', bdat: '2026-04-10', part: 'Abschluss', bfProv: 'Ganze', fProv: 2, prov: 60, mbd: 30, prod: 30 },
+    { vm: '900385', vnr: '4', pnr: '1', tarif: 'UV1', tg: 'Unfallversicherung', bdat: '2026-04-11', part: 'Bestand', bfProv: 'Prozent', fProv: 10, prov: 3, mbd: 0, prod: 0 }];
+  assert.deepEqual(z.map(G.sparteVon), ['kv', 'lv', 'unfall', 'unfall']);
+  assert.equal(G.sparteVon({ tg: 'Zusatzversicherung (Art Leben)', sparte: 'KVUV' }), 'kv'); assert.equal(G.sparteVon({ tg: 'SDL (Beitragssenkungsplan)' }), 'lv');
+  const r = G.regeln({ kv: { art: 'anteil', wert: 5.5 }, lv: { art: 'promille', wert: 20 }, unfall: { art: 'prozent', wert: 80 } });
+  const a = G.abrechnung(z, r, { jahr: 2026 });
+  assert.equal(a.sparten.kv.an, 550); assert.equal(a.sparten.lv.an, 800); assert.equal(a.sparten.unfall.an, R(48 + 3));
+  assert.equal(a.summe.oh, R(1763 - 550 - 800 - 51)); assert.equal(a.monateMitDaten, 4);
+  const q1 = G.abrechnung(z, r, { jahr: 2026, von: 0, bis: 2 }); assert.equal(q1.summe.n, 2);
+  const ohneLv = G.abrechnung(z, G.regeln({ kv: { art: 'anteil', wert: 5.5 } }), { jahr: 2026 }); assert.ok(ohneLv.fehlt.lv && ohneLv.fehlt.unfall); assert.equal(ohneLv.summe.offen, 2);
+  assert.equal(G.zeilenFuer([{ vm: '900341', beteil: '900385 (Geschrieben)' }, { vm: '900341', beteil: '' }], '900385').length, 1);
+  const ns = G.naechsteStufe(z, r, { jahr: 2026 }, 'HV'); assert.equal(ns.stufe.id, 'GV'); assert.equal(ns.provision, 50); assert.equal(ns.gp, 500 * 4);
+  const p = { jahr: 2026, einstellungen: { vermittlernummer: '900385', name: '' } };
+  const datei = G.erzeugeAbrechnung(p, a, r, { von: 0, bis: 11 }); assert.ok(G.istDatei(datei) && G.istAbrechnungsdatei(datei));
+  // Agenturleiter rechnet Leben mit 18 ‰: eine Abweichung, Rest stimmt
+  const eigen = G.abrechnung(z, G.regeln({ kv: { art: 'anteil', wert: 5.5 }, lv: { art: 'promille', wert: 18 }, unfall: { art: 'prozent', wert: 80 } }), { jahr: 2026 });
+  const v = G.vergleicheAbrechnung(datei, eigen);
+  assert.deepEqual([v.anzahl.ok, v.anzahl.abweichung, v.summe.lv.differenz, v.summe.gesamt.differenz], [3, 1, 80, 80]);
+  datei.zeilen.pop(); const v2 = G.vergleicheAbrechnung(datei, eigen); assert.equal(v2.anzahl.nichtGefordert, 1);
+});
