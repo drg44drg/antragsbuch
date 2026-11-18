@@ -785,3 +785,17 @@ test('Selbst geführte Liste: eine Provisionsabrechnung wird nicht als Liste erk
   const kopf = AB.abrechnung.SPALTEN.map((s) => s[1]);
   assert.equal(AB.altbuch.finde([{ name: 'abrechnung', zeilen: [kopf, kopf.map(() => '1')] }]), null);
 });
+
+test('Eigene Antragsliste: Spaltennamen-Varianten, Status-Spalte, lockere Erkennung nur auf Wunsch', () => {
+  const L = AB.altbuch;
+  const sp = L.ordneFrei(['Eingangsdatum', 'Kunde', 'Produkt', 'Monatsbeitrag', 'Prov.', 'Datum Provision', 'Vers.-Nr.', 'Status', 'Notiz']);
+  assert.deepEqual([sp.datum, sp.name, sp.tarif, sp.beitrag, sp.prov, sp.provDatum, sp.vnr, sp.status, sp.bemerkung], [0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  const nurStatus = [{ name: 'x', zeilen: [['Eingang', 'Kunde', 'Tarif', 'Beitrag', 'Status'], ['05.05.2025', 'Neu, Nina', 'AP5', 16.58, 'policiert']] }];
+  const f = L.findeFrei(nurStatus); assert.ok(f);
+  assert.equal(L.lies(f, 2025).antraege[0].status, 'policiert');
+  const knapp = [{ name: 'x', zeilen: [['Kunde', 'Tarif', 'Sonstwas'], ['Neu, Nina', 'AP5', 1]] }];
+  assert.equal(L.findeFrei(knapp), null); assert.ok(L.findeFrei(knapp, { locker: true }));
+  const r = L.lies(L.findeFrei(knapp, { locker: true }), 2025);
+  assert.equal(r.antraege[0].eingang, '2025-01-01'); assert.match(r.antraege[0].bemerkung, /kein Eingangsdatum/);
+  assert.equal(L.rateKopf([['Titel'], [], ['A', 'B', 'C'], [1, 2, 3]]), 2);
+});

@@ -17,6 +17,10 @@
     } catch (e) { worker = null; }
   }
   App.mitWorker = function () { return !!worker; };
+  // Rechtehinweis: an einer Stelle gepflegt, angezeigt im Starthinweis, in den Einstellungen und in der Hilfe
+  AB.RECHTE = { inhaber: 'Lukas Dragowski', jahr: '2026',
+    kurz: '© 2026 Lukas Dragowski. Alle Rechte vorbehalten.',
+    lang: 'Das Antragsbuch ist urheberrechtlich geschützt. Es wird nur berechtigten Nutzern zur eigenen Arbeit überlassen. Ohne schriftliche Zustimmung des Rechteinhabers darf es weder ganz noch in Teilen kopiert, weitergegeben, veröffentlicht, verändert, nachgebaut oder in andere Programme übernommen werden. Ein Lizenz- oder Passwortschutz darf nicht entfernt oder umgangen werden. Ihre eigenen Daten gehören Ihnen und bleiben jederzeit exportierbar.' };
   App.lies = function (bytes, name, opt) {
     if (!worker) return AB.importer.lies(bytes, name, opt);
     return new Promise(function (res, rej) {
@@ -258,7 +262,7 @@
     var d = D.dialog('Bitte beachten', { klasse: 'schmal' });
     D.anhaengen(d.rumpf, App.HINWEIS.map(function (t, i) { return h('p', { style: { margin: i ? '10px 0 0' : 0 } }, t); }));
     var ok = D.btn('Verstanden', d.zu, { klasse: 'haupt-btn' }); ok.id = 'hinweisOk';
-    D.anhaengen(d.fuss, [h('span.mini', { style: { flex: 1 } }, 'Dieser Hinweis erscheint bei jedem Start. Sie finden ihn auch unter Hilfe.'), ok]);
+    D.anhaengen(d.fuss, [h('span.mini', { style: { flex: 1 } }, 'Dieser Hinweis erscheint bei jedem Start. Sie finden ihn auch unter Hilfe. ' + AB.RECHTE.kurz), ok]);
     ok.focus();
   };
 
@@ -305,8 +309,10 @@
     var r;
     try {
       var fuerUv = !!(opt.erwartet && opt.erwartet.id === 'uvabrechnung');
-      r = await App.lies(bytes, name, p ? { alt: !fuerUv && p.abrechnung && p.abrechnung.zeilen && p.abrechnung.zeilen.length ? p.abrechnung : null, importNr: p.importZaehler + 1, jahr: p.jahr, vermittlernummer: p.einstellungen.vermittlernummer, nurAbrechnung: !!opt.nurAbrechnung } : {});
+      r = await App.lies(bytes, name, p ? { alt: !fuerUv && p.abrechnung && p.abrechnung.zeilen && p.abrechnung.zeilen.length ? p.abrechnung : null, importNr: p.importZaehler + 1, alsAltbuch: !!(opt.erwartet && opt.erwartet.id === 'altbuch'), jahr: p.jahr, vermittlernummer: p.einstellungen.vermittlernummer, nurAbrechnung: !!opt.nurAbrechnung } : {});
     } finally { Sp.onstatus && Sp.onstatus(Sp.status); }
+    // Eigenes Antragsbuch nicht erkannt: Spalten von Hand zuordnen statt Fehlermeldung
+    if (opt.erwartet && opt.erwartet.id === 'altbuch' && r.art === 'tabelle' && p) return App.spaltenZuordnung(r, bytes, name, opt);
     // Getrennte Felder: passt der erkannte Inhalt nicht zum gewählten Feld, wird nachgefragt statt still verwechselt
     if (opt.erwartet && opt.erwartet.arten.indexOf(r.art) < 0) {
       var ok = await D.frage('Die Datei passt nicht zu diesem Feld', '„' + name + '" wurde im Feld „' + opt.erwartet.titel + '" abgelegt, ist nach dem Inhalt aber ' + (App.ARTNAME[r.art] || 'eine andere Datei') + '. Soll sie als das eingelesen werden, was sie ist?', 'Trotzdem einlesen');
@@ -393,6 +399,43 @@
       if (opt.still) { D.toast('Im Ordner liegt „' + name + '" – bitte im Reiter Veränderungsdienst einlesen.', { aktion: ['Öffnen', function () { App.zeige('vdienst'); AB.ansichten.vdienst.oeffne(r, name); }] }); return; }
       App.zeige('vdienst'); AB.ansichten.vdienst.oeffne(r, name);
     }
+  };
+
+  /** Spalten einer nicht erkannten Antragsliste von Hand zuordnen, dann wie ein altes Antragsbuch übernehmen. */
+  App.spaltenZuordnung = function (r, bytes, name, opt) {
+    var L = AB.altbuch, blaetter = (r.blaetter || []).filter(function (b) { return b.zeilen && b.zeilen.length > 1; });
+    if (!blaetter.length) { D.toast('„' + name + '" enthält keine Tabelle.', { krit: true }); return; }
+    var bi = 0; blaetter.forEach(function (b, i) { if (b.zeilen.length > blaetter[bi].zeilen.length) bi = i; });
+    var jd = /(20\d\d)/.exec(name), jahrFeld = h('input', { type: 'text', inputMode: 'numeric', value: jd ? jd[1] : String(App.p.jahr), style: { width: '90px' }, 'aria-label': 'Jahr der Einträge' });
+    var d = D.dialog('Spalten zuordnen', { klasse: 'mittel' }), box = h('div'), wahl = {}, kopf = -1;
+    function zeichne() {
+      var b = blaetter[bi], z = b.zeilen; if (kopf < 0 || kopf >= z.length) kopf = Math.max(0, L.rateKopf(z));
+      var sp = L.ordneFrei(z[kopf]), spalten = (z[kopf] || []).map(function (c, i) { return [String(i), (c == null || c === '' ? 'Spalte ' + (i + 1) : String(c).slice(0, 40))]; });
+      var beispiel = function (i) { for (var q = kopf + 1; q < Math.min(z.length, kopf + 8); q++) { var v = (z[q] || [])[i]; if (v != null && v !== '') return String(v).slice(0, 28); } return ''; };
+      D.leere(box); wahl = {};
+      D.anhaengen(box, [
+        h('p.muted', { style: { margin: '0 0 10px' } }, 'Die App hat in „' + name + '" keine bekannte Kopfzeile gefunden. Ordnen Sie unten zu, welche Ihrer Spalten was bedeutet. Pflicht sind Kunde und Beitrag oder Tarif. Was fehlt, bleibt leer.'),
+        h('div.formraster', null,
+          blaetter.length > 1 ? D.feld('Blatt', D.auswahl(blaetter.map(function (x, i) { return [String(i), x.name]; }), String(bi), function (v) { bi = +v; kopf = -1; zeichne(); }), 's4') : null,
+          D.feld('Kopfzeile ist Zeile', D.auswahl(z.slice(0, 15).map(function (_, i) { return [String(i), String(i + 1)]; }), String(kopf), function (v) { kopf = +v; zeichne(); }), 's2'),
+          D.feld('Jahr der Einträge', jahrFeld, 's2')),
+        h('table.einfach', { style: { marginTop: '10px' } }, h('thead', null, h('tr', null, h('th', null, 'Bedeutung im Antragsbuch'), h('th', null, 'Ihre Spalte'), h('th', null, 'Beispiel aus Ihrer Datei'))),
+          h('tbody', null, L.SPALTEN_FREI.map(function (def) {
+            var bsp = h('span.muted.klein'), sel = D.auswahl([['-1', '– nicht vorhanden –']].concat(spalten), String(sp[def.id] == null ? -1 : sp[def.id]), function (v) { bsp.textContent = +v >= 0 ? beispiel(+v) : ''; });
+            wahl[def.id] = sel; bsp.textContent = sp[def.id] >= 0 ? beispiel(sp[def.id]) : '';
+            return h('tr', null, h('td', null, def.titel, def.pflicht ? h('i.muted', null, ' (wichtig)') : null), h('td', null, sel), h('td', null, bsp));
+          })))]);
+    }
+    zeichne();
+    D.anhaengen(d.rumpf, box);
+    D.anhaengen(d.fuss, [h('span.mini', { style: { flex: 1 } }, 'Tipp: Benennen Sie die Spalten in Ihrer Datei einmal so wie unter Hilfe → „Mein eigenes Antragsbuch wird nicht erkannt", dann klappt es künftig ohne diesen Schritt.'),
+      D.btn('Abbrechen', d.zu), D.btn('Einlesen', function () {
+        var sp = {}; Object.keys(wahl).forEach(function (k) { sp[k] = +wahl[k].value; });
+        if (sp.name < 0 || (sp.beitrag < 0 && sp.tarif < 0)) { D.toast('Bitte mindestens Kunde und Beitrag oder Tarif zuordnen.', { krit: true }); return; }
+        var jahr = +jahrFeld.value || App.p.jahr, erg = L.liesFrei({ frei: true, blatt: blaetter[bi], kopf: kopf, sp: sp, jahr: jahr }, jahr);
+        if (!erg.antraege.length) { D.toast('Mit dieser Zuordnung wurden keine Einträge gefunden.', { krit: true }); return; }
+        d.zu(); App.uebernimmAltbuch({ art: 'altbuch', altbuch: erg, blatt: blaetter[bi].name }, bytes, name, opt);
+      }, { klasse: 'haupt-btn' })]);
   };
 
   /** Einträge aus dem alten Excel-Antragsbuch übernehmen (mit Rückfrage). */

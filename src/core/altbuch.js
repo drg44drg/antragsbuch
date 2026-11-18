@@ -77,28 +77,48 @@
 
   // ---------- Frei geführte Liste: eine Zeile je Antrag, Spalten nach Kopfzeile ----------
   // Typisch: „Datum Vertrag | MNR | Name | Tarife | MB | GV | Bank | Provision | Datum Provision“, Datum ohne Jahr.
-  var KOPF_FREI = {
-    datum: function (c) { return /datum|eingang/.test(c) && !/prov|abger|bezahlt/.test(c); },
-    name: function (c) { return /^(name|kunde|antragsteller|vn\b|versicherungsnehmer)/.test(c); },
-    tarif: function (c) { return /^(tarif|sparte|produkt)/.test(c); },
-    beitrag: function (c) { return /^(mb|beitrag|monatsbeitrag|mehrbeitrag)\b/.test(c); },
-    prov: function (c) { return /^provision\b/.test(c) && !/datum/.test(c); },
-    vnr: function (c) { return /^(mnr|vnr|vers\.?\s*nr|vertragsn|mitglied|vertrag$)/.test(c) && !/datum/.test(c); },
-    gv: function (c) { return /^(gv|gruppenvertrag|gvnr)\b/.test(c); },
-    bank: function (c) { return /^bank/.test(c); },
-    provDatum: function (c) { return /datum.*prov|prov.*datum|abgerechnet|ausgezahlt|bezahlt/.test(c); },
-    bemerkung: function (c) { return /^(bemerkung|notiz|info)/.test(c); }
+  // Spalten einer selbst geführten Liste. „namen" sind die Überschriften, die automatisch erkannt werden (Groß-/Kleinschreibung egal).
+  L.SPALTEN_FREI = [
+    { id: 'datum', titel: 'Eingang', pflicht: true, namen: 'Datum, Datum Vertrag, Eingang, Eingangsdatum, Antragsdatum, eingereicht am, Monat', test: function (c) { return (/datum|eingang|eingereicht|^monat$/.test(c)) && !/prov|abger|bezahlt|ausgez|beginn|geburt/.test(c); } },
+    { id: 'name', titel: 'Kunde', pflicht: true, namen: 'Name, Kunde, Antragsteller, VN, Versicherungsnehmer, Versicherte Person', test: function (c) { return /^(name|kunde|antragsteller|vn\b|versicherungsnehmer|versicherte person|nachname)/.test(c); } },
+    { id: 'tarif', titel: 'Tarif / Was', pflicht: true, namen: 'Tarif, Tarife, Produkt, Sparte, Art, Vorgang', test: function (c) { return /^(tarif|produkt|sparte|art\b|vorgang)/.test(c); } },
+    { id: 'beitrag', titel: 'Beitrag', pflicht: true, namen: 'MB, Beitrag, Monatsbeitrag, Mehrbeitrag, Beitrag mtl., Prämie', test: function (c) { return /^(mb|beitrag|monatsbeitrag|mehrbeitrag|monatl|mtl|praemie)\b/.test(c) || /^beitrag/.test(c); } },
+    { id: 'prov', titel: 'Erwartete Provision', namen: 'Provision, Prov., erwartete Provision, Courtage, Vergütung', test: function (c) { return (/^(provision|prov\b|prov\.|erwartete provision|courtage|verguetung)/.test(c)) && !/datum|monat|am$/.test(c); } },
+    { id: 'vnr', titel: 'Vertragsnummer', namen: 'MNR, VNR, Vertragsnummer, Vers.-Nr., Mitgliedsnummer, Vertrag', test: function (c) { return /^(mnr|vnr|vers\.?\s*-?\s*nr|vertragsn|mitglied|vertrag$|vertrags-nr|antragsn)/.test(c) && !/datum/.test(c); } },
+    { id: 'gv', titel: 'Gruppenvertrag', namen: 'GV, Gruppenvertrag, GV-Nr.', test: function (c) { return /^(gv|gruppenvertrag|gvnr)\b/.test(c); } },
+    { id: 'bank', titel: 'Bank beteiligt', namen: 'Bank (Inhalt ja/x)', test: function (c) { return /^bank/.test(c); } },
+    { id: 'provDatum', titel: 'Abgerechnet im Monat', namen: 'Datum Provision, Provision am, abgerechnet, ausgezahlt, bezahlt', test: function (c) { return /datum.*prov|prov.*(datum|monat|am$)|abgerechnet|ausgezahlt|bezahlt/.test(c); } },
+    { id: 'status', titel: 'Status', namen: 'Status, Stand, policiert', test: function (c) { return /^(status|stand$|policiert)/.test(c); } },
+    { id: 'bemerkung', titel: 'Bemerkung', namen: 'Bemerkung, Notiz, Info, Kommentar', test: function (c) { return /^(bemerkung|notiz|info|kommentar|anmerkung)/.test(c); } }
+  ];
+  /** Spalten aus einer Kopfzeile zuordnen → { datum: i, name: i, … } (-1 = nicht da). Jede Spalte wird höchstens einmal vergeben. */
+  L.ordneFrei = function (kopfzeile) {
+    var k = (kopfzeile || []).map(function (c) { return U.falte(c == null ? '' : c).trim(); }), sp = {}, belegt = {};
+    // speziellere Spalten zuerst, damit „Datum Provision" nicht als Eingang und „Provision" nicht doppelt zählt
+    ['provDatum', 'vnr', 'gv', 'bank', 'status', 'bemerkung', 'prov', 'datum', 'name', 'tarif', 'beitrag'].forEach(function (id) {
+      var def = L.SPALTEN_FREI.filter(function (x) { return x.id === id; })[0];
+      sp[id] = k.findIndex(function (c, i) { return c && !belegt[i] && def.test(c); });
+      if (sp[id] >= 0) belegt[sp[id]] = 1;
+    });
+    return sp;
   };
-  L.findeFrei = function (blaetter) {
+  /** Wahrscheinliche Kopfzeile: die erste der ersten 15 Zeilen mit mindestens drei Textzellen. */
+  L.rateKopf = function (zeilen) {
+    for (var r = 0; r < Math.min(15, zeilen.length); r++) if ((zeilen[r] || []).filter(function (c) { return typeof c === 'string' && /[a-zäöü]/i.test(c); }).length >= 3) return r;
+    return -1;
+  };
+  L.findeFrei = function (blaetter, opt) {
     for (var b = 0; b < blaetter.length; b++) {
       var zl = blaetter[b].zeilen;
       for (var r = 0; r < Math.min(12, zl.length); r++) {
-        var k = (zl[r] || []).map(function (c) { return U.falte(c == null ? '' : c).trim(); }), sp = {};
+        var k = (zl[r] || []).map(function (c) { return U.falte(c == null ? '' : c).trim(); }), sp = L.ordneFrei(zl[r]);
         // Provisionsabrechnung oder Bestandsliste des Versicherers ist keine selbst geführte Liste
         if (k.some(function (c) { return /provisionsart|buchungsdatum|^tarifgruppe|vermittlernummer|monatsbeitragsdifferenz/.test(c); })) continue;
-        Object.keys(KOPF_FREI).forEach(function (f) { sp[f] = k.findIndex(function (c) { return c && KOPF_FREI[f](c); }); });
-        // Mindestens Datum, Name, Tarif, Beitrag und Provision – sonst ist es eher eine andere Liste (z. B. Veränderungsdienst)
-        if (sp.datum < 0 || sp.name < 0 || sp.tarif < 0 || sp.beitrag < 0 || sp.prov < 0) continue;
+        // Automatisch: Datum, Name, Tarif, Beitrag und Provision (oder Abrechnungsmonat/Status), sonst ist es eher eine andere Liste
+        // (z. B. Veränderungsdienst). Im Feld „Mein bisheriges Antragsbuch" genügen Name und Tarif oder Beitrag.
+        var voll = sp.datum >= 0 && sp.name >= 0 && sp.tarif >= 0 && sp.beitrag >= 0 && (sp.prov >= 0 || sp.provDatum >= 0 || sp.status >= 0);
+        var locker = opt && opt.locker && sp.name >= 0 && (sp.tarif >= 0 || sp.beitrag >= 0);
+        if (!voll && !locker) continue;
         var jm = /(20\d\d)/.exec(blaetter[b].name || '');
         return { frei: true, blatt: blaetter[b], kopf: r, sp: sp, jahr: jm ? +jm[1] : null };
       }
@@ -158,7 +178,8 @@
       var m = typeof dv === 'string' ? /^\s*(\d{1,2})\.(\d{1,2})\.?\s*(\d{2,4})?\s*$/.exec(dv) : null;
       if (m) { var y = m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : jahr; datum = y + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2); }
       else datum = U.parseDatum(dv);
-      if (!datum) { if (!letztesDatum) { uebersprungen++; continue; } datum = letztesDatum; hinweise.push('Datum aus der Zeile darüber'); }
+      if (!datum && typeof dv === 'string' && monatAus(dv) >= 0) { datum = jahr + '-' + ('0' + (monatAus(dv) + 1)).slice(-2) + '-01'; hinweise.push('nur Monat angegeben'); }
+      if (!datum) { if (!letztesDatum) { if (sp.datum >= 0) { uebersprungen++; continue; } datum = jahr + '-01-01'; hinweise.push('kein Eingangsdatum'); } else { datum = letztesDatum; hinweise.push('Datum aus der Zeile darüber'); } }
       letztesDatum = datum;
       var pr = L.betragAus(zelle(z, 'prov')), gvRoh = zelle(z, 'gv'), gv = '', gvFremd = false;
       // Gruppenvertragsnummern sind ganze Zahlen mit mindestens fünf Stellen. Steht dort ein Betrag, ist die Spalte anders benutzt.
@@ -183,7 +204,13 @@
       var pd = zelle(z, 'provDatum'), status = 'eingereicht', statusDatum = datum, mo = typeof pd === 'string' ? monatAus(pd) : -1, pdDatum = U.parseDatum(pd);
       if (mo >= 0) { var ein = +datum.slice(5, 7) - 1, yj = +datum.slice(0, 4) + (mo < ein - 1 ? 1 : 0); status = 'abgerechnet'; statusDatum = yj + '-' + ('0' + (mo + 1)).slice(-2) + '-01'; if (statusDatum < datum) statusDatum = datum; }
       else if (pdDatum) { status = 'abgerechnet'; statusDatum = pdDatum; }
-      else if (text(pd)) {
+      var stt = U.falte(text(zelle(z, 'status')));
+      if (status === 'eingereicht' && stt) {
+        if (/abgerechnet|ausgezahlt|bezahlt/.test(stt)) status = 'abgerechnet'; else if (/polic|^ja$|^x$/.test(stt)) status = 'policiert';
+        else if (/abgelehnt/.test(stt)) status = 'abgelehnt'; else if (/widerruf/.test(stt)) status = 'widerruf'; else if (/storno/.test(stt)) status = 'storno'; else if (/absage|zurueck/.test(stt)) status = 'absage';
+        else hinweise.push('Status: ' + text(zelle(z, 'status')));
+      }
+      if (status === 'eingereicht' && text(pd)) {
         var pt = U.falte(pd);
         if (/abgelehnt/.test(pt)) status = 'abgelehnt'; else if (/widerruf/.test(pt)) status = 'widerruf'; else if (/storno/.test(pt)) status = 'storno';
         hinweise.push(text(pd));

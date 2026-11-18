@@ -240,5 +240,8 @@
             geschuetzt ? D.btn('Schutz aufheben', function () { D.frage('Passwortschutz aufheben?', 'Die Projektdatei wird danach wieder unverschlüsselt gespeichert.', 'Schutz aufheben', { gefahr: true }).then(function (ja) { if (ja) { Sp.schluessel = null; Sp.plane(p); App.zeige('einstellungen'); } }); }, { klasse: 'leise gefahr' }) : null)));
       el.appendChild(h('div.karte', null, h('h3', null, 'Sicherungsstände'), h('div.unter', null, 'Vor jedem Import wird automatisch ein Stand angelegt; die letzten 10 bleiben im Projekt. Gesichert werden Anträge, Zuordnungen und Einstellungen (die Abrechnung lässt sich jederzeit neu einlesen).'),
         p.sicherungen.length ? h('table.einfach', null, sb) : h('div.muted.klein', null, 'Noch keine Sicherungsstände.')));
+      el.appendChild(h('div.karte', null, h('div.leiste', null, h('h3', null, 'Urheberrecht'), h('span.frei'), h('span.marke-s', null, AB.RECHTE.kurz)),
+        h('p', { style: { margin: '8px 0 6px' } }, AB.RECHTE.lang),
+        h('div.muted.klein', null, 'Rechteinhaber: ' + AB.RECHTE.inhaber + '. Fragen zu Nutzung und Weitergabe richten Sie bitte an ihn.')));
     } };
 })(globalThis.AB = globalThis.AB || {});

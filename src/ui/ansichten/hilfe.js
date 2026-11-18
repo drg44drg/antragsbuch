@@ -23,6 +23,7 @@
       wann: 'Bei roten Ampeln, offenen Nachbearbeitungen und Abweichungen. Danach beginnt der Kreis mit dem nächsten Antrag von vorn.', datei: 'Export als Excel oder PDF.' }
   ];
   var FAQ = [
+    ['Mein eigenes Antragsbuch wird nicht erkannt', 'Legen Sie die Datei im Feld „Mein bisheriges Antragsbuch" ab. Erkennt die App die Spalten nicht, öffnet sich „Spalten zuordnen": Dort wählen Sie zu jeder Bedeutung Ihre Spalte. Dauerhaft einfacher: Benennen Sie die Überschriften in Ihrer Excel-Datei einmal wie in der Tabelle „Eigene Antragsliste einlesen" weiter unten. Eine Zeile je Antrag, die Überschriften in einer Zeile über den Einträgen.'],
     ['Wo sind meine Daten gespeichert?', 'In Ihrer Projektdatei – den Speicherort haben Sie beim Anlegen selbst gewählt – und als Sicherung im Browser dieses Rechners. Nichts wird ins Internet übertragen; das ist im Programm gesperrt.'],
     ['Muss ich speichern?', 'Nein. Jede Änderung wird automatisch gespeichert. Unten links steht „Gespeichert um …". Kann der Browser nicht direkt in Dateien schreiben, erscheint dort ein Hinweis; dann bitte regelmäßig „Kopie herunterladen".'],
     ['Die Abrechnung enthält doch wieder alle Monate – lese ich etwas doppelt ein?', 'Nein. Die Datei ist kumuliert, und jeder Import ersetzt den Stand des Jahres. Die App vergleicht mit dem letzten Import und markiert nur die neuen Buchungen. Bestätigte Zuordnungen und abgehakte Buchungen bleiben erhalten.'],
@@ -133,6 +134,12 @@
       abschnitt('Meine Produktion und Bonus', h('p', null, '„Meine Produktion" wertet allein die eigene Abrechnung aus – ohne dass ein Antrag erfasst sein muss. „Bonus" rechnet den Stand im ADP-Wettbewerb aus den Werten des Bonus-Reportings.')),
       abschnitt('Export, Druck, Darstellung', h('p', null, 'Jede Liste hat „Excel" (formatiert, mit Farben; mit Umschalt-Taste als CSV) und „Drucken" – im Druckdialog „Als PDF speichern" wählen. Oben rechts wechseln Sie zwischen Auto, Hell und Dunkel.')),
       abschnitt('Datenschutz', h('p', null, 'Die App arbeitet vollständig offline; eine Internetverbindung ist im Programm gesperrt. Alle Daten liegen in Ihrer Projektdatei und im Browser dieses Geräts. Geben Sie die Projektdatei nicht weiter und tragen Sie keine Gesundheitsangaben ein.')),
+      abschnitt('Eigene Antragsliste einlesen', h('div', null,
+        h('p', null, 'Führen Sie Ihr Antragsbuch bisher selbst in Excel? Die App liest jede Liste mit einer Zeile je Antrag. Diese Überschriften erkennt sie von allein (Groß- und Kleinschreibung egal). Fehlt eine Spalte, bleibt das Feld leer.'),
+        h('table.einfach', null, h('thead', null, h('tr', null, h('th', null, 'Bedeutung'), h('th', null, 'So darf die Spalte heißen'))),
+          h('tbody', null, AB.altbuch.SPALTEN_FREI.map(function (x) { return h('tr', null, h('td', null, x.titel, x.pflicht ? ' *' : ''), h('td', null, x.namen)); }))),
+        h('p.mini', null, '* wichtig. Datum ohne Jahr (z. B. 16.01.) ist erlaubt, das Jahr kommt aus dem Dateinamen. „45,07 + 12,88" wird addiert. Ein Monatsname in „Datum Provision" bedeutet abgerechnet. In der Spalte „Tarif" erkennt die App Kürzel wie GV, BE, TA, KiNA, ZP7, Erh., Umst. Was sie nicht sicher deuten kann, steht danach unter Nachbearbeitung „offen".'))),
+      abschnitt('Urheberrecht', h('p', null, AB.RECHTE.kurz + ' ' + AB.RECHTE.lang)),
       abschnitt('Tasten', liste('ul', ['N – neuer Antrag', '/ – in die Suche springen', 'F3 / F4 – Kundensuche nach Nummer / Name', 'Enter – speichern · Strg+Enter – speichern & nächster', 'Alt+P – weitere Position · Esc – Dialog schließen'])))));
   } };
 })(globalThis.AB = globalThis.AB || {});

@@ -366,3 +366,14 @@ Offen:
 ## Version 4.3 (selbst geführte Antragslisten)
 
 Bestätigt (18.11.2026): Spalte „Provision“ in selbst geführten Listen ist die erwartete Provision. „FF“ heißt Fortführung; der Bereich bleibt zur Prüfung markiert, weil er aus dem Kürzel allein nicht hervorgeht.
+
+## Version 4.4 (Antragslisten anderer ADP, Urheberrechtshinweis)
+
+Erledigt:
+- Selbst geführte Antragslisten: viele Spaltennamen-Varianten, Status-Spalte, Monat statt Datum. Erkennt die App die Spalten nicht, öffnet sich „Spalten zuordnen“ (Vorbelegung, Beispielwerte, Jahr). Tabelle der erkannten Spaltennamen unter Hilfe → „Eigene Antragsliste einlesen“.
+- Rechteinhaber: © 2026 Lukas Dragowski im Dateikopf, in den Metadaten, im Starthinweis, unter Einstellungen → Urheberrecht und in der Hilfe.
+
+Offen:
+- ADP-Anleitung: Tabelle der Spaltennamen als eigene Seite aufnehmen.
+- Kontaktweg für Nutzungsanfragen (E-Mail oder Telefon) im Rechtehinweis, falls gewünscht.
+- Arbeitsrechtliche Frage klären: Ist das Programm im Rahmen der Tätigkeit für den Versicherer entstanden (§ 69b UrhG)?

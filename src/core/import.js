@@ -22,7 +22,7 @@
       throw new Error('Diese JSON-Datei gehört nicht zum Antragsbuch.');
     }
     var t = await AB.xlsx.liesTabelle(bytes, dateiname);
-    var altFund = AB.altbuch.finde(t.blaetter), altErg = altFund ? AB.altbuch.lies(altFund, opt.jahr, dateiname) : null;
+    var altFund = AB.altbuch.finde(t.blaetter) || (opt.alsAltbuch ? AB.altbuch.findeFrei(t.blaetter, { locker: true }) : null), altErg = altFund ? AB.altbuch.lies(altFund, opt.jahr, dateiname) : null;
     if (altErg && !altErg.antraege.length) altErg = null;
     // Abrechnung? (auch als Blatt einer Excel-Mappe)
     for (var b = 0; b < t.blaetter.length; b++) {
